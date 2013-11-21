@@ -2516,7 +2516,7 @@ case "${target}" in
 	script_list="idt32 idt64 cfe"
 	bsp_list="libcygmon.a libidt.a libcfe.a"
 	;;
-  mips*-mti*-*)
+  mips*-mti*-* | mips*-img*-*)
 	crt0="crt0_cfe.o crt0.o"
         part_specific_obj=
         part_specific_defines=
