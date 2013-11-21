@@ -38,12 +38,20 @@
 #include <regdef.h>
 #include <sys/asm.h>
 #define PREFETCH_LOAD_HINT PREFETCH_HINT_LOAD_STREAMED
+#if __mips_isa_rev < 6
 #define PREFETCH_STORE_HINT PREFETCH_HINT_PREPAREFORSTORE
+#else
+#define PREFETCH_STORE_HINT PREFETCH_HINT_STORE_STREAMED
+#endif
 #elif _COMPILING_NEWLIB
 #include "machine/asm.h"
 #include "machine/regdef.h"
 #define PREFETCH_LOAD_HINT PREFETCH_HINT_LOAD_STREAMED
+#if __mips_isa_rev < 6
 #define PREFETCH_STORE_HINT PREFETCH_HINT_PREPAREFORSTORE
+#else
+#define PREFETCH_STORE_HINT PREFETCH_HINT_STORE_STREAMED
+#endif
 #else
 #include <regdef.h>
 #include <sys/asm.h>
@@ -170,14 +178,14 @@
  pref PREFETCH_STORE_HINT, (chunk)*32(reg)
 #endif
 /* MAX_PREFETCH_SIZE is the maximum size of a prefetch, it must not be less
- * then PREFETCH_CHUNK, the assumed size of each prefetch.  If the real size
- * of a prefetch is greater then MAX_PREFETCH_SIZE and the PREPAREFORSTORE
- * hint is used, the code will not work corrrectly.  If PREPAREFORSTORE is not
+ * than PREFETCH_CHUNK, the assumed size of each prefetch.  If the real size
+ * of a prefetch is greater than MAX_PREFETCH_SIZE and the PREPAREFORSTORE
+ * hint is used, the code will not work correctly.  If PREPAREFORSTORE is not
  * used then MAX_PREFETCH_SIZE does not matter.  */
 #define MAX_PREFETCH_SIZE 128
-/* PREFETCH_LIMIT is set based on the fact that we neve use an offset greater
- * then 5 on a STORE prefetch and that a single prefetch can never be larger
- * then MAX_PREFETCH_SIZE.  We add the extra 32 when USE_DOUBLE is set because
+/* PREFETCH_LIMIT is set based on the fact that we never use an offset greater
+ * than 5 on a STORE prefetch and that a single prefetch can never be larger
+ * than MAX_PREFETCH_SIZE.  We add the extra 32 when USE_DOUBLE is set because
  * we actually do two prefetches in that case, one 32 bytes after the other.  */
 #ifdef USE_DOUBLE
 # define PREFETCH_LIMIT (5 * PREFETCH_CHUNK) + 32 + MAX_PREFETCH_SIZE
@@ -187,7 +195,7 @@
 #if (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE) \
     && ((PREFETCH_CHUNK * 4) < MAX_PREFETCH_SIZE)
 /* We cannot handle this because the initial prefetches may fetch bytes that
- * are before the buffer being copied.  We start copies with an offset 
+ * are before the buffer being copied.  We start copies with an offset
  * of 4 so avoid this situation when using PREPAREFORSTORE.  */
 #error "PREFETCH_CHUNK is too large and/or MAX_PREFETCH_SIZE is too small."
 #endif
@@ -206,7 +214,7 @@
 #define REG1 t1
 #define REG2 t2
 #define REG3 t3
-#if defined(_MIPS_SIM) && (_MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIO64)
+#if defined(_MIPS_SIM) && ((_MIPS_SIM == _ABIO32) || (_MIPS_SIM == _ABIO64))
 #  define REG4 t4
 #  define REG5 t5
 #  define REG6 t6
@@ -290,7 +298,7 @@ LEAF(MEMCPY_NAME)
 L(memcpy):
 #endif
 /*
- * If the size is less then 2*NSIZE (8 or 16), go to L(lastb).  Regardless of
+ * If the size is less than 2*NSIZE (8 or 16), go to L(lastb).  Regardless of
  * size, copy dst pointer to v0 for the return value.
  */
 	slti	t2,a2,(2 * NSIZE)
@@ -300,6 +308,9 @@ L(memcpy):
 #else
 	move	v0,a0
 #endif
+
+#if __mips_isa_rev < 6
+
 /*
  * If src and dst have different alignments, go to L(unaligned), if they
  * have the same alignment (but are not actually aligned) do a partial
@@ -320,6 +331,38 @@ L(memcpy):
 	C_STHI	t8,0(a0)
 	PTR_ADDU a0,a0,a3
 
+L(aligned):
+
+#else /* __mips_isa_rev < 6 */
+
+/* Align the destination and then check to see if the source is also aligned.
+ */
+	andi	t8,a0,1
+	beq	t8,zero,L(align2)
+	PTR_SUBU a2,a2,t8
+	lb	a3,0(a1)
+	PTR_ADDU a1,a1,t8
+	sb	a3,0(a0)
+	PTR_ADDU a0,a0,t8
+L(align2):
+	andi	t8,a0,2
+	beq	t8,zero,L(align4)
+	PTR_SUBU a2,a2,t8
+	lh	a3,0(a1)
+	PTR_ADDU a1,a1,t8
+	sh	a3,0(a0)
+	PTR_ADDU a0,a0,t8
+L(align4):
+	andi	t8,a1,3
+	beq	t8,zero,L(aligned)
+	nop
+
+	j	L(lastb)
+
+L(aligned):
+
+#endif /* __mips_isa_rev < 6 */
+
 /*
  * Now dst/src are both aligned to (word or double word) aligned addresses
  * Set a2 to count how many bytes we have to copy after all the 64/128 byte
@@ -328,7 +371,6 @@ L(memcpy):
  * equals a3.
  */
 
-L(aligned):
 	andi	t8,a2,NSIZEDMASK /* any whole 64-byte/128-byte chunks? */
 	beq	a2,t8,L(chkw)	 /* if a2==t8, no 64-byte/128-byte chunks */
 	PTR_SUBU a3,a2,t8	 /* subtract from a2 the reminder */
@@ -378,8 +420,14 @@ L(loop16w):
 	bgtz	v1,L(skip_pref)
 #endif
 	C_LD	t1,UNIT(1)(a1)
+#if !defined (USE_DOUBLE) || (__mips_isa_rev < 6)
 	PREFETCH_FOR_STORE (4, a0)
 	PREFETCH_FOR_STORE (5, a0)
+#else
+	/* FIXME - r6 prefetch has 9 bit offset, not 16 */
+	PREFETCH_FOR_STORE (2, a0)
+	PREFETCH_FOR_STORE (3, a0)
+#endif
 #if defined(RETURN_LAST_PREFETCH) && defined(USE_PREFETCH)
 	PTR_ADDIU v0,a0,(PREFETCH_CHUNK*5)
 #ifdef USE_DOUBLE
@@ -393,8 +441,12 @@ L(skip_pref):
 	C_LD	REG5,UNIT(5)(a1)
 	C_LD	REG6,UNIT(6)(a1)
 	C_LD	REG7,UNIT(7)(a1)
+#if __mips_isa_rev < 6
         PREFETCH_FOR_LOAD (4, a1)
-
+#else
+	/* FIXME - r6 prefetch has 9 bit offset, not 16 */
+	PREFETCH_FOR_LOAD (3, a1)
+#endif
 	C_ST	t0,UNIT(0)(a0)
 	C_ST	t1,UNIT(1)(a0)
 	C_ST	REG2,UNIT(2)(a0)
@@ -412,7 +464,12 @@ L(skip_pref):
 	C_LD	REG5,UNIT(13)(a1)
 	C_LD	REG6,UNIT(14)(a1)
 	C_LD	REG7,UNIT(15)(a1)
+#if __mips_isa_rev < 6
         PREFETCH_FOR_LOAD (5, a1)
+#else
+	/* FIXME - r6 prefetch has 9 bit offset, not 16 */
+	PREFETCH_FOR_LOAD (3, a1)
+#endif
 	C_ST	t0,UNIT(8)(a0)
 	C_ST	t1,UNIT(9)(a0)
 	C_ST	REG2,UNIT(10)(a0)
@@ -458,7 +515,7 @@ L(chkw):
 	PTR_ADDIU a0,a0,UNIT(8)
 
 /*
- * Here we have less then 32(64) bytes to copy.  Set up for a loop to
+ * Here we have less than 32(64) bytes to copy.  Set up for a loop to
  * copy one word (or double word) at a time.  Set a2 to count how many
  * bytes we have to copy after all the word (or double word) chunks are
  * copied and a3 to the dst pointer after all the (d)word chunks have
@@ -491,6 +548,8 @@ L(lastbloop):
 L(leave):
 	j	ra
 	nop
+
+#if __mips_isa_rev < 6
 /*
  * UNALIGNED case, got here with a3 = "negu a0"
  * This code is nearly identical to the aligned code above
@@ -650,7 +709,7 @@ L(ua_chkw):
 	C_ST	REG7,UNIT(7)(a0)
 	PTR_ADDIU a0,a0,UNIT(8)
 /*
- * Here we have less then 32(64) bytes to copy.  Set up for a loop to
+ * Here we have less than 32(64) bytes to copy.  Set up for a loop to
  * copy one word (or double word) at a time.
  */
 L(ua_chk1w):
@@ -681,6 +740,8 @@ L(ua_smallCopy_loop):
 
 	j	ra
 	nop
+
+#endif /* __mips_isa_rev < 6 */
 
 	.set	at
 	.set	reorder
