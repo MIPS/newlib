@@ -27,6 +27,10 @@
  * SUCH DAMAGE.
  */
 
+#if (defined(_MIPS_ARCH_MIPS32R6) || defined(_MIPS_ARCH_MIPS64R6))
+/* Do nothing. See memcpy-stub.c */
+#else
+
 #ifdef ANDROID_CHANGES
 #include "machine/asm.h"
 #include "machine/regdef.h"
@@ -690,3 +694,5 @@ END(MEMCPY_NAME)
 libc_hidden_builtin_def (MEMCPY_NAME)
 #endif
 #endif
+
+#endif // defined(_MIPS_ARCH_MIPS32R6) || defined(_MIPS_ARCH_MIPS64R6)

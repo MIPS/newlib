@@ -57,6 +57,7 @@ case "${target}" in
         ;;
   mipsisa32-*-* | mipsisa32el-*-* | \
   mipsisa32r2-*-* | mipsisa32r2el-*-* | \
+  mipsisa32r6-*-* | mipsisa32r6el-*-* | \
   mipsisa64*-*-*)
 	crt0="crt0_cfe.o crt0_cygmon.o crt0.o"
 	pcrt0="pcrt0.o"
@@ -65,6 +66,13 @@ case "${target}" in
 	script_list="idt32 idt64 cfe"
 	bsp_list="libcygmon.a libidt.a libcfe.a"
 	;;
+  mips*-mti*-*)
+	crt0="crt0_cfe.o crt0.o"
+        part_specific_obj=
+        part_specific_defines=
+	script_list="idt nullmon mti32 mti64 mti64_n32 mti64_64"
+        bsp_list="libidt.a libnullmon.a"
+        ;;
   mips*-lsi*-*)
 	part_specific_obj=entry.o
 	part_specific_defines=
