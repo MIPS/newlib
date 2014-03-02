@@ -67,7 +67,7 @@ OBJCOPY = `if [ -f ${objroot}/../binutils/objcopy ] ; \
 CRT0 = @crt0@
 PCRT0 = @pcrt0@
 GENOBJS = syscalls.o fstat.o getpid.o isatty.o kill.o \
-	lseek.o print.o putnum.o stat.o unlink.o __exit.o
+	lseek.o print.o putnum.o stat.o unlink.o
 GENOBJS2 = open.o close.o read.o write.o
 IDTOBJS = idtmon.o @part_specific_obj@ ${GENOBJS}
 PMONOBJS = pmon.o @part_specific_obj@ ${GENOBJS}
@@ -76,12 +76,6 @@ DVEOBJS = dvemon.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 JMR3904OBJS = jmr3904-io.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 CFEOBJS = cfe.o cfe_api.o cfe_mem.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 CYGMONOBJS = open.o close.o cygmon.o @part_specific_obj@ ${GENOBJS}
-HOSTEDOBJS = hosted_assert.o hosted_close.o hosted_exit.o hosted_fstat.o \
-  hosted_get_mem_info.o hosted_lseek.o hosted_open.o hosted_plog.o \
-  hosted_pread.o hosted_pwrite.o hosted_read.o hosted_rename.o hosted_stat.o \
-  hosted_unlink.o hosted_write.o hosted_getargs.o syscalls.o getpid.o isatty.o \
-  kill.o
-YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
@@ -144,14 +138,6 @@ libcygmon.a: $(CYGMONOBJS)
 
 libcfe.a: $(CFEOBJS)
 	${AR} ${ARFLAGS} $@ $(CFEOBJS)
-	${RANLIB} $@
-
-libhosted.a: $(HOSTEDOBJS)
-	${AR} ${ARFLAGS} $@ $(HOSTEDOBJS)
-	${RANLIB} $@
-
-libyamon.a: $(YAMONOBJS)
-	${AR} ${ARFLAGS} $@ $(YAMONOBJS)
 	${RANLIB} $@
 
 # nullmon.a , This is what you want if you want crt0 but NO mon services
@@ -243,8 +229,6 @@ vr4300.o: ${srcdir}/vr4300.S
 vr5xxx.o: ${srcdir}/vr5xxx.S
 	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/vr5xxx.S
 lsipmon.o: $(srcdir)/lsipmon.S $(srcdir)/pmon.S
-__exit.o: ${srcdir}/__exit.c
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/__exit.c -o $@
 jmr3904-io.o: ${srcdir}/jmr3904-io.c
 	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/jmr3904-io.c -o $@
 cfe.o: ${srcdir}/cfe.c ${srcdir}/cfe_api.h
