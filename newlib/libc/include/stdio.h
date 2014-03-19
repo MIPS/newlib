@@ -686,3 +686,14 @@ _ELIDABLE_INLINE int __sputc_r(struct _reent *_ptr, int _c, FILE *_p) {
 _END_STD_C
 
 #endif /* _STDIO_H_ */
+
+#if ( defined (__mips_clib_small) || defined (__mips_clib_tiny) )
+#undef	getc
+#undef	putc
+#undef	getchar
+#undef	putchar
+#undef	feof
+#undef	ferror
+#undef	clearerr
+#endif
+

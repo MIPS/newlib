@@ -1395,6 +1395,11 @@ nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 /*  sizes, alignments */
 
+#ifdef __mips
+#undef MALLOC_ALIGNMENT
+#define MALLOC_ALIGNMENT        16
+#endif
+
 #define SIZE_SZ                (sizeof(INTERNAL_SIZE_T))
 #ifndef MALLOC_ALIGNMENT
 #define MALLOC_ALIGN           8
