@@ -2515,6 +2515,13 @@ case "${target}" in
 	script_list="idt32 idt64 cfe"
 	bsp_list="libcygmon.a libidt.a libcfe.a"
 	;;
+  mips*-mti*-* | mips*-img*-*)
+	crt0="crt0_cfe.o crt0.o"
+	part_specific_obj=
+	part_specific_defines=
+	script_list="idt nullmon mti32 mti64 mti64_n32 mti64_64 mti32-uhi mti64-uhi mti64_64-uhi mti64_n32-uhi malta32-yamon"
+	bsp_list="libidt.a libnullmon.a libuhi.a libyamon.a"
+	;;
   mips*-lsi*-*)
 	part_specific_obj=entry.o
 	part_specific_defines=
@@ -2536,8 +2543,8 @@ case "${target}" in
 	crt0="crt0_cfe.o crt0.o"
         part_specific_obj="vr4300.o cma101.o"
 	part_specific_defines=
-        script_list="idt pmon ddb ddb-kseg0 lsi cfe idtecoff nullmon sde32 sde64 mti32 mti64 mti64_n32 mti64_64"
-        bsp_list="libidt.a libpmon.a liblsi.a libcfe.a libnullmon.a"
+        script_list="idt pmon ddb ddb-kseg0 lsi cfe idtecoff nullmon sde32 sde64 mti32 mti64 mti64_n32 mti64_64 mti32-uhi mti64-uhi mti64_64-uhi mti64_n32-uhi malta32-yamon"
+        bsp_list="libidt.a libpmon.a liblsi.a libcfe.a libnullmon.a libuhi.a libyamon.a"
         ;;
 esac
 
