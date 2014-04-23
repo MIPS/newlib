@@ -1801,6 +1801,7 @@ mips_print_vec:
           break;
         }
 
+#ifdef FLOATING_POINT
       if (vec_spec == 'y')
         {
           unsigned long long ll;
@@ -1819,6 +1820,7 @@ mips_print_vec:
           goto float_number;
         }
       else
+#endif      
         {
           if (vec_spec == 'W')
             _uquad = vec_uarg ();   /* unsigned */
@@ -1840,7 +1842,9 @@ mips_print_vec_check:
       size = 0;
       dprec = 0;
       sign = '\0';
+#ifdef FLOATING_POINT
       lead = 0;
+#endif      
       prec = -1;
       goto mips_print_vec;    /* loop back */
         
