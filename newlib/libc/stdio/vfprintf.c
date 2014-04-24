@@ -635,7 +635,7 @@ _EXFUN(get_arg, (struct _reent *data, int n, char *fmt,
 #define	SHORTINT	0x040		/* short integer */
 #define	ZEROPAD		0x080		/* zero (as opposed to blank) pad */
 #define FPT		0x100		/* Floating point number */
-#ifdef _WANT_IO_C99_FORMATS
+#if defined(_WANT_IO_C99_FORMATS) || defined(__mips)
 # define CHARINT	0x200		/* char as integer */
 #else /* define as 0, to make SARG and UARG occupy fewer instructions  */
 # define CHARINT	0
@@ -1178,7 +1178,7 @@ reswitch:	switch (ch) {
 			goto rflag;
 #endif
 		case 'h':
-#ifdef _WANT_IO_C99_FORMATS
+#if defined(_WANT_IO_C99_FORMATS) || defined(__mips)
 			if (*fmt == 'h') {
 				fmt++;
 				flags |= CHARINT;
@@ -1804,9 +1804,6 @@ mips_print_vec:
 #ifdef FLOATING_POINT
       if (vec_spec == 'y')
         {
-          unsigned long long ll;
-          char mybuf[100];
-          
           ch = 'f';
           
           if (flags & LONGDBL) 
