@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <time.h>
 
-struct stat
+struct hosted_stat
 {
   short st_dev;
   unsigned short st_ino;
@@ -41,15 +41,15 @@ struct stat
   unsigned short st_uid;
   unsigned short st_gid;
   short st_rdev;
-  long st_size;
-  time_t st_atime;
-  long st_spare1;
-  time_t st_mtime;
-  long st_spare2;
-  time_t st_ctime;
-  long st_spare3;
-  long st_blksize;
-  long st_blocks;
-  long st_spare4[2];
+  unsigned long long st_size;
+  unsigned long long st_atime;
+  unsigned long long st_spare1;
+  unsigned long long st_mtime;
+  unsigned long long st_spare2;
+  unsigned long long st_ctime;
+  unsigned long long st_spare3;
+  unsigned long long st_blksize;
+  unsigned long long st_blocks;
+  unsigned long long st_spare4[2];
 };
 
