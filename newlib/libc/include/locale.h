@@ -59,6 +59,11 @@ struct _reent;
 char *_EXFUN(_setlocale_r,(struct _reent *, int category, const char *locale));
 struct lconv *_EXFUN(_localeconv_r,(struct _reent *));
 
+#if defined ((__mips_clib_tiny) && defined (__mips_no_file_io__))
+char *setlocale_nofio (int category, const char *locale);
+#define setlocale	setlocale_nofio
+#endif
+
 _END_STD_C
 
 #endif /* _LOCALE_H_ */

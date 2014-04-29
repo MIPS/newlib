@@ -683,10 +683,6 @@ _ELIDABLE_INLINE int __sputc_r(struct _reent *_ptr, int _c, FILE *_p) {
 #define	getchar()	getc(stdin)
 #define	putchar(x)	putc(x, stdout)
 
-_END_STD_C
-
-#endif /* _STDIO_H_ */
-
 #if ( defined (__mips_clib_small) || defined (__mips_clib_tiny) )
 
 #if defined (__mips_fio_float__)
@@ -779,6 +775,68 @@ int vsscanf_int (const char *str, const char *fmt, __VALIST ap);
 #define vsscanf      vsscanf_int
 #endif
 
+#if defined ((__mips_clib_tiny) && defined (__mips_no_file_io__))
+void clearerr_nofio (FILE * afp);
+int fclose_nofio (FILE *afp);
+int feof_nofio (FILE * afp);
+int ferror_nofio (FILE * afp);
+int fflush_nofio (FILE *afp);
+int fgetc_nofio (FILE * afp);
+int fgetpos_nofio (FILE *fp, _fpos_t *pos);
+char *fgets_nofio (char *buf, int n, FILE *afp);
+FILE * fopen_nofio (const char *fname, const char *mode);
+int fputc_nofio (int c, FILE * afp);
+int fputs_nofio (char const *s, FILE *fp);
+size_t fread_nofio (void * buf, size_t size, size_t count, FILE * afp);
+FILE *freopen_nofio (const char *file, const char *mode, FILE *afp);
+int fseek_nofio (register FILE *fp, long offset, int whence);
+int fsetpos_nofio (FILE *fp, const _fpos_t *pos);
+long ftell(FILE *fp);
+size_t fwrite_nofio (const void * abuf, size_t size, size_t count, FILE * afp);
+int getc_nofio (FILE *fp);
+int getchar_nofio (void);
+char * gets_nofio (char *buf);
+int putc_nofio (int c, FILE *fp);
+int putchar_nofio (int c);
+int puts_nofio (const char *s);
+int remove_nofio (const char *filename);
+void rewind_nofio (FILE * fp);
+void setbuf_nofio (FILE *fp, char *buf);
+int setvbuf_nofio (FILE *afp, char *buf, int mode, size_t size);
+FILE * tmpfile_nofio (void);
+char *tmpnam_nofio (char *s);
+
+#define clearerr	clearerr_nofio
+#define fclose		fclose_nofio
+#define feof		feof_nofio
+#define ferror		ferror_nofio
+#define fflush		fflush_nofio
+#define fgetc		fgetc_nofio
+#define fgetpos		fgetpos_nofio
+#define fgets		fgets_nofio
+#define fopen		fopen_nofio
+#define fputc		fputc_nofio
+#define fputs		fputs_nofio
+#define fread		fread_nofio
+#define freopen		freopen_nofio
+#define fseek		fseek_nofio
+#define fsetpos		fsetpos_nofio
+#define ftell		ftell_nofio
+#define fwrite		fwrite_nofio
+#define getc		getc_nofio
+#define getchar		getchar_nofio
+#define gets		gets_nofio
+#define putc		putc_nofio
+#define putchar		putchar_nofio
+#define puts		puts_nofio
+#define remove		remove_nofio
+#define rewind		rewind_nofio
+#define setbuf		setbuf_nofio
+#define setvbuf		setvbuf_nofio
+#define tmpfile		tmpfile_nofio
+#define tmpnam		tmpnam_nofio
+#endif
+
 #undef	getc
 #undef	putc
 #undef	getchar
@@ -788,3 +846,6 @@ int vsscanf_int (const char *str, const char *fmt, __VALIST ap);
 #undef	clearerr
 #endif
 
+_END_STD_C
+
+#endif /* _STDIO_H_ */
