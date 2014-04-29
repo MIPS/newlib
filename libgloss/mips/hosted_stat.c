@@ -49,14 +49,15 @@
 
 int32_t stat (const char *filename, struct stat *buf)
 {
-  int32_t fid, ret;
+  int32_t fid, ret = -1;
   
   fid = open (filename, 0, 0666); /* open in read mode */
   
   if (fid > 0)
-    ret = fstat (fid, buf);
-
-  close (fid);
+    {
+      ret = fstat (fid, buf);
+      close (fid);
+    }
     
   return ret;
 }
