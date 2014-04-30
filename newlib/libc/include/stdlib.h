@@ -237,7 +237,7 @@ extern long double strtold (const char *__restrict, char **__restrict);
 #endif
 #endif /* _LDBL_EQ_DBL */
 
-#if defined ((__mips_clib_tiny) && defined (__mips_no_file_io__))
+#if defined (__mips_clib_tiny) && defined (__mips_no_file_io__)
 char *getenv_nofio (const char *name);
 #define getenv		getenv_nofio
 #endif

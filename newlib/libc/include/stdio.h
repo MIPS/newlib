@@ -775,7 +775,7 @@ int vsscanf_int (const char *str, const char *fmt, __VALIST ap);
 #define vsscanf      vsscanf_int
 #endif
 
-#if defined ((__mips_clib_tiny) && defined (__mips_no_file_io__))
+#if defined (__mips_clib_tiny) && defined (__mips_no_file_io__)
 void clearerr_nofio (FILE * afp);
 int fclose_nofio (FILE *afp);
 int feof_nofio (FILE * afp);
