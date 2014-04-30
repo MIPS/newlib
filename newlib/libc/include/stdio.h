@@ -791,7 +791,7 @@ size_t fread_nofio (void * buf, size_t size, size_t count, FILE * afp);
 FILE *freopen_nofio (const char *file, const char *mode, FILE *afp);
 int fseek_nofio (register FILE *fp, long offset, int whence);
 int fsetpos_nofio (FILE *fp, const _fpos_t *pos);
-long ftell(FILE *fp);
+long ftell_nofio (FILE *fp);
 size_t fwrite_nofio (const void * abuf, size_t size, size_t count, FILE * afp);
 int getc_nofio (FILE *fp);
 int getchar_nofio (void);
