@@ -805,6 +805,16 @@ void setbuf_nofio (FILE *fp, char *buf);
 int setvbuf_nofio (FILE *afp, char *buf, int mode, size_t size);
 FILE * tmpfile_nofio (void);
 char *tmpnam_nofio (char *s);
+int ungetc_nofio (int c, FILE *afp);
+void perror_nofio (const char *s);
+
+#undef	getc
+#undef	putc
+#undef	getchar
+#undef	putchar
+#undef	feof
+#undef	ferror
+#undef	clearerr
 
 #define clearerr	clearerr_nofio
 #define fclose		fclose_nofio
@@ -835,15 +845,10 @@ char *tmpnam_nofio (char *s);
 #define setvbuf		setvbuf_nofio
 #define tmpfile		tmpfile_nofio
 #define tmpnam		tmpnam_nofio
+#define ungetc  ungetc_nofio
+#define perror  perror_nofio
 #endif
 
-#undef	getc
-#undef	putc
-#undef	getchar
-#undef	putchar
-#undef	feof
-#undef	ferror
-#undef	clearerr
 #endif
 
 _END_STD_C
