@@ -44,10 +44,11 @@
 
 #include <stdint.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include "hosted_syscalls.h"
 #include "hosted_stat.h"
 
-int32_t stat (const char *filename, struct stat *buf)
+int stat (const char *filename, struct stat *buf)
 {
   int32_t fid, ret = -1;
   

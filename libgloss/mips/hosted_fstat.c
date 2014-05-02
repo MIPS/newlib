@@ -65,7 +65,7 @@
 #define __paste(STR1, STR2) STR1##STR2
 #define __check(LINE, CONDITION) typedef char __paste(assertion_failed_at_line_, LINE) [(int)(CONDITION)-1]
     
-int32_t fstat (int32_t file, struct stat *sbuf)
+int fstat (int file, struct stat *sbuf)
 {
   struct hosted_stat hbuf = {0,};
   register int32_t arg1 asm ("$4") = file;
