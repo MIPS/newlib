@@ -54,7 +54,7 @@ int stat (const char *filename, struct stat *buf)
   
   fid = open (filename, 0, 0666); /* open in read mode */
   
-  if (fid > 0)
+  if (fid >= 0)
     {
       ret = fstat (fid, buf);
       close (fid);
