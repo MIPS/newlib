@@ -1,5 +1,5 @@
 /* 
- * hosted_rename.c
+ * link.c
 */
 
 /*
@@ -28,49 +28,13 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-/*
- * @Synopsis     int32_t rename (const char *oldname, const char *newname);
- *                
- *               Parameters:
- *                 $4 - Name of the file to rename
- *                 $5 - New file name
- *                 
- *               Return:
- *                 $2 - Zero on success or -1 in case of error
- *                 
- *               Arguments to syscall:                
- *                 $25 - Operation code for rename
- *                 $4 - Name of the file to rename
- *                 $5 - New file name
- *                 
- *               Return from syscall:
- *                 $2 - Zero on success or -1 in case of error
- *                 $3 - errno
- *                 
- * @Description  Rename a file
-*/
-
-#include <stdint.h>
 #include <errno.h>
-#include "hosted_syscalls.h"
 
-int32_t rename (const char *oldname, const char *newname)
+int link (const char *oldname, const char *newname)
 {
-  register const char *arg1 asm ("$4") = oldname;
-  register const char *arg2 asm ("$5") = newname;
-  register int32_t op asm ("$25") = __MIPS_UHI_RENAME;
-  register int32_t ret asm ("$2") = 0;
-  register int32_t new_errno asm ("$3") = 0;
-
-  __asm__ __volatile__(" # %0,%1 = rename(%2, %3) op=%4\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno) 
-                       : "r" (arg1), "r" (arg2), "r" (op));
-                       
-   if (ret != 0)
-    errno = new_errno;
-    
-  return ret;
+  (void) oldname;
+  (void) newname;
+  errno = EIO;
+  return -1;
 }
 

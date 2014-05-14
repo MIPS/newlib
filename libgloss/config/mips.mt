@@ -52,7 +52,7 @@ hosted_pwrite.o: $(srcdir)/hosted_pwrite.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 hosted_read.o: $(srcdir)/hosted_read.c 
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_rename.o: $(srcdir)/hosted_rename.c 
+hosted_link.o: $(srcdir)/hosted_link.c 
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 hosted_stat.o: $(srcdir)/hosted_stat.c 
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
@@ -69,6 +69,8 @@ yamon_write.o: $(srcdir)/yamon_write.c
 yamon_exit.o: $(srcdir)/yamon_exit.c 
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 __exit.o: $(srcdir)/__exit.c 
+	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+link.o: $(srcdir)/link.c 
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 
 
