@@ -26,9 +26,9 @@
 #define STARTUP_STACK_SIZE  0x0100 /* Temporary stack size to run C code */
 #define __YAMON_EXIT        0x20
 
-/* 
+/*
  * This is for referencing addresses that are not in the .sdata or
- * .sbss section under embedded-pic, or before we've set up gp.  
+ * .sbss section under embedded-pic, or before we've set up gp.
 */
 #ifdef __mips_embedded_pic
 #ifdef __mips64
@@ -69,7 +69,7 @@ __temp_space:	   /* Temporary space to save arguments */
   .text
   .align  2
 
-/* 
+/*
  * Without the following nop, GDB thinks _start is a data variable.
  * This is probably a bug in GDB in handling a symbol that is at the
  * start of the .text section.
@@ -191,9 +191,9 @@ _start:
 	nop
 1:
 
-/* 
- * Fix high bits, if any, of the PC so that 
- * exception handling doesn't get confused.  
+/*
+ * Fix high bits, if any, of the PC so that
+ * exception handling doesn't get confused.
 */
   LA  (v0, 3f)
   jr  v0
@@ -226,19 +226,19 @@ zerobss:
   bne t0,zero,4f
   nop
 
-  /* 
+  /*
    * NOTE: a0[0] contains the amount of memory available, and
-   * not the last memory address. 
+   * not the last memory address.
   */
   LA  (a0, __memsize)
   lw  t0,0(a0)      # last address of memory available
   la  t1,K0BASE     # cached kernel memory
   addu  t0,t0,t1    # get the end of memory address
 
-  /* 
+  /*
    * Allocate 32 bytes for the register parameters.  Allocate 16
    * bytes for a null argv and envp.  Round the result up to 64
-   * bytes to preserve alignment.  
+   * bytes to preserve alignment.
   */
   subu  t0,t0,64
 4:
@@ -295,7 +295,7 @@ init:
   lw  a0,0(t0)
   lw  a1,4(t0)
   lw  a2,8(t0)
-#endif  
+#endif
 
   /* if a0 >= 0 then we have arguments ready in a0 to a2 registers */
   bgez  a0,.Lmain
@@ -323,12 +323,12 @@ init:
 .Lmain:
   jal main        # call the program start function
   nop
-  
+
   /* Fall through to the "exit" routine */
   jal exit        # call libc exit to run the G++ destructors
   move  a0,v0     # pass through the exit code
   .end  init
- 
+
 /* Assume the PICBASE set up above is no longer valid below here.  */
 #ifdef __mips_embedded_pic
 #undef PICBASE
@@ -354,12 +354,12 @@ _exit:
   sd  a0,0(t0)
 #else
   sw  a0,0(t0)
-#endif  
+#endif
 
 #ifdef __mips_embedded_pic
-  /* 
+  /*
    * Need to reinit PICBASE, since we might be called via exit()
-   * rather than via a return path which would restore old s0.  
+   * rather than via a return path which would restore old s0.
   */
 #define PICBASE exit_PICBASE
   PICBASE = .+8
@@ -385,23 +385,22 @@ _exit:
   ld  a0,0(t0)
 #else
   lw  a0,0(t0)
-#endif  
-  
+#endif
+
   .global __exit .text
   jal __exit
   nop
-  
+
   # break instruction can cope with 0xfffff, but GAS limits the range:
   break 1023
   b 7b  # but loop back just in-case
   nop
 
   .end _exit
- 
+
 /* Assume the PICBASE set up above is no longer valid below here.  */
 #ifdef __mips_embedded_pic
 #undef PICBASE
 #endif
 
 /* EOF crt0.S */
-

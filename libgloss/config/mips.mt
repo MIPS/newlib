@@ -30,47 +30,45 @@ unlink.o: ${srcdir}/../unlink.c
 write.o: ${srcdir}/../write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 
-hosted_assert.o: $(srcdir)/hosted_assert.c 
+hosted_assert.o: $(srcdir)/hosted_assert.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_close.o: $(srcdir)/hosted_close.c 
+hosted_close.o: $(srcdir)/hosted_close.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_exit.o: $(srcdir)/hosted_exit.c 
+hosted_exit.o: $(srcdir)/hosted_exit.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_fstat.o: $(srcdir)/hosted_fstat.c 
+hosted_fstat.o: $(srcdir)/hosted_fstat.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_get_mem_info.o: $(srcdir)/hosted_get_mem_info.c 
+hosted_get_mem_info.o: $(srcdir)/hosted_get_mem_info.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_lseek.o: $(srcdir)/hosted_lseek.c 
+hosted_lseek.o: $(srcdir)/hosted_lseek.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_open.o: $(srcdir)/hosted_open.c 
+hosted_open.o: $(srcdir)/hosted_open.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_plog.o: $(srcdir)/hosted_plog.c 
+hosted_plog.o: $(srcdir)/hosted_plog.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_pread.o: $(srcdir)/hosted_pread.c 
+hosted_pread.o: $(srcdir)/hosted_pread.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_pwrite.o: $(srcdir)/hosted_pwrite.c 
+hosted_pwrite.o: $(srcdir)/hosted_pwrite.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_read.o: $(srcdir)/hosted_read.c 
+hosted_read.o: $(srcdir)/hosted_read.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_link.o: $(srcdir)/hosted_link.c 
+hosted_link.o: $(srcdir)/hosted_link.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_stat.o: $(srcdir)/hosted_stat.c 
+hosted_stat.o: $(srcdir)/hosted_stat.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_unlink.o: $(srcdir)/hosted_unlink.c 
+hosted_unlink.o: $(srcdir)/hosted_unlink.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_write.o: $(srcdir)/hosted_write.c 
+hosted_write.o: $(srcdir)/hosted_write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-hosted_getargs.o: $(srcdir)/hosted_getargs.S 
+hosted_getargs.o: $(srcdir)/hosted_getargs.S
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-yamon_read.o: $(srcdir)/yamon_read.c 
+yamon_read.o: $(srcdir)/yamon_read.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-yamon_write.o: $(srcdir)/yamon_write.c 
+yamon_write.o: $(srcdir)/yamon_write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-yamon_exit.o: $(srcdir)/yamon_exit.c 
+yamon_exit.o: $(srcdir)/yamon_exit.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-__exit.o: $(srcdir)/__exit.c 
+__exit.o: $(srcdir)/__exit.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-link.o: $(srcdir)/link.c 
+link.o: $(srcdir)/link.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-
-
