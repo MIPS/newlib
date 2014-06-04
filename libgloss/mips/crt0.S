@@ -14,14 +14,17 @@
  * they apply.
 */
 
+	.gnu_attribute 4,0
+
 #ifdef __mips16
   .set nomips16	   /* This file contains 32 bit assembly code. */
 #endif
 
 #include "regs.S"
+#include "abiflags.S"
 
-#define STARTUP_STACK_SIZE  0x0100	  /* Temporary stack size to run C code */
-#define __YAMON_EXIT		0x20
+#define STARTUP_STACK_SIZE  0x0100 /* Temporary stack size to run C code */
+#define __YAMON_EXIT        0x20
 
 /* 
  * This is for referencing addresses that are not in the .sdata or
@@ -41,7 +44,8 @@
 #define STATUS_MASK (SR_CU1|SR_PE)
 #else
 #ifdef __mips64	 /* Post-mips2 has no SR_PE bit. */
-#define STATUS_MASK (SR_CU1|SR_FR|SR_KX|SR_SX|SR_UX)	/* Turn on 64-bit addressing and additional float regs. */
+/* Turn on 64-bit addressing and additional float regs. */
+#define STATUS_MASK (SR_CU1|SR_FR|SR_KX|SR_SX|SR_UX)
 #else
 #if __mips_fpr==32
 #define STATUS_MASK (SR_CU1)
@@ -99,50 +103,93 @@ _start:
   sw  a2, 8(t0)
 #endif
 
-  li  v0, STATUS_MASK
-  mtc0  v0, C0_SR
-  mtc0  zero, C0_CAUSE
-  nop
+	/* Clear Cause register */
+	.set	push
+	.set	mips32
+	mtc0	zero,C0_CAUSE
+	.set	pop
+	nop
 
-  /* Avoid hazard from FPU enable and other SR changes.  */
-  LA  (t0, hardware_hazard_hook)
-  beq t0,zero,1f
-  nop
-  jal t0
-  nop
+	/*
+	 * Read MIPS_abiflags structure and set
+	 * status/config registers accordingly
+	*/
+	.weak	__MIPS_abiflags_start
+	.weak	__MIPS_abiflags_end
+	LA	(t0,__MIPS_abiflags_start)
+	LA	(t1,__MIPS_abiflags_end)
+	addiu	t1,t1,-24
+	bne	t0,t1,1f
+	move	v0,zero			/* Mask for C0_SR */
+
+	/* Check isa_level */
+	lbu	t1,ABIFlags_isa_level(t0)
+	sltu	v1,t1,3			/* Is MIPS < 3? */
+	beq	v1,zero,4f
+	li	v1,SR_PE
+	or	v0,v0,v1		/* Enable soft reset */
+4:
+	xori	t1,t1,64		/* Is MIPS64? */
+	bne	t1,zero,5f
+	li	v1,(SR_KX|SR_SX|SR_UX)
+	or	v0,v0,v1		/* Enable extended addressing */
+5:
+	/* Check fp_abi */
+	lbu	t1,ABIFlags_fp_abi(t0)
+	xori	t1,t1,Val_GNU_MIPS_ABI_FP_SOFT
+	beq	t1,zero,2f		/* Skip MSA and cpr1_size checks */
+	li	v1,SR_CU1
+	or	v0,v0,v1		/* Enable co-processor 1 */
+
+	/* Check cpr1_size */
+	lbu	t1,ABIFlags_cpr1_size(t0)
+	xori	t1,t1,AFL_REG_64
+	bne	t1,zero,3f
+	li	v1,SR_FR
+	or	v0,v0,v1		/* Enable 64bit FPU registers */
+3:
+	/* Check ases */
+	lw	t1,ABIFlags_ases(t0)
+	andi	t1,t1,AFL_ASE_MSA
+	beq	t1,zero,2f
+	li	v1,SR_FR
+	or	v0,v0,v1		/* Enable FPU registers */
+	li	v1,SR_MSA
+	.set	push
+	.set	mips32
+	mtc0	v1,C0_CONFIG,5		/* Enable MSA */
+	.set	pop
+	nop
+	j	2f
+	nop
+
 1:
-
-/* 
- * Check for FPU presence. Don't check if we know that soft_float is
- * being used. This also avoids illegal instruction exceptions.
-*/
-#ifndef __mips_soft_float
-  li  t2,0xAAAA5555
-  mtc1  t2,fp0    /* write to FPR 0 */
-  mtc1  zero,fp1  /* write to FPR 1 */
-  mfc1  t0,fp0
-  mfc1  t1,fp1
-  nop
-  bne t0,t2,1f    /* check for match */
-  nop
-  bne t1,zero,1f  /* double check */
-  nop
-  j 2f            /* FPU is present. */
-  nop
+	/*
+	 * MIPS_abiflags structure is not available
+	 * Set status/config registers based on
+	 * flags defined by compiler.
+	*/
+#ifdef __mips_soft_float
+	li	v0,(STATUS_MASK-(STATUS_MASK & SR_CU1))
+#else
+	li	v0,STATUS_MASK
 #endif
-1:
-  /* FPU is not present. Set status register to say that. */
-  li  v0,(STATUS_MASK-(STATUS_MASK & SR_CU1))
-  mtc0  v0,C0_SR
-  nop
 
-  /* Avoid hazard from FPU disable. */
-  LA  (t0, hardware_hazard_hook)
-  beq t0,zero,2f
-  nop
-  jal t0
-  nop
 2:
+	/* Set C0_SR */
+	.set	push
+	.set	mips32
+	mtc0	v0,C0_SR
+	.set	pop
+	nop
+
+	/* Avoid hazard from C0_SR changes */
+	LA	(t0, hardware_hazard_hook)
+	beq	t0,zero,1f
+	nop
+	jal	t0
+	nop
+1:
 
 /* 
  * Fix high bits, if any, of the PC so that 
