@@ -68,7 +68,7 @@ int32_t __plog (int8_t *fmt, int32_t num)
                        : "=r" (ret), "=r" (new_errno)
                        :  "r" (arg1), "r" (arg2), "r" (op));
 
-   if (ret != 0)
+  if (ret != 0)
     errno = new_errno;
 
   return ret;

@@ -71,7 +71,7 @@ int32_t write (int32_t fd, void *buffer, int32_t count)
                        : "=r" (ret), "=r" (new_errno)
                        : "r" (arg1), "r" (arg2), "r" (arg3), "r" (op));
 
-   if (ret != 0)
+  if (ret == -1)
     errno = new_errno;
 
   return ret;

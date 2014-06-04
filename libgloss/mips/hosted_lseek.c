@@ -71,7 +71,7 @@ int32_t lseek (int32_t fd, int32_t offset, int32_t whence)
                        : "=r" (ret), "=r" (new_errno)
                        : "r" (arg1), "r" (arg2), "r" (arg3), "r" (op));
 
-   if (ret != 0)
+  if (ret == -1)
     errno = new_errno;
 
   return ret;

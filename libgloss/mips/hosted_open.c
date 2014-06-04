@@ -71,7 +71,7 @@ int32_t open (const char *file_name, int32_t flags, int32_t mode)
                        : "=r" (ret), "=r" (new_errno)
                        : "r" (arg1), "r" (arg2), "r" (arg3), "r" (op));
 
-   if (ret != 0)
+  if (ret == -1)
     errno = new_errno;
 
   return ret;

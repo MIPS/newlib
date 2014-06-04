@@ -71,7 +71,7 @@ int32_t read (int32_t fd, void *buffer, int32_t len)
                        : "=r" (ret), "=r" (new_errno)
                        : "r" (arg1), "r" (arg2), "r" (arg3), "r" (op));
 
-   if (ret != 0)
+  if (ret == -1)
     errno = new_errno;
 
   return ret;

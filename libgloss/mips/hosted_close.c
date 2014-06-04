@@ -65,7 +65,7 @@ int32_t close (int32_t fd)
                        : "=r" (ret), "=r" (new_errno)
                        : "r" (arg1), "r" (op));
 
-   if (ret != 0)
+  if (ret != 0)
     errno = new_errno;
 
   return ret;

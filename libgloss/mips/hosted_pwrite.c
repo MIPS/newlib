@@ -74,7 +74,7 @@ int32_t pwrite (int32_t fd, const void *buf, int32_t count, int32_t offset)
                        : "=r" (ret), "=r" (new_errno)
                        : "r" (arg1), "r" (arg2), "r" (arg3), "r" (arg4), "r" (op));
 
-   if (ret != 0)
+  if (ret == -1)
     errno = new_errno;
 
   return ret;

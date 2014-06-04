@@ -68,7 +68,7 @@ int32_t link (const char *oldname, const char *newname)
                        : "=r" (ret), "=r" (new_errno)
                        : "r" (arg1), "r" (arg2), "r" (op));
 
-   if (ret != 0)
+  if (ret != 0)
     errno = new_errno;
 
   return ret;
