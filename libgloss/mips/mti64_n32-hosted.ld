@@ -126,6 +126,9 @@ SECTIONS
 
   . = .;
   .rodata : {
+    __MIPS_abiflags_start = .;
+    *(.MIPS.abiflags)
+    __MIPS_abiflags_end = .;
     *(.rdata)
     *(.rodata)
     *(.rodata.*)
