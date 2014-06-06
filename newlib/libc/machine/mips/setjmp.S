@@ -41,6 +41,25 @@
 	FPR_OFFSET ($f29, 5);	\
 	FPR_OFFSET ($f30, 6);	\
 	FPR_OFFSET ($f31, 7);
+/* This deals with the O32 FPXX and FP64 cases.  Here we must use
+   sdc1 and ldc1 to access the FPRs.  These instruction require
+   8-byte aligned addresses.  If the jump buffer is 8-byte aligned 
+   we can not store $31 before the FPRs, as this will cause the buffer
+   to become only 4-byte aligned.  Instead, the FPRs are placed first
+   and $31 is put at the end.  */
+#elif __mips_fpr == 0 || __mips_fpr == 64
+#define FPR_LAYOUT		\
+	and $8, $4, 4;	 	\
+	bne $8, $0, 1f;		\
+	GPR_OFFSET ($31, 22);	\
+	addiu $4, $4, -4;	\
+1:				\
+	FPR_OFFSET ($f20, 0);  	\
+	FPR_OFFSET ($f22, 2);	\
+	FPR_OFFSET ($f24, 4);	\
+	FPR_OFFSET ($f26, 6);	\
+	FPR_OFFSET ($f28, 8);	\
+	FPR_OFFSET ($f30, 10);
 #else /* Assuming _MIPS_SIM == _ABIO32 */
 #define FPR_LAYOUT		\
 	FPR_OFFSET ($f20, 0);	\
@@ -69,12 +88,11 @@
 #else
 #define LOAD_GPR lw
 #define STORE_GPR sw
-#if __mips_fpr == 64
-#define BYTES_PER_WORD 8
-#define LOAD_FPR l.d
-#define STORE_FPR s.d
-#else
 #define BYTES_PER_WORD 4
+#if __mips_fpr == 0 || __mips_fpr == 64
+#define LOAD_FPR ldc1
+#define STORE_FPR sdc1
+#else
 #define LOAD_FPR lwc1
 #define STORE_FPR swc1
 #endif
