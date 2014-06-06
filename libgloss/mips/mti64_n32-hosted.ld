@@ -32,10 +32,9 @@
 
    It differs from mti64.ld by using the n32 ABI targets instead of the
    o32 ABI targets in OUTPUT_FORMAT.  */
-
 ENTRY(_start)
 OUTPUT_FORMAT("elf32-ntradlittlemips", "elf32-ntradbigmips", "elf32-ntradlittlemips")
-GROUP(-lc -lidt -lgcc)
+GROUP(-lc -lhosted -lgcc)
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 STARTUP(crt0.o)
@@ -46,6 +45,9 @@ STARTUP(crt0.o)
  */
 PROVIDE (__stack = 0);
 /* PROVIDE (__global = 0); */
+
+/* Size of the memory returned by get_mem_info */
+PROVIDE (__memory_size = 1M);
 
 /*
  * Initalize some symbols to be zero so we can reference them in the
@@ -62,7 +64,7 @@ PROVIDE (software_init_hook = 0);
 
 SECTIONS
 {
-  . = 0x80020000;
+  . = 0xFFFFFFFF80020000;
   .text : {
      _ftext = . ;
     PROVIDE (eprol  =  .);
