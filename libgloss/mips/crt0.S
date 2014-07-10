@@ -214,15 +214,15 @@ zerobss:
   bltu  v0,v1,3b
   addiu v0,v0,4           # executed in delay slot
 
+  /* setup the stack pointer */
+  LA  (t0, __stack)       # is __stack set ?
+  bne t0,zero,4f
+  nop
+
   LA  (t0, __lstack)      # make a small stack so we
   addiu sp,t0,STARTUP_STACK_SIZE  # can run some C code
   la  a0,__memsize        # get the usable memory size
   jal get_mem_info
-  nop
-
-  /* setup the stack pointer */
-  LA  (t0, __stack)       # is __stack set ?
-  bne t0,zero,4f
   nop
 
   /*
@@ -230,7 +230,7 @@ zerobss:
    * not the last memory address.
   */
   LA  (a0, __memsize)
-  lw  t0,0(a0)      # last address of memory available
+  lw  t0,0(a0)      # amount of memory available
   la  t1,K0BASE     # cached kernel memory
   addu  t0,t0,t1    # get the end of memory address
 
@@ -239,8 +239,8 @@ zerobss:
    * bytes for a null argv and envp.  Round the result up to 64
    * bytes to preserve alignment.
   */
-  subu  t0,t0,64
 4:
+  subu  t0,t0,64
   move  sp,t0       # set stack pointer
   .end  zerobss
 
@@ -306,7 +306,6 @@ init:
 #else
 
   /* no arguments */
-  blez sp,.Lmain
   move  a0,zero   # set argc to 0
   addiu a1,sp,32  # argv = sp + 32
   addiu a2,sp,40  # envp = sp + 40
