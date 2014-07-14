@@ -807,14 +807,6 @@ char *tmpnam_nofio (char *s);
 int ungetc_nofio (int c, FILE *afp);
 void perror_nofio (const char *s);
 
-#undef	getc
-#undef	putc
-#undef	getchar
-#undef	putchar
-#undef	feof
-#undef	ferror
-#undef	clearerr
-
 #define clearerr	clearerr_nofio
 #define fclose		fclose_nofio
 #define feof		feof_nofio
@@ -847,6 +839,14 @@ void perror_nofio (const char *s);
 #define ungetc  ungetc_nofio
 #define perror  perror_nofio
 #endif
+
+#undef	getc
+#undef	putc
+#undef	getchar
+#undef	putchar
+#undef	feof
+#undef	ferror
+#undef	clearerr
 
 #endif
 
