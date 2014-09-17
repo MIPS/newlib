@@ -104,7 +104,6 @@
 	.globl	_start
 	.ent	_start
 _start:
-	.set	noreorder
     /* Set the global data pointer, defined in the linker script.  */
 	la		gp, _gp
 
@@ -185,13 +184,13 @@ _crt0init:
 	la		t9, hardware_init_hook	# init the hardware if needed
 	beq		t9, zero, 6f
 	nop
-	jal		t9
+	jalr		t9
 	nop
 6:
 	la		t9, software_init_hook	# init the software if needed
 	beq		t9, zero, 7f
 	nop
-	jal		t9
+	jalr		t9
 	nop
 7:
 	la		a0, _fini
@@ -248,7 +247,7 @@ _exit:
 	la	t0, hardware_exit_hook
 	beq	t0,zero,1f
 	nop
-	jal	t0
+	jalr	t0
 	nop
 
 1:

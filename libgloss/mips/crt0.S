@@ -80,13 +80,11 @@ __temp_space:	   /* Temporary space to save arguments */
   .ent  _start
 _start:
 
-  .set  noreorder
 
 #ifdef __mips_embedded_pic
 #define PICBASE start_PICBASE
   PICBASE = .+8
   bal PICBASE
-  nop
   move  s0,$31
 #endif
 
@@ -118,40 +116,40 @@ _start:
 	LA	(t0,__MIPS_abiflags_start)
 	LA	(t1,__MIPS_abiflags_end)
 	addiu	t1,t1,-24
-	bne	t0,t1,1f
 	move	v0,zero			/* Mask for C0_SR */
+	bne	t0,t1,1f
 
 	/* Check isa_level */
 	lbu	t1,ABIFlags_isa_level(t0)
 	sltu	v1,t1,3			/* Is MIPS < 3? */
-	beq	v1,zero,4f
 	li	v1,SR_PE
+	beq	v1,zero,4f
 	or	v0,v0,v1		/* Enable soft reset */
 4:
 	xori	t1,t1,64		/* Is MIPS64? */
-	bne	t1,zero,5f
 	li	v1,(SR_KX|SR_SX|SR_UX)
+	bne	t1,zero,5f
 	or	v0,v0,v1		/* Enable extended addressing */
 5:
 	/* Check fp_abi */
 	lbu	t1,ABIFlags_fp_abi(t0)
 	xori	t1,t1,Val_GNU_MIPS_ABI_FP_SOFT
-	beq	t1,zero,2f		/* Skip MSA and cpr1_size checks */
 	li	v1,SR_CU1
+	beq	t1,zero,2f		/* Skip MSA and cpr1_size checks */
 	or	v0,v0,v1		/* Enable co-processor 1 */
 
 	/* Check cpr1_size */
 	lbu	t1,ABIFlags_cpr1_size(t0)
 	xori	t1,t1,AFL_REG_64
-	bne	t1,zero,3f
 	li	v1,SR_FR
+	bne	t1,zero,3f
 	or	v0,v0,v1		/* Enable 64bit FPU registers */
 3:
 	/* Check ases */
 	lw	t1,ABIFlags_ases(t0)
 	andi	t1,t1,AFL_ASE_MSA
-	beq	t1,zero,2f
 	li	v1,SR_FR
+	beq	t1,zero,2f
 	or	v0,v0,v1		/* Enable FPU registers */
 	li	v1,SR_MSA
 	.set	push
@@ -160,7 +158,6 @@ _start:
 	.set	pop
 	nop
 	j	2f
-	nop
 
 1:
 	/*
@@ -185,9 +182,7 @@ _start:
 	/* Avoid hazard from C0_SR changes */
 	LA	(t0, hardware_hazard_hook)
 	beq	t0,zero,1f
-	nop
-	jal	t0
-	nop
+	jalr	t0
 1:
 
 /*
@@ -196,7 +191,6 @@ _start:
 */
   LA  (v0, 3f)
   jr  v0
-  nop
 3:
   LA  (gp, _gp)   /* set the global data pointer */
   .end _start
@@ -211,19 +205,18 @@ zerobss:
   LA  (v1, _end)
 3:
   sw  zero,0(v0)
-  bltu  v0,v1,3b
+  sltu $1,v0,v1
   addiu v0,v0,4           # executed in delay slot
+  bnez  $1,3b
 
   /* setup the stack pointer */
   LA  (t0, __stack)       # is __stack set ?
   bne t0,zero,4f
-  nop
 
   LA  (t0, __lstack)      # make a small stack so we
   addiu sp,t0,STARTUP_STACK_SIZE  # can run some C code
   la  a0,__memsize        # get the usable memory size
   jal get_mem_info
-  nop
 
   /*
    * NOTE: a0[0] contains the amount of memory available, and
@@ -258,19 +251,14 @@ zerobss:
 init:
   LA  (t9, hardware_init_hook)    # init the hardware if needed
   beq t9,zero,6f
-  nop
-  jal t9
-  nop
+  jalr t9
 6:
   LA  (t9, software_init_hook)    # init the hardware if needed
   beq t9,zero,7f
-  nop
-  jal t9
-  nop
+  jalr t9
 7:
   LA  (a0, _fini)
   jal atexit
-  nop
 
 #ifdef GCRT0
   .globl  _ftext
@@ -278,11 +266,9 @@ init:
   LA  (a0, _ftext)
   LA  (a1, _etext)
   jal monstartup
-  nop
 #endif
 
   jal _init       # run global constructors
-  nop
 
   /* restore argument registers */
   LA  (t0, __temp_space)
@@ -298,11 +284,9 @@ init:
 
   /* if a0 >= 0 then we have arguments ready in a0 to a2 registers */
   bgez  a0,.Lmain
-  nop
 
 #ifdef __HAVE_ARGN
   jal getargs       # get arguments
-  nop
 #else
 
   /* no arguments */
@@ -320,11 +304,10 @@ init:
 
 .Lmain:
   jal main        # call the program start function
-  nop
 
   /* Fall through to the "exit" routine */
-  jal exit        # call libc exit to run the G++ destructors
   move  a0,v0     # pass through the exit code
+  jal exit        # call libc exit to run the G++ destructors
   .end  init
 
 /* Assume the PICBASE set up above is no longer valid below here.  */
@@ -362,19 +345,15 @@ _exit:
 #define PICBASE exit_PICBASE
   PICBASE = .+8
   bal PICBASE
-  nop
   move  s0,$31
 #endif
 #ifdef GCRT0
   LA  (t0, _mcleanup)
-  jal t0
-  nop
+  jalr t0
 #endif
   LA  (t0, hardware_exit_hook)
   beq t0,zero,1f
-  nop
-  jal t0
-  nop
+  jalr t0
 1:
 
   # restore return value from main
@@ -387,12 +366,10 @@ _exit:
 
   .global __exit .text
   jal __exit
-  nop
 
   # break instruction can cope with 0xfffff, but GAS limits the range:
   break 1023
   b 7b  # but loop back just in-case
-  nop
 
   .end _exit
 
