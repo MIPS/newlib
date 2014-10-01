@@ -52,7 +52,7 @@ getargs:
   move  t6, zero              /* argc */
   move  t4, zero              /* argv */
 
-  lui  $25, __MIPS_UHI_ARGC
+  li  $25, __MIPS_UHI_ARGC
 
   .global argc
   .type argc, @function
@@ -73,7 +73,7 @@ argc:
 
 .Lloop:
 
-  lui  $25, __MIPS_UHI_ARGLEN
+  li  $25, __MIPS_UHI_ARGLEN
   move  a0, t5                  /* argument number */
 
   .global arglen
@@ -94,7 +94,7 @@ arglen:
   sw  sp, 0(t7)                 /* argv[i] */
 #endif
 
-  lui  $25, __MIPS_UHI_ARGN
+  li  $25, __MIPS_UHI_ARGN
   move  a0, t5                  /* argument number */
   move  a1, sp                  /* argument buffer */
 
