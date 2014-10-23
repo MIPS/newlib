@@ -27,10 +27,6 @@
  * SUCH DAMAGE.
  */
 
-#if (defined(_MIPS_ARCH_MIPS32R6) || defined(_MIPS_ARCH_MIPS64R6))
-/* Do nothing. See memset-stub.c */
-#else
-
 #ifdef ANDROID_CHANGES
 # include "machine/asm.h"
 # include "machine/regdef.h"
@@ -47,6 +43,11 @@
 #else
 # include <regdef.h>
 # include <sys/asm.h>
+#endif
+
+#if (__mips_isa_rev > 5) && \
+    (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
+# define PREFETCH_STORE_HINT PREFETCH_HINT_STORE_STREAMED
 #endif
 
 /* Check to see if the MIPS architecture we are compiling for supports
@@ -247,6 +248,8 @@ LEAF(MEMSET_NAME)
 /* If the destination address is not aligned do a partial store to get it
    aligned.  If it is already aligned just jump to L(aligned).  */
 L(set0):
+
+#if __mips_isa_rev < 6
 	andi	t2,a3,(NSIZE-1)		/* word-unaligned address?          */
 	beq	t2,zero,L(aligned)	/* t2 is the unalignment count      */
 	PTR_SUBU a2,a2,t2
@@ -254,19 +257,42 @@ L(set0):
 	PTR_ADDU a0,a0,t2
 
 L(aligned):
-/* If USE_DOUBLE is not set we may still want to align the data on a 16
-   byte boundry instead of an 8 byte boundry to maximize the opportunity
+
+# if defined (DOUBLE_ALIGN) && (NSIZE == 4)
+/* If USE_DOUBLE is not set we may still want to align the data on a 8
+   byte boundry instead of an 4 byte boundry to maximize the opportunity
    of proAptiv chips to do memory bonding (combining two sequential 4
    byte stores into one 8 byte store).  We know there are at least 4 bytes
    left to store or we would have jumped to L(lastb) earlier in the code.  */
-#ifdef DOUBLE_ALIGN
 	andi	t2,a3,4
 	beq	t2,zero,L(double_aligned)
 	PTR_SUBU a2,a2,t2
 	sw	a1,0(a0)
 	PTR_ADDU a0,a0,t2
 L(double_aligned):
+# endif
+#else /* __mips_isa_rev < 6 */
+	andi	t2,a0,1
+	beq	t2,zero,L(align2)
+	PTR_SUBU a2,a2,t2
+	sb	a1,0(a0)
+	PTR_ADDU a0,a0,t2
+L(align2):
+	andi	t2,a0,2
+	beq	t2,zero,L(align4)
+	PTR_SUBU a2,a2,t2
+	sh	a1,0(a0)
+	PTR_ADDU a0,a0,t2
+L(align4):
+#if defined (DOUBLE_ALIGN) || (NSIZE == 8)
+	andi	t2,a0,4
+	beq	t2,zero,L(align8)
+	PTR_SUBU a2,a2,t2
+	sw	a1,0(a0)
+	PTR_ADDU a0,a0,t2
+L(align8):
 #endif
+#endif /* __mips_isa_rev < 6 */
 
 /* Now the destination is aligned to (word or double word) aligned address
    Set a2 to count how many bytes we have to copy after all the 64/128 byte
@@ -302,8 +328,14 @@ L(loop16w):
 	bgtz	v1,L(skip_pref)
 	nop
 #endif
+#if !defined (USE_DOUBLE) || (__mips_isa_rev < 6)
 	PREFETCH_FOR_STORE (4, a0)
 	PREFETCH_FOR_STORE (5, a0)
+#else
+	/* FIXME - r6 prefetch has 9 bit offset, not 16 */
+	PREFETCH_FOR_STORE (2, a0)
+	PREFETCH_FOR_STORE (3, a0)
+#endif
 L(skip_pref):
 	C_ST	a1,UNIT(0)(a0)
 	C_ST	a1,UNIT(1)(a0)
@@ -381,5 +413,3 @@ END(MEMSET_NAME)
 libc_hidden_builtin_def (MEMSET_NAME)
 # endif
 #endif
-
-#endif // defined(_MIPS_ARCH_MIPS32R6) || defined(_MIPS_ARCH_MIPS64R6)
