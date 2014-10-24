@@ -101,6 +101,14 @@
 #endif
 #endif
 
+#ifndef PTR_BC
+#if __mips_isa_rev > 5 && defined (__mips_micromips)
+#define PTR_BC	      bc32
+#else
+#define PTR_BC	      bc
+#endif
+#endif
+
 /* Using PREFETCH_HINT_PREPAREFORSTORE instead of PREFETCH_STORE
    or PREFETCH_STORE_STREAMED offers a large performance advantage
    but PREPAREFORSTORE has some special restrictions to consider.
@@ -272,14 +280,14 @@ L(set0):
 	PTR_LSA	t9,t2,t9,2
 	jrc	t9
 L(atable):
-	bc	L(aligned)
-	bc	L(lb7)
-	bc	L(lb6)
-	bc	L(lb5)
-	bc	L(lb4)
-	bc	L(lb3)
-	bc	L(lb2)
-	bc	L(lb1)
+	PTR_BC	L(aligned)
+	PTR_BC	L(lb7)
+	PTR_BC	L(lb6)
+	PTR_BC	L(lb5)
+	PTR_BC	L(lb4)
+	PTR_BC	L(lb3)
+	PTR_BC	L(lb2)
+	PTR_BC	L(lb1)
 L(lb7):
 	sb	a1,6(a0)
 L(lb6):

@@ -109,6 +109,14 @@
 #endif
 #endif
 
+#ifndef PTR_BC
+#if __mips_isa_rev > 5 && defined (__mips_micromips)
+#define PTR_BC	      bc32
+#else
+#define PTR_BC	      bc
+#endif
+#endif
+
 /*
  * Using PREFETCH_HINT_LOAD_STREAMED instead of PREFETCH_LOAD on load
  * prefetches appears to offer a slight preformance advantage.
@@ -352,14 +360,14 @@ L(memcpy):
 	PTR_LSA	t9,t8,t9,2
 	jrc	t9
 L(atable):
-	bc	L(lb0)
-	bc	L(lb7)
-	bc	L(lb6)
-	bc	L(lb5)
-	bc	L(lb4)
-	bc	L(lb3)
-	bc	L(lb2)
-	bc	L(lb1)
+	PTR_BC	L(lb0)
+	PTR_BC	L(lb7)
+	PTR_BC	L(lb6)
+	PTR_BC	L(lb5)
+	PTR_BC	L(lb4)
+	PTR_BC	L(lb3)
+	PTR_BC	L(lb2)
+	PTR_BC	L(lb1)
 L(lb7):
 	lb	a3, 6(a1)
 	sb	a3, 6(a0)
@@ -394,15 +402,15 @@ L(lb0):
 	PTR_LSA	t9,t8,t9,2
 	jrc	t9
 L(jtable):
-        bc      L(aligned)
-        bc      L(r6_unaligned1)
-        bc      L(r6_unaligned2)
-        bc      L(r6_unaligned3)
+        PTR_BC      L(aligned)
+        PTR_BC      L(r6_unaligned1)
+        PTR_BC      L(r6_unaligned2)
+        PTR_BC      L(r6_unaligned3)
 #ifdef USE_DOUBLE
-        bc      L(r6_unaligned4)
-        bc      L(r6_unaligned5)
-        bc      L(r6_unaligned6)
-        bc      L(r6_unaligned7)
+        PTR_BC      L(r6_unaligned4)
+        PTR_BC      L(r6_unaligned5)
+        PTR_BC      L(r6_unaligned6)
+        PTR_BC      L(r6_unaligned7)
 #endif
 #endif /* R6_CODE */
 
