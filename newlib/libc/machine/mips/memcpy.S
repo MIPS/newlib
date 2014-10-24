@@ -367,10 +367,22 @@ L(align4):
 	PTR_ADDU a0,a0,t8
 L(align8):
 	andi	t8,a1,(NSIZE-1)
-        lapc    t9, L(jtable)
+        la      t9, L(jtable)
         LSA     t9, t8, t9, 2
         jrc     t9
+#if defined (__mips_micromips) && defined (R6_CODE)
 L(jtable):
+        bc32      L(aligned)
+        bc32      L(r6_unaligned1)
+        bc32      L(r6_unaligned2)
+        bc32      L(r6_unaligned3)
+#ifdef USE_DOUBLE
+        bc32      L(r6_unaligned4)
+        bc32      L(r6_unaligned5)
+        bc32      L(r6_unaligned6)
+        bc32      L(r6_unaligned7)
+#endif
+#else
         bc      L(aligned)
         bc      L(r6_unaligned1)
         bc      L(r6_unaligned2)
@@ -380,6 +392,7 @@ L(jtable):
         bc      L(r6_unaligned5)
         bc      L(r6_unaligned6)
         bc      L(r6_unaligned7)
+#endif
 #endif
 #endif /* R6_CODE */
 
