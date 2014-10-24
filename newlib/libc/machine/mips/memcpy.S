@@ -394,6 +394,17 @@ L(lb0):
 	PTR_LSA	t9,t8,t9,2
 	jrc	t9
 L(jtable):
+        bc32      L(aligned)
+        bc32      L(r6_unaligned1)
+        bc32      L(r6_unaligned2)
+        bc32      L(r6_unaligned3)
+#ifdef USE_DOUBLE
+        bc32      L(r6_unaligned4)
+        bc32      L(r6_unaligned5)
+        bc32      L(r6_unaligned6)
+        bc32      L(r6_unaligned7)
+#endif
+#else
         bc      L(aligned)
         bc      L(r6_unaligned1)
         bc      L(r6_unaligned2)
@@ -403,6 +414,7 @@ L(jtable):
         bc      L(r6_unaligned5)
         bc      L(r6_unaligned6)
         bc      L(r6_unaligned7)
+#endif
 #endif
 #endif /* R6_CODE */
 
