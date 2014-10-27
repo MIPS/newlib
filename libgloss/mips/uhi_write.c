@@ -70,8 +70,8 @@ int32_t write (int32_t fd, void *buffer, int32_t count)
 
   __asm__ __volatile__(" # %0,%1 = write(%2, %3, %4) op=%5\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno)
-                       : "r" (arg1), "r" (arg2), "r" (arg3), "r" (op));
+                       : "=r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+		       : "r" (arg3), "r" (op));
 
   if (ret == -1)
     errno = new_errno;

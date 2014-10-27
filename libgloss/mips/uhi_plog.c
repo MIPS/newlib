@@ -67,8 +67,8 @@ int32_t __plog (int8_t *fmt, int32_t num)
 
   __asm__ __volatile__(" # %0,%1 = __plog(%2, %3) op=%4\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno)
-                       :  "r" (arg1), "r" (arg2), "r" (op));
+                       : "=r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+		       : "r" (op));
 
   if (ret != 0)
     errno = new_errno;

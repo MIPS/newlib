@@ -73,8 +73,8 @@ int32_t pread (int32_t fd, void *buf, int32_t count, int32_t offset)
 
   __asm__ __volatile__(" # %0,%1 = pread(%2, %3, %4, %5) op=%6\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno)
-                       : "r" (arg1), "r" (arg2), "r" (arg3), "r" (arg4), "r" (op));
+                       : "=r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+		       : "r" (arg3), "r" (arg4), "r" (op));
 
   if (ret == -1)
     errno = new_errno;

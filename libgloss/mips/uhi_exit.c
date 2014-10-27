@@ -59,8 +59,9 @@ __attribute__ ((weak)) void __exit (int32_t exit_code)
 
   __asm__ __volatile__(" # _exit(%0) op=%1\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : /* no output */
-                       : "r" (arg1), "r" (op));
+                       : "+r" (arg1)
+		       : "r" (op)
+		       : "$2", "$3", "$5");
 
   __exit (exit_code);  /* just to avoide the warning */
 }

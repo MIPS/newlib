@@ -64,8 +64,9 @@ int32_t unlink (const char *file)
 
   __asm__ __volatile__(" # %0,%1 = unlink(%2) op=%3\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno)
-                       : "r" (arg1), "r" (op));
+                       : "=r" (ret), "=r" (new_errno), "+r" (arg1)
+		       : "r" (op)
+		       : "$5");
 
   if (ret != 0)
     errno = new_errno;

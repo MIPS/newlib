@@ -70,8 +70,9 @@ void __assert_func (const char *filename, int32_t line_num, const char *func, co
 
   __asm__ __volatile__(" # __assert_func(%0, %1, %2, %3) op=%4\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : /* no output */
-                       : "r" (arg1), "r" (arg2), "r" (arg3), "r" (arg4), "r" (op));
+                       : "+r" (arg1), "+r" (arg2)
+		       : "r" (arg3), "r" (arg4), "r" (op)
+		       : "$2", "$3");
 
   return;
 }
