@@ -216,17 +216,17 @@ LEAF(MEMSET_NAME)
 #endif
 
 	.set	nomips16
-	.set	noreorder
 /* If the size is less than 4*NSIZE (16 or 32), go to L(lastb).  Regardless of
    size, copy dst pointer to v0 for the return value.  */
 	slti	t2,a2,(4 * NSIZE)
-	bne	t2,zero,L(lastb)
 	move	v0,a0
-
+	bne	t2,zero,L(lastb)
 /* If memset value is not zero, we copy it to all the bytes in a 32 or 64
    bit word.  */
-	beq	a1,zero,L(set0)		/* If memset value is zero no smear  */
 	PTR_SUBU a3,zero,a0
+	bne	t2,zero,L(lastb)
+
+	beq	a1,zero,L(set0)		/* If memset value is zero no smear  */
 	nop
 
 	/* smear byte into 32 or 64 bit word */
@@ -262,8 +262,8 @@ LEAF(MEMSET_NAME)
 L(set0):
 #if !defined (R6_CODE)
 	andi	t2,a3,(NSIZE-1)		/* word-unaligned address?          */
-	beq	t2,zero,L(aligned)	/* t2 is the unalignment count      */
 	PTR_SUBU a2,a2,t2
+	beq	t2,zero,L(aligned)	/* t2 is the unalignment count      */
 	C_STHI	a1,0(a0)
 	PTR_ADDU a0,a0,t2
 #else /* R6_CODE */
@@ -272,14 +272,14 @@ L(set0):
 	PTR_LSA	t9,t2,t9,2
 	jrc	t9
 L(atable):
-	bc	L(aligned)
-	bc	L(lb7)
-	bc	L(lb6)
-	bc	L(lb5)
-	bc	L(lb4)
-	bc	L(lb3)
-	bc	L(lb2)
-	bc	L(lb1)
+	bc32	L(aligned)
+	bc32	L(lb7)
+	bc32	L(lb6)
+	bc32	L(lb5)
+	bc32	L(lb4)
+	bc32	L(lb3)
+	bc32	L(lb2)
+	bc32	L(lb1)
 L(lb7):
 	sb	a1,6(a0)
 L(lb6):
@@ -309,8 +309,8 @@ L(aligned):
    left to store or we would have jumped to L(lastb) earlier in the code.  */
 #ifdef DOUBLE_ALIGN
 	andi	t2,a3,4
-	beq	t2,zero,L(double_aligned)
 	PTR_SUBU a2,a2,t2
+	beq	t2,zero,L(double_aligned)
 	sw	a1,0(a0)
 	PTR_ADDU a0,a0,t2
 L(double_aligned):
@@ -322,8 +322,8 @@ L(double_aligned):
    chunks have been copied.  We will loop, incrementing a0 until it equals
    a3.  */
 	andi	t8,a2,NSIZEDMASK /* any whole 64-byte/128-byte chunks? */
-	beq	a2,t8,L(chkw)	 /* if a2==t8, no 64-byte/128-byte chunks */
 	PTR_SUBU a3,a2,t8	 /* subtract from a2 the reminder */
+	beq	a2,t8,L(chkw)	 /* if a2==t8, no 64-byte/128-byte chunks */
 	PTR_ADDU a3,a0,a3	 /* Now a3 is the final dst after loop */
 
 /* When in the loop we may prefetch with the 'prepare to store' hint,
@@ -347,8 +347,8 @@ L(loop16w):
 #if defined(USE_PREFETCH) \
     && (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
 	sltu	v1,t9,a0		/* If a0 > t9 don't use next prefetch */
-	bgtz	v1,L(skip_pref)
 	nop
+	bgtz	v1,L(skip_pref)
 #endif
 #if defined(R6_CODE)
 	PREFETCH_FOR_STORE (2, a0)
@@ -374,8 +374,8 @@ L(skip_pref):
 	C_ST	a1,UNIT(14)(a0)
 	C_ST	a1,UNIT(15)(a0)
 	PTR_ADDIU a0,a0,UNIT(16)	/* adding 64/128 to dest */
-	bne	a0,a3,L(loop16w)
 	nop
+	bne	a0,a3,L(loop16w)
 	move	a2,t8
 
 /* Here we have dest word-aligned but less than 64-bytes or 128 bytes to go.
@@ -384,8 +384,8 @@ L(skip_pref):
 L(chkw):
 	andi	t8,a2,NSIZEMASK	/* is there a 32-byte/64-byte chunk.  */
 				/* the t8 is the reminder count past 32-bytes */
-	beq	a2,t8,L(chk1w)/* when a2==t8, no 32-byte chunk */
 	nop
+	beq	a2,t8,L(chk1w)/* when a2==t8, no 32-byte chunk */
 	C_ST	a1,UNIT(0)(a0)
 	C_ST	a1,UNIT(1)(a0)
 	C_ST	a1,UNIT(2)(a0)
@@ -403,30 +403,29 @@ L(chkw):
    been copied.  We will loop, incrementing a0 until a0 equals a3.  */
 L(chk1w):
 	andi	a2,t8,(NSIZE-1)	/* a2 is the reminder past one (d)word chunks */
-	beq	a2,t8,L(lastb)
 	PTR_SUBU a3,t8,a2	/* a3 is count of bytes in one (d)word chunks */
+	beq	a2,t8,L(lastb)
 	PTR_ADDU a3,a0,a3	/* a3 is the dst address after loop */
 
 /* copying in words (4-byte or 8 byte chunks) */
 L(wordCopy_loop):
 	PTR_ADDIU a0,a0,UNIT(1)
-	bne	a0,a3,L(wordCopy_loop)
 	C_ST	a1,UNIT(-1)(a0)
+	bne	a0,a3,L(wordCopy_loop)
 
 /* Copy the last 8 (or 16) bytes */
 L(lastb):
-	blez	a2,L(leave)
 	PTR_ADDU a3,a0,a2       /* a3 is the last dst address */
+	blez	a2,L(leave)
 L(lastbloop):
 	PTR_ADDIU a0,a0,1
-	bne	a0,a3,L(lastbloop)
 	sb	a1,-1(a0)
+	bne	a0,a3,L(lastbloop)
 L(leave):
-	j	ra
 	nop
+	j	ra
 
 	.set	at
-	.set	reorder
 END(MEMSET_NAME)
 #ifndef ANDROID_CHANGES
 # ifdef _LIBC
