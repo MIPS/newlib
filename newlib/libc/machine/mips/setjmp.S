@@ -41,9 +41,9 @@
 	FPR_OFFSET ($f29, 5);	\
 	FPR_OFFSET ($f30, 6);	\
 	FPR_OFFSET ($f31, 7);
-/* This deals with the O32 FPXX and FP64 cases.  Here we must use
-   sdc1 and ldc1 to access the FPRs.  These instruction require
-   8-byte aligned addresses.  If the jump buffer is 8-byte aligned 
+/* This deals with the o32 FPXX and FP64 cases.  Here we must use
+   SDC1 and LDC1 to access the FPRs.  These instructions require
+   8-byte aligned addresses.  If the jump buffer is 8-byte aligned
    we can not store $31 before the FPRs, as this will cause the buffer
    to become only 4-byte aligned.  Instead, the FPRs are placed first
    and $31 is put at the end.  */
