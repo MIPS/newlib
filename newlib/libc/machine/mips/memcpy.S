@@ -1,31 +1,19 @@
-/*
- * Copyright (c) 2012
- *      MIPS Technologies, Inc., California.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the MIPS Technologies, Inc., nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE MIPS TECHNOLOGIES, INC. ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE MIPS TECHNOLOGIES, INC. BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
+/* Copyright (C) 2012-2014 Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
+
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library.  If not, see
+   <http://www.gnu.org/licenses/>.  */
 
 #ifdef ANDROID_CHANGES
 #include "machine/asm.h"
@@ -38,20 +26,12 @@
 #include <regdef.h>
 #include <sys/asm.h>
 #define PREFETCH_LOAD_HINT PREFETCH_HINT_LOAD_STREAMED
-#if __mips_isa_rev < 6
 #define PREFETCH_STORE_HINT PREFETCH_HINT_PREPAREFORSTORE
-#else
-#define PREFETCH_STORE_HINT PREFETCH_HINT_STORE_STREAMED
-#endif
 #elif _COMPILING_NEWLIB
 #include "machine/asm.h"
 #include "machine/regdef.h"
 #define PREFETCH_LOAD_HINT PREFETCH_HINT_LOAD_STREAMED
-#if __mips_isa_rev < 6
 #define PREFETCH_STORE_HINT PREFETCH_HINT_PREPAREFORSTORE
-#else
-#define PREFETCH_STORE_HINT PREFETCH_HINT_STORE_STREAMED
-#endif
 #else
 #include <regdef.h>
 #include <sys/asm.h>
@@ -67,13 +47,25 @@
 #endif
 #endif
 
-#if defined(_MIPS_SIM) && ((_MIPS_SIM == _ABI64) || (_MIPS_SIM == _ABIN32))
+#if defined(_MIPS_SIM) && (_MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIN32)
 #ifndef DISABLE_DOUBLE
 #define USE_DOUBLE
 #endif
 #endif
 
-
+#if __mips_isa_rev > 5
+# if (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
+#  define PREFETCH_STORE_HINT PREFETCH_HINT_STORE_STREAMED
+# endif
+# define R6_CODE
+# ifdef USE_DOUBLE
+#  define ALIGN dalign
+#  define LSA	dlsa
+# else
+#  define ALIGN align
+#  define LSA	lsa
+# endif
+#endif
 
 /* Some asm.h files do not have the L macro definition.  */
 #ifndef L
@@ -214,7 +206,7 @@
 #define REG1 t1
 #define REG2 t2
 #define REG3 t3
-#if defined(_MIPS_SIM) && ((_MIPS_SIM == _ABIO32) || (_MIPS_SIM == _ABIO64))
+#if defined(_MIPS_SIM) && (_MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIO64)
 #  define REG4 t4
 #  define REG5 t5
 #  define REG6 t6
@@ -309,7 +301,7 @@ L(memcpy):
 	move	v0,a0
 #endif
 
-#if __mips_isa_rev < 6
+#if !defined (R6_CODE)
 
 /*
  * If src and dst have different alignments, go to L(unaligned), if they
@@ -331,37 +323,70 @@ L(memcpy):
 	C_STHI	t8,0(a0)
 	PTR_ADDU a0,a0,a3
 
-L(aligned):
+#else /* R6_CODE */
 
-#else /* __mips_isa_rev < 6 */
-
-/* Align the destination and then check to see if the source is also aligned.
+/* 
+ * Align the destination and hope that the source gets aligned too.  If it
+ * doesn't we jump to L(r6_unaligned*) to do unaligned copies using the r6
+ * align instruction.
  */
-	andi	t8,a0,1
-	beq	t8,zero,L(align2)
+	andi	t8,a0,7
+        lapc    t9, L(atable)
+        LSA     t9, t8, t9, 2
+        jrc     t9
+L(atable):
+	bc	L(lb0)
+	bc	L(lb1)
+	bc	L(lb2)
+	bc	L(lb3)
+	bc	L(lb4)
+	bc	L(lb5)
+	bc	L(lb6)
+	bc	L(lb7)
+L(lb7):
+	lb	a3, 6(a1)
+	sb	a3, 6(a0)
+L(lb6):
+	lb	a3, 5(a1)
+	sb	a3, 5(a0)
+L(lb5):
+	lb	a3, 4(a1)
+	sb	a3, 4(a0)
+L(lb4):
+	lb	a3, 3(a1)
+	sb	a3, 3(a0)
+L(lb3):
+	lb	a3, 2(a1)
+	sb	a3, 2(a0)
+L(lb2):
+	lb	a3, 1(a1)
+	sb	a3, 1(a0)
+L(lb1):
+	lb	a3, 0(a1)
+	sb	a3, 0(a0)
+L(lb0):
 	PTR_SUBU a2,a2,t8
-	lb	a3,0(a1)
-	PTR_ADDU a1,a1,t8
-	sb	a3,0(a0)
 	PTR_ADDU a0,a0,t8
-L(align2):
-	andi	t8,a0,2
-	beq	t8,zero,L(align4)
-	PTR_SUBU a2,a2,t8
-	lh	a3,0(a1)
 	PTR_ADDU a1,a1,t8
-	sh	a3,0(a0)
-	PTR_ADDU a0,a0,t8
-L(align4):
-	andi	t8,a1,3
-	beq	t8,zero,L(aligned)
-	nop
 
-	j	L(lastb)
+	andi	t8,a1,(NSIZE-1)
+	lapc	t9, L(jtable)
+        LSA     t9, t8, t9, 2
+        jrc     t9
+L(jtable):
+        bc      L(aligned)
+        bc      L(r6_unaligned1)
+        bc      L(r6_unaligned2)
+        bc      L(r6_unaligned3)
+#ifdef USE_DOUBLE
+        bc      L(r6_unaligned4)
+        bc      L(r6_unaligned5)
+        bc      L(r6_unaligned6)
+        bc      L(r6_unaligned7)
+#endif
+#endif /* R6_CODE */
 
 L(aligned):
-
-#endif /* __mips_isa_rev < 6 */
 
 /*
  * Now dst/src are both aligned to (word or double word) aligned addresses
@@ -420,13 +445,11 @@ L(loop16w):
 	bgtz	v1,L(skip_pref)
 #endif
 	C_LD	t1,UNIT(1)(a1)
-#if !defined (USE_DOUBLE) || (__mips_isa_rev < 6)
+#if defined(R6_CODE)
+	PREFETCH_FOR_STORE (2, a0)
+#else
 	PREFETCH_FOR_STORE (4, a0)
 	PREFETCH_FOR_STORE (5, a0)
-#else
-	/* FIXME - r6 prefetch has 9 bit offset, not 16 */
-	PREFETCH_FOR_STORE (2, a0)
-	PREFETCH_FOR_STORE (3, a0)
 #endif
 #if defined(RETURN_LAST_PREFETCH) && defined(USE_PREFETCH)
 	PTR_ADDIU v0,a0,(PREFETCH_CHUNK*5)
@@ -441,12 +464,12 @@ L(skip_pref):
 	C_LD	REG5,UNIT(5)(a1)
 	C_LD	REG6,UNIT(6)(a1)
 	C_LD	REG7,UNIT(7)(a1)
-#if __mips_isa_rev < 6
-        PREFETCH_FOR_LOAD (4, a1)
-#else
-	/* FIXME - r6 prefetch has 9 bit offset, not 16 */
+#if defined(R6_CODE)
 	PREFETCH_FOR_LOAD (3, a1)
+#else
+	PREFETCH_FOR_LOAD (4, a1)
 #endif
+
 	C_ST	t0,UNIT(0)(a0)
 	C_ST	t1,UNIT(1)(a0)
 	C_ST	REG2,UNIT(2)(a0)
@@ -464,11 +487,8 @@ L(skip_pref):
 	C_LD	REG5,UNIT(13)(a1)
 	C_LD	REG6,UNIT(14)(a1)
 	C_LD	REG7,UNIT(15)(a1)
-#if __mips_isa_rev < 6
+#if !defined(R6_CODE)
         PREFETCH_FOR_LOAD (5, a1)
-#else
-	/* FIXME - r6 prefetch has 9 bit offset, not 16 */
-	PREFETCH_FOR_LOAD (3, a1)
 #endif
 	C_ST	t0,UNIT(8)(a0)
 	C_ST	t1,UNIT(9)(a0)
@@ -549,7 +569,7 @@ L(leave):
 	j	ra
 	nop
 
-#if __mips_isa_rev < 6
+#if !defined (R6_CODE)
 /*
  * UNALIGNED case, got here with a3 = "negu a0"
  * This code is nearly identical to the aligned code above
@@ -740,8 +760,57 @@ L(ua_smallCopy_loop):
 
 	j	ra
 	nop
+#else /* R6_CODE */
+# if __MIPSEB
+#  define SWAP_REGS(X,Y) X, Y
+#  define ALIGN_OFFSET(N) (N)
+# else
+#  define SWAP_REGS(X,Y) Y, X
+#  define ALIGN_OFFSET(N) (NSIZE-N)
+# endif
+# define R6_UNALIGNED_WORD_COPY(BYTEOFFSET) \
+	andi	REG7, a2, (NSIZE-1);/* REG7 is # of bytes to by bytes.     */ \
+	beq	REG7, a2, L(lastb); /* Check for bytes to copy by word	   */ \
+	PTR_SUBU a3, a2, REG7;	/* a3 is number of bytes to be copied in   */ \
+				/* (d)word chunks.			   */ \
+	move	a2, REG7;	/* a2 is # of bytes to copy byte by byte   */ \
+				/* after word loop is finished.		   */ \
+	PTR_ADDU REG6, a0, a3;	/* REG6 is the dst address after loop.	   */ \
+	PTR_SUBU REG2, a1, t8;	/* REG2 is the aligned src address.	   */ \
+	PTR_ADDU a1, a1, a3;	/* a1 is addr of source after word loop.   */ \
+	C_LD	t0, UNIT(0)(REG2);  /* Load first part of source.	   */ \
+L(r6_ua_wordcopy##BYTEOFFSET):						      \
+	C_LD	t1, UNIT(1)(REG2);  /* Load second part of source.	   */ \
+	ALIGN	REG3, SWAP_REGS(t1,t0), ALIGN_OFFSET(BYTEOFFSET);	      \
+	PTR_ADDIU a0, a0, UNIT(1);  /* Increment destination pointer.	   */ \
+	PTR_ADDIU REG2, REG2, UNIT(1); /* Increment aligned source pointer.*/ \
+	move	t0, t1;		/* Move second part of source to first.	   */ \
+	bne	a0, REG6,L(r6_ua_wordcopy##BYTEOFFSET);			      \
+	C_ST	REG3, UNIT(-1)(a0);					      \
+	j	L(lastb);						      \
+	nop
 
-#endif /* __mips_isa_rev < 6 */
+	/* We are generating R6 code, the destination is 4 byte aligned and
+	   the source is not 4 byte aligned. t8 is 1, 2, or 3 depending on the
+           alignment of the source.  */
+
+L(r6_unaligned1):
+	R6_UNALIGNED_WORD_COPY(1)
+L(r6_unaligned2):
+	R6_UNALIGNED_WORD_COPY(2)
+L(r6_unaligned3):
+	R6_UNALIGNED_WORD_COPY(3)
+# ifdef USE_DOUBLE
+L(r6_unaligned4):
+	R6_UNALIGNED_WORD_COPY(4)
+L(r6_unaligned5):
+	R6_UNALIGNED_WORD_COPY(5)
+L(r6_unaligned6):
+	R6_UNALIGNED_WORD_COPY(6)
+L(r6_unaligned7):
+	R6_UNALIGNED_WORD_COPY(7)
+# endif
+#endif /* R6_CODE */
 
 	.set	at
 	.set	reorder
