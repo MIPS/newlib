@@ -202,26 +202,26 @@ zerobss:
 	sw	zero,-4(v0)
 	bne	v0,v1,1b
 2:
+	/* setup the stack pointer */
+	LA (t0, __stack)			# is __stack set ?
+	bne	t0,zero,4f
+
 	LA (t0, __lstack)			# make a small stack so we
 	addiu	sp, t0, STARTUP_STACK_SIZE	# can run some C code
 	la	a0, __memsize			# get the usable memory size
 	jal	get_mem_info
 
-	/* setup the stack pointer */
-	LA (t0, __stack)			# is __stack set ?
-	bne	t0,zero,4f
-
 	/* NOTE: a0[0] contains the amount of memory available, and
 	         not the last memory address. */
 	LA (a0, __memsize)
-	lw	t0,0(a0)			# last address of memory available
+	lw	t0,0(a0)			# amount of memory available
 	la	t1,K0BASE			# cached kernel memory
 	addu	t0,t0,t1			# get the end of memory address
 	/* Allocate 32 bytes for the register parameters.  Allocate 16
 	   bytes for a null argv and envp.  Round the result up to 64
 	   bytes to preserve alignment.  */
-	subu	t0,t0,64
 4:
+	subu	t0,t0,64
 	move	sp,t0				# set stack pointer
 	.end	zerobss
 
