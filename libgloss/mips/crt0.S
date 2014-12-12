@@ -36,18 +36,28 @@
 #  define LA(t,x) la t,x-PICBASE ; addu t,s0,t
 # endif
 #else /* __mips_embedded_pic */
-# define LA(t,x) la t,x
+#if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
+     || defined (__mips_eabi))
+#  define LA(t,x)	dla	t,x
+# else
+#  define LA(t,x)	la	t,x
+# endif
 #endif /* __mips_embedded_pic */
 
 	.comm	__memsize, 12
 	.comm	__lstack, STARTUP_STACK_SIZE
 
 	.data
+	.globl __uhi_extension
 __temp_space:	   /* Temporary space to save arguments */
 #ifdef __mips64
-	.space	24
+	.space	32
+__uhi_extension:
+	.space	8
 #else
-	.space	12
+	.space	16
+__uhi_extension:
+	.space	4
 #endif
 
 	.text
@@ -95,10 +105,14 @@ _start:
 	sd	a0, 0(t0)
 	sd	a1, 8(t0)
 	sd	a2, 16(t0)
+	sd	$7, 24(t0)	/* reserved */
+	sd	$8, 32(t0)	/* UHI extension function pointer (void (*) (void)) */
 #else
 	sw	a0, 0(t0)
 	sw	a1, 4(t0)
 	sw	a2, 8(t0)
+	sw	$7, 12(t0)	/* reserved */
+	sw	$8, 16(t0)	/* UHI extension function pointer (void (*) (void)) */
 #endif
 
 	/* Clear Cause register.  */
@@ -208,14 +222,14 @@ zerobss:
 
 	LA (t0, __lstack)			# make a small stack so we
 	addiu	sp, t0, STARTUP_STACK_SIZE	# can run some C code
-	la	a0, __memsize			# get the usable memory size
+	LA (a0, __memsize)			# get the usable memory size
 	jal	get_mem_info
 
 	/* NOTE: a0[0] contains the amount of memory available, and
 	         not the last memory address. */
 	LA (a0, __memsize)
 	lw	t0,0(a0)			# amount of memory available
-	la	t1,K0BASE			# cached kernel memory
+	LA (t1, K0BASE)				# cached kernel memory
 	addu	t0,t0,t1			# get the end of memory address
 	/* Allocate 32 bytes for the register parameters.  Allocate 16
 	   bytes for a null argv and envp.  Round the result up to 64
@@ -265,10 +279,14 @@ init:
 	ld	a0,0(t0)
 	ld	a1,8(t0)
 	ld	a2,16(t0)
+	ld	$7,24(t0)
+	ld	$8,32(t0)
 #else
 	lw	a0,0(t0)
 	lw	a1,4(t0)
 	lw	a2,8(t0)
+	lw	$7,12(t0)
+	lw	$8,16(t0)
 #endif
 
 	/* if a0 >= 0 then we have arguments ready in a0 to a2 registers */
