@@ -2519,7 +2519,7 @@ case "${target}" in
 	crt0="crt0_cfe.o crt0.o"
 	part_specific_obj=
 	part_specific_defines=
-	script_list="idt nullmon mti32 mti64 mti64_n32 mti64_64 mti32-uhi mti64-uhi mti64_64-uhi mti64_n32-uhi malta32-yamon"
+	script_list="idt nullmon mti32 mti64_n32 mti64_64 uhi32 uhi64_64 uhi64_n32 malta32-yamon"
 	bsp_list="libidt.a libnullmon.a libuhi.a libyamon.a"
 	;;
   mips*-lsi*-*)

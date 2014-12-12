@@ -80,8 +80,9 @@ UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
   uhi_get_mem_info.o uhi_lseek.o uhi_open.o uhi_plog.o \
   uhi_pread.o uhi_pwrite.o uhi_read.o uhi_link.o uhi_stat.o \
   uhi_unlink.o uhi_write.o uhi_getargs.o syscalls.o getpid.o isatty.o \
-  kill.o
-YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o
+  kill.o mips_excpt_entry.o mips_excpt_handler.o
+YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
+  yamon_fstat.o
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
@@ -231,8 +232,9 @@ test.o:	${srcdir}/test.c
 
 # these are for the BSPs
 crt0.o: ${srcdir}/crt0.S
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) -D__HAVE_ARGN ${srcdir}/crt0.S -o crt0.o
 pcrt0.o: ${srcdir}/crt0.S
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) -DGCRT0 ${srcdir}/crt0.S -o ${PCRT0}
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) -DGCRT0 -D__HAVE_ARGN ${srcdir}/crt0.S -o ${PCRT0}
 crt0_cfe.o: ${srcdir}/crt0_cfe.S
 crt0_cygmon.o: ${srcdir}/crt0_cygmon.S
 idtmon.o: ${srcdir}/idtmon.S
