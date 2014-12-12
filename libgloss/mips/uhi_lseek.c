@@ -65,12 +65,12 @@ int32_t lseek (int32_t fd, int32_t offset, int32_t whence)
   register int32_t arg2 asm ("$5") = offset;
   register int32_t arg3 asm ("$6") = whence;
   register int32_t op asm ("$25") = __MIPS_UHI_LSEEK;
-  register int32_t ret asm ("$2") = 0;
+  register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
   __asm__ __volatile__(" # %0,%1 = lseek(%2, %3, %4) op=%5\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
 		       : "r" (arg3), "r" (op));
 
   if (ret == -1)

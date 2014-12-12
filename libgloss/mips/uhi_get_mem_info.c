@@ -45,9 +45,9 @@
 
 struct s_mem
 {
-  unsigned int size;
-  unsigned int icsize;
-  unsigned int dcsize;
+  unsigned long size;
+  unsigned long icsize;
+  unsigned long dcsize;
 };
 
 /* Size of the memory has been defined .ld file */
@@ -55,7 +55,7 @@ extern char __memory_size[];
 
 void get_mem_info (struct s_mem *mem)
 {
-  mem->size = (unsigned int) __memory_size;
+  mem->size = (unsigned long) __memory_size;
   return;
 }
 

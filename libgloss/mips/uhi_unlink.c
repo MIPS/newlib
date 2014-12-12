@@ -59,12 +59,12 @@ int32_t unlink (const char *file)
 {
   register const char *arg1 asm ("$4") = file;
   register int32_t op asm ("$25") = __MIPS_UHI_UNLINK;
-  register int32_t ret asm ("$2") = 0;
+  register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
   __asm__ __volatile__(" # %0,%1 = unlink(%2) op=%3\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno), "+r" (arg1)
+                       : "+r" (ret), "=r" (new_errno), "+r" (arg1)
 		       : "r" (op)
 		       : "$5");
 

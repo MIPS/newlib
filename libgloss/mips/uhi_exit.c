@@ -56,12 +56,13 @@ __attribute__ ((weak)) void __exit (int32_t exit_code)
 {
   register int32_t arg1 asm ("$4") = exit_code;
   register int32_t op asm ("$25") = __MIPS_UHI_EXIT;
+  register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
 
-  __asm__ __volatile__(" # _exit(%0) op=%1\n"
+  __asm__ __volatile__(" # _exit(%0 %1) op=%2\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (arg1)
+                       : "+r" (ret), "+r" (arg1)
 		       : "r" (op)
-		       : "$2", "$3", "$5");
+		       : "$3", "$5");
 
   __exit (exit_code);  /* just to avoide the warning */
 }

@@ -67,7 +67,7 @@ int32_t read (int32_t fd, void *buffer, int32_t len)
   register void *arg2 asm ("$5") = buffer;
   register int32_t arg3 asm ("$6") = len;
   register int32_t op asm ("$25") = __MIPS_UHI_READ;
-  register int32_t ret asm ("$2") = 0;
+  register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
   /* yamon getchar always reads from stdin */
@@ -87,7 +87,7 @@ int32_t read (int32_t fd, void *buffer, int32_t len)
      /* Use UHI read when reading from source other than stdin */
      __asm__ __volatile__(" # %0,%1 = read (%2, %3, %4) op=%5\n"
                          SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                         : "=r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+                         : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
 			 : "r" (arg3), "r" (op));
     }
 
