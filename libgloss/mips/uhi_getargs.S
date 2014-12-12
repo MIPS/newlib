@@ -35,7 +35,7 @@
 #include "uhi_syscalls.h"
 
 #ifdef __mips64
-#define ptrsize 4
+#define ptrsize 3
 #else
 #define ptrsize 2
 #endif
@@ -62,15 +62,15 @@ argc:
   ASM_SYSCALL (1)
   nop
 
-  /* return if no arguments (0) or error (-1) */
-  blez  v0, .Lreturn
+  /* return on error (-1) */
+  bltz  v0, .Lreturn
   nop
 
   move  t6, v0                  /* argc: number of arguments */
   sll t7, t6, ptrsize
   subu  sp, sp, t7              /* make room for argv */
   move  t4, sp                  /* argv */
-
+  subu  sp, sp, 16
   move  t5, zero
 
 .Lloop:
@@ -87,6 +87,7 @@ arglen:
   blez  v0, .Lreturn            /* return on error */
   nop
 
+  addu  v0, v0, 1
   subu  sp, sp, v0
   sll t7, t5, ptrsize
   addu  t7, t7, t4
@@ -106,20 +107,20 @@ argn:
   ASM_SYSCALL (1)
   nop
 
-  blez  v0, .Lreturn            /* return on error */
+  bltz  v0, .Lreturn            /* return on error */
   nop
 
   addu  t5, t5, 1
   slt v0, t5, t6
-  bne v0, zero, .Lloop
+  bnez v0, .Lloop
   nop
 
 .Lreturn:
   move  a0, t6
   move  a1, t4
-  move  a2, zero
 
   li  t1, 8
+  subu  sp, sp, 32
   andi  t0, sp, 7
   subu  t1, t1, t0
   addu  sp, sp, t1
