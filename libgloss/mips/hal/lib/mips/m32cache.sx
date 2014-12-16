@@ -1,0 +1,306 @@
+/*
+ * Copyright (c) 2014, Imagination Technologies LLC and Imagination
+ * Technologies Limited.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
+ * following URL for details.
+ * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
+ *
+ */
+
+
+/*
+ * m32cache.sx: MIPS32 cache support functions
+ */
+
+
+/*
+ * Note:	 pessimistic hazard timings assumed.
+ */
+
+#include "m32cache.h"
+
+#if 1 /*#cache(m32)*/
+
+#ifndef CSMIPS_CACHE_EXTRAROUTINES
+
+/*
+ * static void _size_cache()
+ *
+ * Internal routine to determine cache sizes by looking at R4000 config
+ * register.  Sizes are returned in registers, as follows:
+ */
+SLEAF(_size_cache)
+	mfc0	cfg,$config,0
+
+	li	icachesize,0
+	li	ilinesize,0
+	li	dcachesize,0
+	li	dlinesize,0
+	li	scachesize,0
+	li	slinesize,0
+
+	/* check that we have Config1 */
+	and	tmp,cfg,CFG0_M
+	mfc0	cfg,$config,1
+	beqz	tmp,9f
+
+	/* get icache line size (log2) */
+	and	tmp,cfg,CFG1_ILMASK
+	srl	tmp,CFG1_ILSHIFT
+	beqz	tmp,8f		# no i-cache
+	addu	tmp,1
+
+	/* get number of icache ways */
+	and	iways,cfg,CFG1_IAMASK
+	srl	iways,CFG1_IASHIFT
+	addu	iways,1
+	move	icachesize,iways
+
+	/* total icache size = lines/way * linesize * ways */
+	li	ilinesize,1
+	sll	ilinesize,tmp
+	sll	icachesize,tmp
+
+	/* get icache lines per way */
+	and	tmp,cfg,CFG1_ISMASK
+	srl	tmp,CFG1_ISSHIFT
+	addu	tmp,6
+	sll	icachesize,tmp
+
+	/* get dcache line size (log2) */
+8:	and	tmp,cfg,CFG1_DLMASK
+	srl	tmp,CFG1_DLSHIFT
+	beqz	tmp,8f		# no d-cache
+	addu	tmp,1
+
+	/* get number of dcache ways */
+	and	dways,cfg,CFG1_DAMASK
+	srl	dways,CFG1_DASHIFT
+	addu	dways,1
+	move	dcachesize,dways
+
+	/* total dcache size = lines/way * linesize * ways */
+	li	dlinesize,1
+	sll	dlinesize,tmp
+	sll	dcachesize,tmp
+
+	/* get dcache lines per way */
+	and	tmp,cfg,CFG1_DSMASK
+	srl	tmp,CFG1_DSSHIFT
+	addu	tmp,6
+	sll	dcachesize,tmp
+
+8:	/* check that we have Config2 */
+	and	tmp,cfg,CFG0_M
+	mfc0	cfg,$config,2
+	beqz	tmp,9f
+
+	/* get scache line size (log2) */
+	and	tmp,cfg,CFG2_SLMASK
+	srl	tmp,CFG2_SLSHIFT
+	beqz	tmp,8f		# no s-cache
+	addu	tmp,1
+
+	/* get number of scache ways */
+	and	sways,cfg,CFG2_SAMASK
+	srl	sways,CFG2_SASHIFT
+	addu	sways,1
+	move	scachesize,sways
+
+	/* scache size = lines/way * linesize * ways */
+	li	slinesize,1
+	sll	slinesize,tmp
+	sll	scachesize,tmp
+
+	/* get scache lines per way */
+	and	tmp,cfg,CFG2_SSMASK
+	srl	tmp,CFG2_SSSHIFT
+	addu	tmp,6
+	sll	scachesize,tmp
+
+#undef	cfg
+#undef	tmp
+
+8:;9:	j	ra
+SEND(_size_cache)
+
+/*
+ * void size_cache()
+ *
+ * Work out size of I, D & S caches (assume already initialised)
+ */
+LEAF(m32_size_cache)
+	lw	t0,mips_icache_size
+	move	a3,ra
+	bgtz	t0,8f				# already known?
+
+	bal	_size_cache
+	move	ra,a3
+
+..savesize:
+	sw	icachesize,mips_icache_size
+	sw	dcachesize,mips_dcache_size
+	sw	scachesize,mips_scache_size
+	sw	ilinesize,mips_icache_linesize
+	sw	dlinesize,mips_dcache_linesize
+	sw	slinesize,mips_scache_linesize
+	sw	iways,mips_icache_ways
+	sw	dways,mips_dcache_ways
+	sw	sways,mips_scache_ways
+
+8:	j	ra
+END(m32_size_cache)
+
+
+/*
+ * void m32_init_cache()
+ *
+ * Work out size of and initialize I, D & S caches.
+ *
+ * NOTES
+ *  1) assumes enough DRAM has been initialised with correct parity
+ */
+LEAF(m32_init_cache)
+	/*
+ 	 * Determine the cache sizes
+	 */
+	move	v1,ra
+	bal	_size_cache
+
+	/* now run uncached (PIC) */
+	.set	noreorder
+	.set	nomacro
+	bal	1f
+	li	t1,KSEG1_BASE
+1:	or	t1,ra
+	addu	t1,16
+	jr	t1
+	move	ra,v1
+	.set	macro
+	.set	reorder
+
+
+	/*
+	 * The caches may be in an indeterminate state,
+	 * so we force good parity into them by doing an
+	 * invalidate, load/fill, invalidate for each line.
+	 */
+
+	/* disable all i/u and cache exceptions */
+	.set noreorder
+	mfc0	t0,$sr
+	li	t1,~SR_IE
+	and	t1,t0
+	or	t1,SR_ERL		# will this work?
+	mtc0	t1,$sr
+#if __mips_isa_rev < 2
+	ssnop; ssnop
+#endif
+	ehb
+
+	mtc0	zero,$errctl
+	mtc0	zero,$taglo		# 4K taglo / 2*K itaglo
+	mtc0	zero,$taghi		# 4K taghi / 2*K itaghi
+	mtc0	zero,$taglo,2		# 2*K dtaglo
+	mtc0	zero,$taghi,2		# 2*K dtaghi
+	mtc0	zero,$taglo,4		# 25Kf L23taglo
+	mtc0	zero,$taghi,4		# 25Kf L23taghi
+	ehb
+
+	.set reorder
+
+4:
+	/*
+	 * Assume bottom of RAM or scache will generate good parity for the
+	 * primary caches (max 32K)
+	 */
+
+	/*
+	 * Initialise primary instruction cache.
+	 */
+	.set	noreorder
+	li	a0,KSEG0_BASE
+	beqz	icachesize,8f
+	addu	a1,a0,icachesize		# limit = base + icachesize
+1:	addu	a0,ilinesize
+	bne	a0,a1,1b
+	cache	Index_Store_Tag_I,-4(a0)	# BDSLOT: clear tag
+	.set	reorder
+
+	/*
+	 * Initialise primary data cache.
+	 */
+
+	.set	noreorder
+8:	li	a0,KSEG0_BASE
+	beqz	dcachesize,8f
+	addu	a1,a0,dcachesize        	# limit = base + dcachesize
+1:	addu	a0,dlinesize
+	bne	a0,a1,1b
+	cache	Index_Store_Tag_D,-4(a0)	# BDSLOT: clear tag
+	.set	reorder
+
+	/*
+	 * Initialise secondary cache.
+	 */
+
+	.set	noreorder
+8:	li	a0,KSEG0_BASE
+	beqz	scachesize,8f
+	addu	a1,a0,scachesize        	# limit = base + scachesize
+1:	addu	a0,slinesize
+	bne	a0,a1,1b
+	cache	Index_Store_Tag_S,-4(a0)	# BDSLOT: clear tag
+	.set	reorder
+
+8:	sync
+
+	/* we store the sizes only after the caches are initialised */
+4:	sw	icachesize,mips_icache_size
+	sw	dcachesize,mips_dcache_size
+	sw	scachesize,mips_scache_size
+	sw	ilinesize,mips_icache_linesize
+	sw	dlinesize,mips_dcache_linesize
+	sw	slinesize,mips_scache_linesize
+	sw	iways,mips_icache_ways
+	sw	dways,mips_dcache_ways
+	sw	sways,mips_scache_ways
+
+	.set	noreorder
+	mtc0	t0,$sr
+#if __mips_isa_rev < 2
+	ssnop; ssnop
+#endif
+	ehb
+	.set	reorder
+
+	jr.hb	ra
+END(m32_init_cache)
+
+
+
+
+/*
+ * void m32_clean_icache (unsigned kva, size_t n)
+ *
+ * Writeback and invalidate address range in instruction caches
+ */
+LEAF(m32_clean_icache)
+	SIZE_CACHE(a2,mips_icache_linesize)
+	vcacheop(a0,a1,a2,Hit_Invalidate_I)
+
+9:	lw	a2,mips_scache_linesize
+	blez	a2,9f
+	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
+	sync
+
+9:	jr.hb	ra
+END(m32_clean_icache)
+
+#endif /* !CSMIPS_CACHE_EXTRAROUTINES */
+
+#endif /* #cache(m32) */
