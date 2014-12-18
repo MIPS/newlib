@@ -80,7 +80,7 @@ UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
   uhi_get_mem_info.o uhi_lseek.o uhi_open.o uhi_plog.o \
   uhi_pread.o uhi_pwrite.o uhi_read.o uhi_link.o uhi_stat.o \
   uhi_unlink.o uhi_write.o uhi_getargs.o syscalls.o getpid.o isatty.o \
-  kill.o mips_excpt_entry.o mips_excpt_handler.o
+  kill.o mips_excpt_entry.o mips_excpt_handler.o mips_excpt_register.o
 YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
   yamon_fstat.o
 HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb.o m32tlb_ops.o mipscp0.o

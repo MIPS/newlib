@@ -27,11 +27,16 @@
 #include "excpt.h"
 #include "uhi_syscalls.h"
 
+int __get_startup_BEV (void);
+int __chain_uhi_excpt (struct gpctx *ctx);
 int _mips_handle_exception (struct gpctx *ctx, int exception)
 	__attribute__((weak));
 
+/* Defined in .ld file */
+extern char __use_excpt_boot[];
+
 /* Handle syscall exception */
-static int excpt_syscall (struct gpctx *ctx)
+int _excpt_syscall (struct gpctx *ctx)
 {
 	register regtype arg1 asm ("$4") = ctx->a[0];
 	register regtype arg2 asm ("$5") = ctx->a[1];
@@ -66,7 +71,20 @@ int _mips_handle_exception (struct gpctx *ctx, int exception)
 	case EXC_TRAP:
 		break;
 	case EXC_SYS:
-		return excpt_syscall (ctx);
+		{
+		  /* 
+		   * __use_excpt_boot has following values
+		   * 0 = Do not use exception handler present in boot
+		   * 1 = Use exception handler present in boot if BEV 
+		         is 0 at startup
+		   * 2 = Always use exception handler present in boot
+		  */
+		  if (((long) __use_excpt_boot == 2) ||
+		      (long) __use_excpt_boot == 1 && __get_startup_BEV () == 0)
+		    return __chain_uhi_excpt (ctx);
+		  else
+		    return _excpt_syscall (ctx);
+		}
 	default:
 		break;
 	}

@@ -48,16 +48,11 @@
 	.comm	__lstack, STARTUP_STACK_SIZE
 
 	.data
-	.globl __uhi_extension
 __temp_space:	   /* Temporary space to save arguments */
 #ifdef __mips64
 	.space	32
-__uhi_extension:
-	.space	8
 #else
 	.space	16
-__uhi_extension:
-	.space	4
 #endif
 
 	.text
@@ -106,14 +101,21 @@ _start:
 	sd	a1, 8(t0)
 	sd	a2, 16(t0)
 	sd	$7, 24(t0)	/* reserved */
-	sd	$8, 32(t0)	/* UHI extension function pointer (void (*) (void)) */
 #else
 	sw	a0, 0(t0)
 	sw	a1, 4(t0)
 	sw	a2, 8(t0)
 	sw	$7, 12(t0)	/* reserved */
-	sw	$8, 16(t0)	/* UHI extension function pointer (void (*) (void)) */
 #endif
+
+	/* 
+	 * Save k0, k1, ra and sp and register
+	 * default exception handler.
+	*/
+	.weak	__register_excpt_handler
+	LA	(t9, __register_excpt_handler)
+	move	a0, ra		/* save ra */
+	jalr	t9
 
 	/* Clear Cause register.  */
 	mtc0	zero,C0_CAUSE
@@ -280,13 +282,11 @@ init:
 	ld	a1,8(t0)
 	ld	a2,16(t0)
 	ld	$7,24(t0)
-	ld	$8,32(t0)
 #else
 	lw	a0,0(t0)
 	lw	a1,4(t0)
 	lw	a2,8(t0)
 	lw	$7,12(t0)
-	lw	$8,16(t0)
 #endif
 
 	/* if a0 >= 0 then we have arguments ready in a0 to a2 registers */

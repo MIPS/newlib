@@ -51,6 +51,12 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
+int __get_startup_BEV (void);
+void __return_to_boot (int32_t exit_code);
+
+/* Defined in .ld file */
+extern char __use_excpt_boot[];
+
 /* _exit has been declared weak to allow its defination in the application */
 __attribute__ ((weak)) void __exit (int32_t exit_code)
 {
@@ -64,6 +70,15 @@ __attribute__ ((weak)) void __exit (int32_t exit_code)
 		       : "r" (op)
 		       : "$3", "$5");
 
-  __exit (exit_code);  /* just to avoide the warning */
+  /* exit wasn't handled, return to caller of _start 
+   * __use_excpt_boot has following values
+   * 0 = Do not use exception handler present in boot
+   * 1 = Use exception handler present in boot if BEV 
+	 is 0 at startup
+   * 2 = Always use exception handler present in boot
+  */
+  if (((long) __use_excpt_boot == 2) ||
+      (long) __use_excpt_boot == 1 && __get_startup_BEV () == 0)
+  __return_to_boot (exit_code);
 }
 

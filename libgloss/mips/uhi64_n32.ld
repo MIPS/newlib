@@ -25,6 +25,13 @@ PROVIDE (__stack = 0);
 /* Size of the memory returned by get_mem_info */
 PROVIDE (__memory_size = 1M);
 
+/* 
+ * 0 = Do not use exception handler present in boot
+ * 1 = Use exception handler present in boot if BEV is 0 at startup
+ * 2 = Always use exception handler present in boot
+*/
+PROVIDE (__use_excpt_boot = 1);
+
 /*
  * Initalize some symbols to be zero so we can reference them in the
  * crt0 without core dumping. These functions are all optional, but
@@ -40,6 +47,7 @@ PROVIDE (software_init_hook = 0);
 
 SECTIONS
 {
+  __excpt_ebase = 0xFFFFFFFF80000000;
   . = 0xFFFFFFFF80000180;
   .mips_exception : {
     * (.text._exception_entry)
