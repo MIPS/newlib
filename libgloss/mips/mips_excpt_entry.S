@@ -60,13 +60,13 @@
 #define e_RA	s7
 
 #
-# FUNCTION:	_exception_entry
+# FUNCTION:	__exception_entry
 #
 # DESCRIPTION: Exception entry point. This is small because it must go at
 #			   EBASE+0x180. It saves enough context to chain onwards to
-#			   _exception_save.
+#			   __exception_save.
 #
-NESTED(_exception_entry, 0, ra)
+NESTED(__exception_entry, 0, ra)
 	.set	push
 	.set	noat
 	.set	noreorder
@@ -74,21 +74,21 @@ NESTED(_exception_entry, 0, ra)
 	# Free up k1, defering sp adjustment until later
 	ST	k1, (-CTX_SIZE + CTX_K1)(sp)
 
-	# Use k1 to invoke _exception_save
-	LA	k1, _exception_save
+	# Use k1 to invoke __exception_save
+	LA	k1, __exception_save
 	jr	k1
 	nop
 
 	.set    pop
-END(_exception_entry)
+END(__exception_entry)
 
 #
-# FUNCTION:	_exception_save
+# FUNCTION:	__exception_save
 #
 # DESCRIPTION: Exception context save. Save the context, then fake up a call
 #              frame.
 #
-NESTED(_exception_save, CTX_SIZE, zero)
+NESTED(__exception_save, CTX_SIZE, zero)
 	.set	push
 	.set	noat
 	.set	noreorder
@@ -252,4 +252,4 @@ NESTED(_exception_save, CTX_SIZE, zero)
 	# Return from exception
 	eret
 	.set	pop
-END(_exception_save)
+END(__exception_save)

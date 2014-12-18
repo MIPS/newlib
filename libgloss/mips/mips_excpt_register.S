@@ -75,7 +75,7 @@ __start_ctx:
 #
 # FUNCTION:	__register_excpt_handler
 #
-# DESCRIPTION: Save k0, k1, ra and sp. Register _exception_entry
+# DESCRIPTION: Save k0, k1, ra and sp. Register __exception_entry
 #	       at EBASE+0x180
 #
 	.text

@@ -9,7 +9,8 @@ GROUP(-lc -luhi -lgcc -lhal)
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 STARTUP(crt0.o)
-EXTERN(_exception_entry)
+EXTERN(__exception_entry)
+EXTERN(__getargs)
 
 /*
  * Allocate the stack to be at the top of memory, since the stack

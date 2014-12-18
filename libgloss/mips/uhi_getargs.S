@@ -42,12 +42,12 @@
 
   .text
   .align  2
-  .globl  getargs
+  .globl  __getargs
   .set  nomips16
   .set  nomicromips
-  .ent  getargs
-  .type getargs, @function
-getargs:
+  .ent  __getargs
+  .type __getargs, @function
+__getargs:
   .set  noreorder
   .set  nomacro
 
@@ -130,7 +130,7 @@ argn:
 
   .set  macro
   .set  reorder
-  .end  getargs
-  .size getargs, .-getargs
+  .end  __getargs
+  .size __getargs, .-__getargs
 
 /* EOF uhi_getargs.S */

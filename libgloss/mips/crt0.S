@@ -294,10 +294,11 @@ init:
 	/* if a0 >= 0 then we have arguments ready in a0 to a2 registers */
 	bgez	a0,.Lmain
 
-#ifdef __HAVE_ARGN
-	jal	getargs				# get arguments
-#else
-
+	.weak	__getargs
+	LA (t0, __getargs)
+	beqz	t0, 1f
+	jalr	t0				# get arguments
+1:
 	/* no arguments */
 	move	a0,zero				# set argc to 0
 	addiu	a1,sp,32			# argv = sp + 32
@@ -309,7 +310,6 @@ init:
 	sw	zero,(a1)
 	sw	zero,(a2)
 #endif
-#endif /* __HAVE_ARGN */
 
 .Lmain:
 	jal	main				# call the program start function
