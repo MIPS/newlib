@@ -65,12 +65,12 @@ int32_t open (const char *file_name, int32_t flags, int32_t mode)
   register int32_t arg2 asm ("$5") = flags;
   register int32_t arg3 asm ("$6") = mode;
   register int32_t op asm ("$25") = __MIPS_UHI_OPEN;
-  register int32_t ret asm ("$2") = 0;
+  register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
   __asm__ __volatile__(" # %0,%1 = open(%2, %3, %4) op=%5\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
 		       : "r" (arg3), "r" (op));
 
   if (ret == -1)

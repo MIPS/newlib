@@ -68,7 +68,15 @@ yamon_write.o: $(srcdir)/yamon_write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 yamon_exit.o: $(srcdir)/yamon_exit.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-__exit.o: $(srcdir)/__exit.c
+yamon_close.o: $(srcdir)/yamon_close.c
+	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+yamon_fstat.o: $(srcdir)/yamon_fstat.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 link.o: $(srcdir)/link.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+mips_excpt_handler.o: $(srcdir)/mips_excpt_handler.c $(srcdir)/excpt.h
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+mips_excpt_entry.o: $(srcdir)/mips_excpt_entry.S $(srcdir)/excpt.h
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+mips_excpt_register.o: $(srcdir)/mips_excpt_register.S $(srcdir)/excpt.h
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?

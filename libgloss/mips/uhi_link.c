@@ -62,12 +62,12 @@ int32_t link (const char *oldname, const char *newname)
   register const char *arg1 asm ("$4") = oldname;
   register const char *arg2 asm ("$5") = newname;
   register int32_t op asm ("$25") = __MIPS_UHI_LINK;
-  register int32_t ret asm ("$2") = 0;
+  register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
   __asm__ __volatile__(" # %0,%1 = link(%2, %3) op=%4\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
 		       : "r" (op));
 
   if (ret != 0)

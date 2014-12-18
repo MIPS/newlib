@@ -67,12 +67,13 @@ void __assert_func (const char *filename, int32_t line_num, const char *func, co
   register const char *arg3 asm ("$6") = func;
   register const char *arg4 asm ("$7") = expr;
   register int32_t op asm ("$25") = __MIPS_UHI_ASSERT;
+  register int32_t ret1 asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
+  register int32_t ret2 asm ("$3") = 0;
 
-  __asm__ __volatile__(" # __assert_func(%0, %1, %2, %3) op=%4\n"
+  __asm__ __volatile__(" # __assert_func(%0, %1, %2, %3, %4, %5) op=%6\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (arg1), "+r" (arg2)
-		       : "r" (arg3), "r" (arg4), "r" (op)
-		       : "$2", "$3");
+                       : "+r" (ret1), "+r" (ret2), "+r" (arg1), "+r" (arg2)
+		       : "r" (arg3), "r" (arg4), "r" (op));
 
   return;
 }

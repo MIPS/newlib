@@ -80,8 +80,10 @@ UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
   uhi_get_mem_info.o uhi_lseek.o uhi_open.o uhi_plog.o \
   uhi_pread.o uhi_pwrite.o uhi_read.o uhi_link.o uhi_stat.o \
   uhi_unlink.o uhi_write.o uhi_getargs.o syscalls.o getpid.o isatty.o \
-  kill.o
-YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o
+  kill.o mips_excpt_entry.o mips_excpt_handler.o mips_excpt_register.o
+YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
+  yamon_fstat.o
+HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb.o m32tlb_ops.o mipscp0.o
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
@@ -154,6 +156,10 @@ libyamon.a: $(YAMONOBJS)
 	${AR} ${ARFLAGS} $@ $(YAMONOBJS)
 	${RANLIB} $@
 
+libhal.a: $(HALOBJ)
+	${AR} ${ARFLAGS} $@ $(HALOBJ)
+	${RANLIB} $@
+
 # nullmon.a , This is what you want if you want crt0 but NO mon services
 # Supports GDB sim testing, board bringups, ICE operation.
 libnullmon.a: $(NULLMONOBJS)
@@ -168,6 +174,21 @@ libnullmon.a: $(NULLMONOBJS)
 
 test: $(OBJS) ${BSP} pmon-test idt-test cfe-test
 	@echo Done...
+
+cache.o: $(srcdir)/hal/lib/mips/cache.sx
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+cache_ops.o: $(srcdir)/hal/lib/mips/cache_ops.sx
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+m32cache.o: $(srcdir)/hal/lib/mips/m32cache.sx
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+m32cache_ops.o: $(srcdir)/hal/lib/mips/m32cache_ops.sx
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+m32tlb.o: $(srcdir)/hal/lib/mips/m32tlb.sx
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+m32tlb_ops.o: $(srcdir)/hal/lib/mips/m32tlb_ops.sx
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+mipscp0.o: $(srcdir)/hal/lib/mips/mipscp0.sx
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 
 dtor.o:  $(srcdir)/dtor.C
 	$(CC) $(CFLAGS_FOR_TARGET) $(INCLUDES) -o $@ -c $<
@@ -222,6 +243,10 @@ install:
 	@for script in ${SCRIPTS}; do\
 	  $(INSTALL_DATA) ${srcdir}/$${script}.ld $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$${script}.ld; \
 	done
+	mkdir -p $(DESTDIR)$(tooldir)/include/mips
+	@for header in ${srcdir}/hal/include/mips/*.h; do\
+	  $(INSTALL_DATA) $${header} $(DESTDIR)$(tooldir)/include/mips; \
+	done
 
 info:
 install-info:
@@ -231,6 +256,7 @@ test.o:	${srcdir}/test.c
 
 # these are for the BSPs
 crt0.o: ${srcdir}/crt0.S
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/crt0.S -o crt0.o
 pcrt0.o: ${srcdir}/crt0.S
 	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) -DGCRT0 ${srcdir}/crt0.S -o ${PCRT0}
 crt0_cfe.o: ${srcdir}/crt0_cfe.S
