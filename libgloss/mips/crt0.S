@@ -114,8 +114,10 @@ _start:
 	*/
 	.weak	__register_excpt_handler
 	LA	(t9, __register_excpt_handler)
+	beqz	t9, 1f
 	move	a0, ra		/* save ra */
 	jalr	t9
+1:
 
 	/* Clear Cause register.  */
 	mtc0	zero,C0_CAUSE

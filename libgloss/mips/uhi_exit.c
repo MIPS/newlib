@@ -52,7 +52,7 @@
 #include "uhi_syscalls.h"
 
 int __get_startup_BEV (void);
-void __return_to_boot (int32_t exit_code);
+void __return_to_boot (int32_t exit_code)  __attribute__ ((noreturn));
 
 /* Defined in .ld file */
 extern char __use_excpt_boot[];
@@ -79,6 +79,9 @@ __attribute__ ((weak)) void __exit (int32_t exit_code)
   */
   if (((long) __use_excpt_boot == 2) ||
       (long) __use_excpt_boot == 1 && __get_startup_BEV () == 0)
-  __return_to_boot (exit_code);
+    __return_to_boot (exit_code);
+
+  /* Infinite loop if control returns.  */
+  __exit (exit_code);
 }
 
