@@ -80,6 +80,7 @@
 #define PRID_M5100      0xA6    /* MIPS WARRIOR M5100           ISA MIPS32r2 */
 #define PRID_M5150      0xA7    /* MIPS WARRIOR M5150           ISA MIPS32r2 */
 #define PRID_P5600      0xA8    /* MIPS WARRIOR P5600           ISA MIPS32r2 */
+#define PRID_I6400      0xA9    /* MIPS I6400                   ISA MIPS64r6 */
 
 /*
  * MIPS FPU types
