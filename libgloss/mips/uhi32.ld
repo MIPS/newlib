@@ -47,7 +47,7 @@ SECTIONS
   __excpt_ebase = 0x80000000;
   . = 0x80000180;
   .mips_exception : {
-    * (.text._exception_entry)
+    * (.text.__exception_entry)
   }
 
   . = 0x80020000;
