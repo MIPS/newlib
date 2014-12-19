@@ -21,6 +21,10 @@
 
 #include <mips/mips32.h>
 
+#if __mips_isa_rev >= 6
+#include <mips/m64r6cm3.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

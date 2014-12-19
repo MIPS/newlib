@@ -13,15 +13,8 @@
 
 
 /*
- * m32cache.h: MIPS32 cache support functions
+ * m64r6cache.h: MIPS64R6 cache support functions
  */
-
-
-/*
- * Note:	 pessimistic hazard timings assumed.
- */
-
-#if 1 /*#cache(m32)*/
 
 	.set	nomips16
 /* we must fix this so that this module can compile with "generic" flags */
@@ -66,44 +59,44 @@ IMPORT(mips_scache_ways,4)
 #define maxaddr	t1
 #define mask	t2
 
-#define cacheop(kva, n, linesize, op)	\
+#define cacheop64(kva, n, linesize, op)	\
 	.set	noreorder ;		\
 	/* check for bad size */	\
- 	blez	n,11f ;			\
-	addu	maxaddr,kva,n ;		\
+	blez	n,11f ;			\
+	daddu	maxaddr,kva,n ;		\
 	/* align to line boundaries */	\
-	subu	mask,linesize,1 ;	\
+	dsubu	mask,linesize,1 ;	\
 	not	mask ;			\
 	and	addr,kva,mask ;		\
-	addu	maxaddr,-1 ;		\
+	daddu	maxaddr,-1 ;		\
 	and	maxaddr,mask ;		\
 	/* the cacheop loop */		\
-10: 	cache	op,0(addr) ;	 	\
-	bne     addr,maxaddr,10b ;	\
-	addu   	addr,linesize ;		\
+10:	cache	op,0(addr) ;	 	\
+	bne	addr,maxaddr,10b ;	\
+	daddu	addr,linesize ;		\
 11:	.set	reorder
 
 /* virtual cache op: no limit on size of region */
-#define vcacheop(kva, n, linesize, op)	\
-	cacheop(kva, n, linesize, op)
+#define vcacheop64(kva, n, linesize, op)	\
+	cacheop64(kva, n, linesize, op)
 
 /* indexed cache op: region limited to cache size */
-#define icacheop(kva, n, linesize, size, op) \
+#define icacheop64(kva, n, linesize, size, op) \
 	move	t3,n;			\
 	bltu	n,size,12f ;		\
 	move	t3,size ;		\
-12:	cacheop(kva, t3, linesize, op)
+12:	cacheop64(kva, t3, linesize, op)
 
 
 #if defined(IN_PMON) ||  defined(ITROM)
 /* caches are always sized first */
-#define SIZE_CACHE(reg,which)		\
+#define SIZE_CACHE64(reg,which)	\
 	lw	reg,which;		\
 	blez	reg,9f;			\
 	sync
 #else
 /* caches may not have been sized yet */
-#define SIZE_CACHE(reg,which)		\
+#define SIZE_CACHE64(reg,which)	\
 	lw	reg,which;		\
 	move	v1,ra;			\
 	bgez	reg,9f;			\
@@ -133,5 +126,3 @@ IMPORT(mips_scache_ways,4)
 #define tmp4		a2
 #define tmp5		a3
 
-
-#endif /* #cache(m32) */
