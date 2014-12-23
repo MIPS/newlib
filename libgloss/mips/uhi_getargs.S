@@ -56,7 +56,6 @@ __getargs:
 
   li  $25, __MIPS_UHI_ARGC
 
-  .global argc
   .type argc, @function
 argc:
   ASM_SYSCALL (1)
@@ -78,7 +77,6 @@ argc:
   li  $25, __MIPS_UHI_ARGLEN
   move  a0, t5                  /* argument number */
 
-  .global arglen
   .type arglen, @function
 arglen:
   ASM_SYSCALL (1)               /* get lenght of the arg N */
@@ -101,7 +99,6 @@ arglen:
   move  a0, t5                  /* argument number */
   move  a1, sp                  /* argument buffer */
 
-  .global argn
   .type argn, @function
 argn:
   ASM_SYSCALL (1)
