@@ -177,19 +177,19 @@ test: $(OBJS) ${BSP} pmon-test idt-test cfe-test
 	@echo Done...
 
 cache.o: $(srcdir)/hal/lib/mips/cache.sx
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 cache_ops.o: $(srcdir)/hal/lib/mips/cache_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 m32cache.o: $(srcdir)/hal/lib/mips/m32cache.sx
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 m32cache_ops.o: $(srcdir)/hal/lib/mips/m32cache_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 m32tlb.o: $(srcdir)/hal/lib/mips/m32tlb.sx
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 m32tlb_ops.o: $(srcdir)/hal/lib/mips/m32tlb_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 mipscp0.o: $(srcdir)/hal/lib/mips/mipscp0.sx
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 
 dtor.o:  $(srcdir)/dtor.C
 	$(CC) $(CFLAGS_FOR_TARGET) $(INCLUDES) -o $@ -c $<

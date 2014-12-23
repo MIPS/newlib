@@ -36,8 +36,10 @@
 
 #ifdef HAS_64BIT_ADDRESS
 # define LA	dla
+# define MFC0	dmfc0
 #else
 # define LA	la
+# define MFC0	mfc0
 #endif
 
 #ifdef __mips64
@@ -162,7 +164,7 @@ NESTED(__exception_save, CTX_SIZE, zero)
 
 	# Trick the backtracer into stepping back to the point where the exception
 	# occurred.
-	mfc0	ra, C0_EPC
+	MFC0	ra, C0_EPC
 	mfc0	e_CR, C0_CR
 	ST	ra, CTX_EPC + ADJ(sp)
 
