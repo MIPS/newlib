@@ -58,10 +58,10 @@
 #define str(s) #s
 #define __MIPS_UHI_SYSCALL_NUM 1
 
-#ifdef __MIPS_SYSCALL__
-	#define SYSCALL(NUM) "\tsyscall " xstr (NUM)
-	#define ASM_SYSCALL(NUM) syscall NUM
-#else
+#ifdef __MIPS_SDBBP__
 	#define SYSCALL(NUM) "\tsdbbp " xstr (NUM)
 	#define ASM_SYSCALL(NUM) sdbbp NUM
+#else
+	#define SYSCALL(NUM) "\tsyscall " xstr (NUM)
+	#define ASM_SYSCALL(NUM) syscall NUM
 #endif
