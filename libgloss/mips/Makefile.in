@@ -84,7 +84,7 @@ UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
 YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
   yamon_fstat.o
 HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb.o \
-  m32tlb_ops.o mipscp0.o m64r6cache.o
+  m32tlb_ops.o mipscp0.o
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
@@ -189,8 +189,6 @@ m32tlb.o: $(srcdir)/hal/lib/mips/m32tlb.sx
 m32tlb_ops.o: $(srcdir)/hal/lib/mips/m32tlb_ops.sx
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 mipscp0.o: $(srcdir)/hal/lib/mips/mipscp0.sx
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
-m64r6cache.o: $(srcdir)/hal/lib/mips/m64r6cache.S
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 
 dtor.o:  $(srcdir)/dtor.C
