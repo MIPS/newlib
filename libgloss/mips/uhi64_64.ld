@@ -47,13 +47,12 @@ PROVIDE (software_init_hook = 0);
 
 SECTIONS
 {
-  __excpt_ebase = 0xFFFFFFFF80000000;
-  . = 0xFFFFFFFF80000180;
+  . = 0xFFFFFFFF80020000;
+  __excpt_ebase = .;
   .mips_exception : {
     * (.text.__exception_entry)
   }
 
-  . = 0xFFFFFFFF80020000;
   .text : {
      _ftext = . ;
     PROVIDE (eprol  =  .);

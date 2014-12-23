@@ -1,13 +1,9 @@
 /* The following TEXT start address leaves space for the monitor
-   workspace.  This linker script links ISA64r2 programs for use with the
-   simulator.  We set the ISA explicitly so that we can link objects of
-   different ISAs that are subsets of ISA64r2 but are not extensions of
-   each other (e.g., MIPS32r2 and MIPS64).
+   workspace.  This linker script links ISA32r2 programs for use with
+   the simulator.  */
 
-   It differs from mti64.ld by using the n32 ABI targets instead of the
-   o32 ABI targets in OUTPUT_FORMAT.  */
 ENTRY(_start)
-OUTPUT_FORMAT("elf32-ntradlittlemips", "elf32-ntradbigmips", "elf32-ntradlittlemips")
+OUTPUT_FORMAT("elf32-tradlittlemips", "elf32-tradbigmips", "elf32-tradlittlemips")
 GROUP(-lc -luhi -lgcc -lhal)
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
@@ -47,7 +43,7 @@ PROVIDE (software_init_hook = 0);
 
 SECTIONS
 {
-  . = 0xFFFFFFFF80020000;
+  . = 0x80200000;
   __excpt_ebase = .;
   .mips_exception : {
     * (.text.__exception_entry)

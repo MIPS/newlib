@@ -69,6 +69,7 @@
 #			   __exception_save.
 #
 NESTED(__exception_entry, 0, ra)
+	.org 0x180
 	.set	push
 	.set	noat
 	.set	noreorder
@@ -98,7 +99,7 @@ NESTED(__exception_save, CTX_SIZE, zero)
 	# k1 is already saved, so use it to save the users sp
 	move	k1, sp
 	# Finally adjust sp
-	addiu	sp, sp, CTX_SIZEADJ	# This should be picked up by the backtracer
+	addiu	sp, sp, -CTX_SIZEADJ	# This should be picked up by the backtracer
 
 	# Save context
 	ST	$1, CTX_AT + ADJ(sp)

@@ -31,8 +31,10 @@
 
 #ifdef HAS_64BIT_ADDRESS
 # define LA	dla
+# define PTR_ADDU daddu
 #else
 # define LA	la
+# define PTR_ADDU addu
 #endif
 
 #ifdef __mips64
@@ -193,14 +195,14 @@ __chain_uhi_excpt:
 	move	$3, $4
 
 #if defined (__mips_dsp)
-	LD	$9, CTX_DSPC + ADJ($3)
+	LD	$9, CTX_DSPC($3)
 	wrdsp	$9
-	LD	$10, CTX_HI1 + ADJ($3)
-	LD	$11, CTX_LO1 + ADJ($3)
-	LD	$12, CTX_HI2 + ADJ($3)
-	LD	$13, CTX_LO2 + ADJ($3)
-	LD	$14, CTX_HI3 + ADJ($3)
-	LD	$15, CTX_LO3 + ADJ($3)
+	LD	$10, CTX_HI1($3)
+	LD	$11, CTX_LO1($3)
+	LD	$12, CTX_HI2($3)
+	LD	$13, CTX_LO2($3)
+	LD	$14, CTX_HI3($3)
+	LD	$15, CTX_LO3($3)
 	mthi	$10, $ac1
 	mtlo	$11, $ac1
 	mthi	$12, $ac2
@@ -210,49 +212,49 @@ __chain_uhi_excpt:
 #endif
 
 #if (__mips_isa_rev < 6)
-	LD	$9, CTX_HI0 + ADJ($3)
-	LD	$10, CTX_LO0 + ADJ($3)
+	LD	$9, CTX_HI0($3)
+	LD	$10, CTX_LO0($3)
 	mthi	$9
 	mtlo	$10
 #elif defined (__mips_dsp)
-	LD	$9, CTX_HI0 + ADJ($3)
-	LD	$10, CTX_LO0 + ADJ($3)
+	LD	$9, CTX_HI0($3)
+	LD	$10, CTX_LO0($3)
 	mthi	$9, $ac0
 	mtlo	$10, $ac0
 #endif
 
-	LD	$9, CTX_EPC + ADJ($3)
+	LD	$9, CTX_EPC($3)
 	mtc0	$9, C0_EPC
 
 	# Restore the common context
-	LD	$1, CTX_AT + ADJ($3)
-	LD	$2, CTX_V0 + ADJ($3)
-	LD	$4, CTX_A0 + ADJ($3)
-	LD	$5, CTX_A1 + ADJ($3)
-	LD	$6, CTX_A2 + ADJ($3)
-	LD	$7, CTX_A3 + ADJ($3)
-	LD	$8, CTX_T0 + ADJ($3)
-	LD	$9, CTX_T1 + ADJ($3)
-	LD	$10, CTX_T2 + ADJ($3)
-	LD	$11, CTX_T3 + ADJ($3)
-	LD	$12, CTX_T4 + ADJ($3)
-	LD	$13, CTX_T5 + ADJ($3)
-	LD	$14, CTX_T6 + ADJ($3)
-	LD	$15, CTX_T7 + ADJ($3)
-	LD	$16, CTX_S0 + ADJ($3)
-	LD	$17, CTX_S1 + ADJ($3)
-	LD	$18, CTX_S2 + ADJ($3)
-	LD	$19, CTX_S3 + ADJ($3)
-	LD	$20, CTX_S4 + ADJ($3)
-	LD	$21, CTX_S5 + ADJ($3)
-	LD	$22, CTX_S6 + ADJ($3)
-	LD	$23, CTX_S7 + ADJ($3)
-	LD	$24, CTX_T8 + ADJ($3)
-	LD	$25, CTX_T9 + ADJ($3)
-	LD	$28, CTX_GP + ADJ($3)
-	LD	$29, CTX_SP + ADJ($3)
-	LD	$30, CTX_FP + ADJ($3)
-	LD	$31, CTX_RA + ADJ($3)
+	LD	$1, CTX_AT($3)
+	LD	$2, CTX_V0($3)
+	LD	$4, CTX_A0($3)
+	LD	$5, CTX_A1($3)
+	LD	$6, CTX_A2($3)
+	LD	$7, CTX_A3($3)
+	LD	$8, CTX_T0($3)
+	LD	$9, CTX_T1($3)
+	LD	$10, CTX_T2($3)
+	LD	$11, CTX_T3($3)
+	LD	$12, CTX_T4($3)
+	LD	$13, CTX_T5($3)
+	LD	$14, CTX_T6($3)
+	LD	$15, CTX_T7($3)
+	LD	$16, CTX_S0($3)
+	LD	$17, CTX_S1($3)
+	LD	$18, CTX_S2($3)
+	LD	$19, CTX_S3($3)
+	LD	$20, CTX_S4($3)
+	LD	$21, CTX_S5($3)
+	LD	$22, CTX_S6($3)
+	LD	$23, CTX_S7($3)
+	LD	$24, CTX_T8($3)
+	LD	$25, CTX_T9($3)
+	LD	$28, CTX_GP($3)
+	LD	$29, CTX_SP($3)
+	LD	$30, CTX_FP($3)
+	LD	$31, CTX_RA($3)
 
 	# Restore chained exception handlers kernel regs
 	LA	$3, __start_ctx
@@ -261,7 +263,7 @@ __chain_uhi_excpt:
 
 	# Compute exception vector
 	LD	$3, chain_ebase($3)
-	addiu	$3, $3, 0x180
+	PTR_ADDU $3, $3, 0x180
 
 	# Chain
 	jr	$3
