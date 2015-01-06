@@ -230,17 +230,12 @@ LEAF(m32_init_cache)
 	bal	_size_cache
 
 	/* now run uncached (PIC) */
-	.set	noreorder
-	.set	nomacro
-	bal	1f
 	li	t1,KSEG1_BASE
+	bal	1f
 1:	or	t1,ra
 	PTR_ADDU t1,20
 	move	ra,tmp3
 	jr	t1
-	nop
-	.set	macro
-	.set	reorder
 
 
 	#
@@ -250,7 +245,6 @@ LEAF(m32_init_cache)
 	#
 
 	# Disable all i/u and cache exceptions
-	.set noreorder
 	mfc0	t1,$sr
 	li	t0,~SR_IE
 	and	t0,t1
@@ -261,7 +255,6 @@ LEAF(m32_init_cache)
 #endif
 	ehb
 #ifdef L2_CM3
-	.set reorder
 
 	#
 	# Initialise secondary cache
@@ -339,43 +332,33 @@ LEAF(m32_init_cache)
 	#
 
 	# Initialise primary instruction cache.
-	.set	noreorder
 	li	a0,KSEG0_BASE
 	addu	a1,a0,icachesize		# limit = base + icachesize
 	beqz	icachesize,8f
-	nop
 1:	addu	a0,ilinesize
 	cache	Index_Store_Tag_I,-4(a0)	# BDSLOT: clear tag
 	bne	a0,a1,1b
-	nop
-	.set	reorder
 
 	# Initialise primary data cache.
 
-	.set	noreorder
 8:	li	a0,KSEG0_BASE
 	addu	a1,a0,dcachesize        	# limit = base + dcachesize
 	beqz	dcachesize,8f
-	nop
 1:	addu	a0,dlinesize
 	cache	Index_Store_Tag_D,-4(a0)	# BDSLOT: clear tag
 	bne	a0,a1,1b
-	nop
-	.set	reorder
 
 #ifdef L2_SCACHE
 	/*
 	 * Initialise secondary cache.
 	 */
 
-	.set	noreorder
 8:	li	a0,KSEG0_BASE
-	beqz	scachesize,8f
 	addu	a1,a0,scachesize        	# limit = base + scachesize
+	beqz	scachesize,8f
 1:	addu	a0,slinesize
-	bne	a0,a1,1b
 	cache	Index_Store_Tag_S,-4(a0)	# BDSLOT: clear tag
-	.set	reorder
+	bne	a0,a1,1b
 
 #endif
 8:	sync
@@ -391,13 +374,11 @@ LEAF(m32_init_cache)
 	sw	dways,mips_dcache_ways
 	sw	sways,mips_scache_ways
 
-	.set	noreorder
 	mtc0	t1,$sr
 #if __mips_isa_rev < 2
 	ssnop; ssnop
 #endif
 	ehb
-	.set	reorder
 
 	jr.hb	ra
 END(m32_init_cache)

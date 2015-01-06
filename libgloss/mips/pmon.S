@@ -45,31 +45,26 @@
 #define INDIRECT(name,index)				\
 	.globl	name;					\
 	.ent	name;					\
-	.set	noreorder;				\
 name:	la	$2,+(PMON_VECTOR+((index)*4));		\
 	lw	$2,0($2);				\
 	j	$2;					\
-	nop;						\
-	.set	reorder;				\
 	.end	name
 
 #else
 #define INDIRECT(name,index)				\
 	.globl	name;					\
 	.ent	name;					\
-	.set	noreorder;				\
 name:	la	$2,+(PMON_VECTOR+((index)*4));		\
 	lw	$2,0($2);				\
 	SUBU	sp,sp,0x40;				\
 	sd	ra,0x38(sp);				\
 	sd	fp,0x30(sp);				\
-	jal	$2;					\
 	move	fp,sp;					\
+	jal	$2;					\
 	ld	ra,0x38(sp);				\
 	ld	fp,0x30(sp);				\
-	j	ra;					\
 	ADDU	sp,sp,0x40;				\
-	.set	reorder;				\
+	j	ra;					\
 	.end	name
 #endif
 
@@ -95,7 +90,6 @@ INDIRECT(mon_exception,12)
 /* The following routine is required by the "print()" function: */
 	.globl	outbyte
 	.ent	outbyte
-	.set	noreorder
 outbyte:
 	subu	sp,sp,0x20	/* allocate stack space for string */
 	sd	ra,0x18(sp)	/* stack return address */
@@ -106,21 +100,19 @@ outbyte:
 	   the 8bytes at offset 8 into the string/stack. */
 	sb	a0,0x00(sp)	/* character to print */
 	sb	z0,0x01(sp)	/* NUL terminator */
-	jal	mon_printf	/* and output the string */
 	move	a0,sp		/* take a copy of the string pointer {DELAY SLOT} */
+	jal	mon_printf	/* and output the string */
 
 	move	sp,fp		/* recover stack pointer */
 	ld	ra,0x18(sp)	/* recover return address */
 	ld	fp,0x10(sp)	/* recover frame-pointer */
-	j	ra		/* return to the caller */
 	addu	sp,sp,0x20	/* dump the stack space {DELAY SLOT} */
-	.set	reorder
+	j	ra		/* return to the caller */
 	.end	outbyte
 
 /* The following routine is required by the "sbrk()" function: */
 	.globl	get_mem_info
 	.ent	get_mem_info
-	.set	noreorder
 get_mem_info:
 	# in:  a0 = pointer to 3 word structure
 	# out: void
@@ -135,7 +127,6 @@ get_mem_info:
 	# memory size.
 
 	jal	__sizemem
-	nop
 
 	ld	a0,0x10(sp)	# recover structure pointer
 	sw	v0,0(a0)	# amount of memory available
@@ -154,9 +145,8 @@ get_mem_info:
 	move	sp,fp		/* recover stack pointer */
 	ld	ra,0x00(sp)	/* recover return address */
 	ld	fp,0x08(sp)	/* recover frame-pointer */
-	j	ra		/* return to the caller */
 	addu	sp,sp,0x18	/* restore stack pointer {DELAY SLOT} */
-	.set	reorder
+	j	ra		/* return to the caller */
 	.end	get_mem_info
 
 #ifdef LSI

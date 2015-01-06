@@ -156,11 +156,10 @@ LEAF(m32_sync_icache)
 	and	maxaddr,mask
 
 	/* the cacheop loop */
-	.set	noreorder
 10: 	synci	0(addr)
-	bne     addr,maxaddr,10b
+	beq     addr,maxaddr,9f
 	addu   	addr,a2
-	.set	reorder
+	b 10b
 
 9:	sync
 	jr.hb	ra
@@ -270,7 +269,6 @@ END(m32_lock_scache)
  */
 LEAF(m32_flush_cache_nowrite)
 	/* disable all i/u and cache exceptions */
-	.set	noreorder
 	mfc0	a3,$sr
 	li	a1,~SR_IE
 	and	a1,a3
@@ -289,7 +287,6 @@ LEAF(m32_flush_cache_nowrite)
 	mtc0	zero,$taglo,4		# 25Kf L23taglo
 	mtc0	zero,$taghi,4		# 25Kf L23taghi
 	ehb
-	.set reorder
 
 	/* invalidate primary caches individually */
 	lw	a1,mips_dcache_size
@@ -308,12 +305,10 @@ LEAF(m32_flush_cache_nowrite)
 	blez	a1,9f
 	cacheop(a0,a1,a2,Index_Store_Tag_S)
 
-	.set noreorder
 9:	mtc0	a3,$sr
 #if __mips_isa_rev < 2
 	ssnop; ssnop
 #endif
-	.set reorder
 	sync
 	jr.hb	ra
 END(m32_flush_cache_nowrite)

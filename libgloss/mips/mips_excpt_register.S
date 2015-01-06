@@ -76,7 +76,6 @@ EXPORTS(__first_boot, 4)
 __register_excpt_handler:
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# Fetch initial status
 	mfc0	$8, C0_SR
@@ -163,7 +162,6 @@ __register_excpt_handler:
 	addiu	$2, $0, SR_IE
 
 	jr	$31
-	nop
 
 	.set	pop
 	.end	__register_excpt_handler
@@ -179,7 +177,6 @@ __register_excpt_handler:
 __return_to_boot:
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# Set BEV=1 to allow changing EBASE
 	mfc0	$9, C0_SR
@@ -235,7 +232,6 @@ __return_to_boot:
 	# Return with exit code
 	move	$2, $4
 	jr.hb	$31
-	nop
 
 	.set	pop
 	.end	__return_to_boot
@@ -251,7 +247,6 @@ __return_to_boot:
 __chain_uhi_excpt:
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# Move context pointer into position.  Use $3 as scratch
 	# as it is the only register that is clobbered by all
@@ -332,7 +327,6 @@ __chain_uhi_excpt:
 
 	# Chain
 	jr	$3
-	nop
 
 	.set	pop
 	.end	__chain_uhi_excpt
@@ -349,14 +343,12 @@ __chain_uhi_excpt:
 __get_startup_BEV:
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	LA	$2, __start_ctx
 	REG_L	$2, start_ctx_sr($2)
 	lui	$3, %hi(SR_BEV)
 	and	$2, $2, $3
 	jr	$31
-	nop
 
 	.set	pop
 	.end	__get_startup_BEV

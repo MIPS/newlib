@@ -79,12 +79,9 @@ __temp_space:	   /* Temporary space to save arguments */
 _start:
 #ifdef __mips_embedded_pic
 #define PICBASE start_PICBASE
-	.set	noreorder
 	PICBASE = .+8
         bal	PICBASE
-	nop
 	move	s0,$31
-	.set	reorder
 #endif
 #if __mips<3
 #  define STATUS_MASK (SR_CU1|SR_PE)
@@ -353,12 +350,9 @@ _exit:
 	/* Need to reinit PICBASE, since we might be called via exit()
 	   rather than via a return path which would restore old s0.  */
 #define PICBASE exit_PICBASE
-	.set	noreorder
 	PICBASE = .+8
 	bal	PICBASE
-	nop
 	move	s0,$31
-	.set	reorder
 #endif
 #ifdef GCRT0
 	LA (t0, _mcleanup)

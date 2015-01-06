@@ -43,7 +43,6 @@ int_cause:
 
 	.text
 
-	.set	noreorder		/* Do NOT reorder instructions */
 
 
 /* __entry_exit_handler - the reserved instruction exception handler
@@ -78,8 +77,8 @@ __entry_exit_handler:
 	bne	k0, zero, check_others	/* Sorry, go do something else */
 
 	and	k0, k1, 1		/* Check for TR mode (pc.0 = 1) */
-	beq	k0, zero, ri_in_32	/* Sorry, RI in 32-bit mode */
 	xor	k1, 1			
+	beq	k0, zero, ri_in_32	/* Sorry, RI in 32-bit mode */
 
 /* Since we now are going to emulate or die, we can use all the T-registers */
 /* that MIPS16 does not use (at, t0-t8), and we don't have to save them. */
@@ -87,8 +86,8 @@ __entry_exit_handler:
 	.set	at			/* Now it's ok to use at again */
 
 #if 0
-	j	leave
 	rfe
+	j	leave
 #endif
 
 	lhu	t0, 0(k1)		/* Fetch the offending instruction */
@@ -102,8 +101,8 @@ deareg:	and	t1, t0, 0x0700		/* Isolate the three a-bits */
 	beqz    t2, doexit
 	la	t2, savea
 	subu	t2, t1
-	jr	t2			/* Jump into the instruction table */
 	rfe				/* We run the rest in user-mode */
+	jr	t2			/* Jump into the instruction table */
 
 					/* This is the entry instruction! */
 	sw	a3, 12(sp)		/* 4: a0-a3 saved */
@@ -114,20 +113,19 @@ savea:					/* 0: No arg regs saved */
 
 dera:	and	t1, t0, 0x0020		/* Isolate the save-ra bit */
 	move	t7, sp			/* Temporary SP */
-	beq	t1, zero, desreg
 	subu	sp, 32			/* Default SP adjustment */
+	beq	t1, zero, desreg
 	sw	ra, -4(t7)
 	subu	t7, 4
 
 desreg:	and	t1, t0, 0x00c0		/* Isolate the two s-bits */
 	beq	t1, zero, leave
 	subu	t1, 0x0040
-	beq	t1, zero, leave		/* Only one to save... */
 	sw	s0, -4(t7)		/* Do the first one */
+	beq	t1, zero, leave		/* Only one to save... */
 	sw	s1, -8(t7)		/* Do the last one */
 
 leave:	jr	t8			/* Exit to unmodified EPC */
-	nop				/* Urgh - the only nop!! */
 
 doexf0: mtc1	v0,$f0			/* Copy float value */
 	b       doex2
@@ -142,20 +140,20 @@ doexit:	slt	t2, t1, 21
 	beq	t2, zero, doexf1
 
 doex2:	and	t1, t0, 0x0020		/* Isolate ra bit */
-	beq     t1, zero, dxsreg	/* t1 holds ra-bit */
 	addu	t7, sp, 32		/* Temporary SP */
+	beq     t1, zero, dxsreg	/* t1 holds ra-bit */
 	lw	ra, -4(t7)
 	subu	t7, 4
 
 dxsreg:	and	t1, t0, 0x00c0		/* Isolate the two s-bits */
 	beq	t1, zero, leavex
 	subu	t1, 0x0040
-	beq	t1, zero, leavex	/* Only one to save... */
 	lw	s0, -4(t7)		/* Do the first one */
+	beq	t1, zero, leavex	/* Only one to save... */
 	lw	s1, -8(t7)		/* Do the last one */
 
-leavex:	jr	ra			/* Exit to ra */
-	addu	sp, 32			/* Clean up stack pointer */
+leavex:	addu	sp, 32			/* Clean up stack pointer */
+	jr	ra			/* Exit to ra */
 
 /* Come here for exceptions we can't handle.  */
 
@@ -164,16 +162,12 @@ other_ri:
 check_others:				/* call the previous handler */
 	la	k0,__previous
 	jr	k0
-	nop
 
 __exception_code:
-	.set noreorder
 	la	k0, __entry_exit_handler
 #	lui	k0, %hi(exception)
 #	addiu	k0, k0, %lo(exception)
 	jr	k0
-	nop
-	.set reorder
 __exception_code_end:
 
 	.data
@@ -189,13 +183,12 @@ __previous:
 	.ent	__install_entry_handler
 	.globl	__install_entry_handler
 __install_entry_handler:
-        .set noreorder
 	mfc0	a0,C0_SR
 	nop
 	li	a1,SR_BEV
 	and	a1,a1,a0
-	beq	a1,$0,baseaddr
 	lui	a0,0x8000	/* delay slot */
+	beq	a1,$0,baseaddr
 	lui	a0,0xbfc0
 	addiu	a0,a0,0x0100
 baseaddr:
@@ -214,10 +207,7 @@ copyloop:
 	addiu	a3,a3,4
 	subu	a1,a1,4
 	bne	a1,$0,copyloop
-	nop
 	j	ra
-	nop
-        .set reorder
 	.end	__install_entry_handler
 
 
@@ -229,14 +219,13 @@ copyloop:
 	.ent	__remove_entry_handler
 	.globl	__remove_entry_handler
 __remove_entry_handler:
-        .set noreorder
 
 	mfc0	a0,C0_SR
 	nop
 	li	a1,SR_BEV
 	and	a1,a1,a0
-	beq	a1,$0,res_baseaddr
 	lui	a0,0x8000	/* delay slot */
+	beq	a1,$0,res_baseaddr
 	lui	a0,0xbfc0
 	addiu	a0,a0,0x0200
 res_baseaddr:
@@ -252,10 +241,7 @@ res_copyloop:
 	addiu	a3,a3,4
 	subu	a1,a1,4
 	bne	a1,$0,res_copyloop
-	nop
 	j	ra
-	nop
-        .set reorder
 	.end	__remove_entry_handler
 
 
@@ -266,16 +252,13 @@ res_copyloop:
 	.globl	software_init_hook
 	.ent	software_init_hook
 software_init_hook:
-	.set	noreorder
 	subu	sp, sp, 8			/* allocate stack space */
 	sw	ra, 4(sp)			/* save return address */
 	jal	__install_entry_handler		/* install entry/exit handler */
-	nop
 	lui	a0, %hi(__remove_entry_handler)	/* arrange for exit to */
-	jal	atexit				/*  de-install handler */
 	addiu	a0, a0, %lo(__remove_entry_handler)	/* delay slot */
+	jal	atexit				/*  de-install handler */
 	lw	ra, 4(sp)			/* get return address */
-	j	ra				/* return */
 	addu	sp, sp, 8			/* deallocate stack */
-	.set	reorder
+	j	ra				/* return */
 	.end	software_init_hook
