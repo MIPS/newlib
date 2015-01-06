@@ -51,7 +51,6 @@
 	.globl	_start
 	.ent	_start
 _start:
-	.set	noreorder
 	la		gp, _gp					# set the global data pointer, defined in the linker script
 	.end	_start
 
@@ -68,9 +67,9 @@ zerobss:
 
 3:
 	sw		zero, 0(v0)
-	bltu	v0, v1, 3b
-	addiu	v0, v0, 4				# executed in delay slot
-
+	sltu		at,v0,v1
+	bnez		at,3b
+	addiu		v0,v0,4
     /*
      * Setup a small stack so we can run some C code,
      * and get the usable memory size.
@@ -79,7 +78,6 @@ zerobss:
 	addiu	sp, t0, STARTUP_STACK_SIZE
 	la		a0, __memsize
 	jal		get_mem_info
-	nop
 
 	/*
      * Setup the stack pointer -- 
@@ -114,19 +112,14 @@ zerobss:
 init:
 	la		t9, hardware_init_hook	# init the hardware if needed
 	beq		t9, zero, 6f
-	nop
 	jal		t9
-	nop
 6:
 	la		t9, software_init_hook	# init the software if needed
 	beq		t9, zero, 7f
-	nop
 	jal		t9
-	nop
 7:
 	la		a0, __do_global_dtors
 	jal		atexit
-	nop
 
 #ifdef GCRT0
 	.globl	_ftext
@@ -134,12 +127,10 @@ init:
 	la		a0, _ftext
 	la		a1, _etext
 	jal		monstartup
-	nop
 #endif
 
 	move	a0,zero					# set argc to 0
 	jal		main					# call the program start function
-	nop
 
 	# fall through to the "exit" routine
 	jal		exit					# call libc exit to run the G++
@@ -161,13 +152,11 @@ _exit:
 7:
 #ifdef GCRT0
 	jal		_mcleanup
-	nop
 #endif
 	# Cygmon expects a break 5
 	break	5
 	nop
 	b		7b						# loop back just in-case
-	nop
 	.end	_exit
 
 /* EOF crt0.S */

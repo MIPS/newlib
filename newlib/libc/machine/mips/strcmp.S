@@ -42,18 +42,6 @@
 # include <sys/asm.h>
 #endif
 
-/* Technically strcmp should not read past the end of the strings being
-   compared.  We will read a full word that may contain excess bits beyond
-   the NULL string terminator but unless ENABLE_READAHEAD is set, we will not
-   read the next word after the end of string.  Setting ENABLE_READAHEAD will
-   improve performance but is technically illegal based on the definition of
-   strcmp.  */
-#ifdef ENABLE_READAHEAD
-# define DELAY_READ
-#else
-# define DELAY_READ nop
-#endif
-
 /* Testing on a little endian machine showed using CLZ was a
    performance loss, so we are not turning it on by default.  */
 #if defined(ENABLE_CLZ) && (__mips_isa_rev > 1)
@@ -89,15 +77,14 @@ LEAF(STRCMP_NAME, 0)
 LEAF(STRCMP_NAME)
 #endif
 	.set	nomips16
-	.set	noreorder
 
 	or	t0, a0, a1
 	andi	t0,0x3
+	lui	t8, 0x0101
 	bne	t0, zero, L(byteloop)
 
 /* Both strings are 4 byte aligned at this point.  */
 
-	lui	t8, 0x0101
 	ori	t8, t8, 0x0101
 	lui	t9, 0x7f7f
 	ori	t9, 0x7f7f
@@ -106,34 +93,27 @@ LEAF(STRCMP_NAME)
 	lw	v0, OFFSET(a0); \
 	lw	v1, OFFSET(a1); \
 	subu	t0, v0, t8; \
-	bne	v0, v1, L(worddiff); \
 	nor	t1, v0, t9; \
+	bne	v0, v1, L(worddiff); \
 	and	t0, t0, t1; \
 	bne	t0, zero, L(returnzero)
 
 L(wordloop):
 	STRCMP32(0)
-	DELAY_READ
 	STRCMP32(4)
-	DELAY_READ
 	STRCMP32(8)
-	DELAY_READ
 	STRCMP32(12)
-	DELAY_READ
 	STRCMP32(16)
-	DELAY_READ
 	STRCMP32(20)
-	DELAY_READ
 	STRCMP32(24)
-	DELAY_READ
 	STRCMP32(28)
 	PTR_ADDIU a0, a0, 32
-	b	L(wordloop)
 	PTR_ADDIU a1, a1, 32
+	b	L(wordloop)
 
 L(returnzero):
-	j	ra
 	move	v0, zero
+	j	ra
 
 L(worddiff):
 #ifdef USE_CLZ
@@ -156,61 +136,61 @@ L(worddiff):
 	rotrv	v1, v1, t1
 	and	v0, v0, 0xff
 	and	v1, v1, 0xff
-	j	ra
 	subu	v0, v0, v1
+	j	ra
 #else /* USE_CLZ */
 # if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	andi	t0, v0, 0xff
-	beq	t0, zero, L(wexit01)
 	andi	t1, v1, 0xff
+	beq	t0, zero, L(wexit01)
+	srl	t8, v0, 8
 	bne	t0, t1, L(wexit01)
 
-	srl	t8, v0, 8
 	srl	t9, v1, 8
 	andi	t8, t8, 0xff
-	beq	t8, zero, L(wexit89)
 	andi	t9, t9, 0xff
+	beq	t8, zero, L(wexit89)
+	srl	t0, v0, 16
 	bne	t8, t9, L(wexit89)
 
-	srl	t0, v0, 16
 	srl	t1, v1, 16
 	andi	t0, t0, 0xff
-	beq	t0, zero, L(wexit01)
 	andi	t1, t1, 0xff
+	beq	t0, zero, L(wexit01)
+	srl	t8, v0, 24
 	bne	t0, t1, L(wexit01)
 
-	srl	t8, v0, 24
 	srl	t9, v1, 24
 # else /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
 	srl	t0, v0, 24
-	beq	t0, zero, L(wexit01)
 	srl	t1, v1, 24
+	beq	t0, zero, L(wexit01)
+	srl	t8, v0, 16
 	bne	t0, t1, L(wexit01)
 
-	srl	t8, v0, 16
 	srl	t9, v1, 16
 	andi	t8, t8, 0xff
-	beq	t8, zero, L(wexit89)
 	andi	t9, t9, 0xff
+	beq	t8, zero, L(wexit89)
+	srl	t0, v0, 8
 	bne	t8, t9, L(wexit89)
 
-	srl	t0, v0, 8
 	srl	t1, v1, 8
 	andi	t0, t0, 0xff
-	beq	t0, zero, L(wexit01)
 	andi	t1, t1, 0xff
+	beq	t0, zero, L(wexit01)
+	andi	t8, v0, 0xff
 	bne	t0, t1, L(wexit01)
 
-	andi	t8, v0, 0xff
 	andi	t9, v1, 0xff
 # endif /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
 
 L(wexit89):
-	j	ra
 	subu	v0, t8, t9
-L(wexit01):
 	j	ra
+L(wexit01):
 	subu	v0, t0, t1
+	j	ra
 #endif /* USE_CLZ */
 
 /* It might seem better to do the 'beq' instruction between the two 'lbu'
@@ -219,15 +199,15 @@ L(wexit01):
 #define BYTECMP01(OFFSET) \
 	lbu	v0, OFFSET(a0); \
 	lbu	v1, OFFSET(a1); \
-	beq	v0, zero, L(bexit01); \
 	nop; \
+	beq	v0, zero, L(bexit01); \
 	bne	v0, v1, L(bexit01)
 
 #define BYTECMP89(OFFSET) \
 	lbu	t8, OFFSET(a0); \
 	lbu	t9, OFFSET(a1); \
-	beq	t8, zero, L(bexit89); \
 	nop;	\
+	beq	t8, zero, L(bexit89); \
 	bne	t8, t9, L(bexit89)
 
 L(byteloop):
@@ -240,18 +220,17 @@ L(byteloop):
 	BYTECMP01(6)
 	BYTECMP89(7)
 	PTR_ADDIU a0, a0, 8
-	b	L(byteloop)
 	PTR_ADDIU a1, a1, 8
+	b	L(byteloop)
 
 L(bexit01):
-	j	ra
 	subu	v0, v0, v1
-L(bexit89):
 	j	ra
+L(bexit89):
 	subu	v0, t8, t9
+	j	ra
 
 	.set	at
-	.set	reorder
 
 END(STRCMP_NAME)
 #ifndef ANDROID_CHANGES

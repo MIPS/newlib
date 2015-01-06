@@ -52,18 +52,16 @@
 	.globl	__cpu_timer_poll
 	.ent	__cpu_timer_poll
 __cpu_timer_poll:
-	.set	noreorder
 	# in:	a0 = (unsigned int) number of PClock ticks to wait for
 	# out:	void
 
 	# The Vr4300 counter updates at half PClock, so divide by 2 to
 	# get counter delta:
 	bnezl	a0, 1f		# continue if delta non-zero
-	srl	a0, a0, 1	# divide ticks by 2		{DELAY SLOT}
 	# perform a quick return to the caller:
 	j	ra
-	nop			#				{DELAY SLOT}
 1:
+	srl	a0, a0, 1	# divide ticks by 2		{DELAY SLOT}
 	mfc0	v0, C0_COUNT	# get current counter value
 	nop
 	nop
@@ -89,12 +87,9 @@ __cpu_timer_poll:
 	# This is an unsigned 32bit subtraction:
 	subu	v0, a0, v0	# delta = (end - now)		{DELAY SLOT}
 	bgtzl	v0, 2b		# looping back is most likely
-	nop
 	# We have now been delayed (in the foreground) for AT LEAST
 	# the required number of counter ticks.
 	j	ra		# return to caller
-	nop			#				{DELAY SLOT}
-	.set	reorder
 	.end	__cpu_timer_poll
 
 	# Flush the processor caches to memory:
@@ -102,7 +97,6 @@ __cpu_timer_poll:
 	.globl	__cpu_flush
 	.ent	__cpu_flush
 __cpu_flush:
-	.set	noreorder
 	# NOTE: The Vr4300 and Vr5432 *CANNOT* have any secondary cache.
 	# On those, SC (bit 17 of CONFIG register) is hard-wired to 1,
 	# except that email from Dennis_Han@el.nec.com says that old
@@ -136,7 +130,6 @@ __cpu_flush:
 	andi	a2, a2, 0x255	# mask: now a2 = Implementation # field
 	li	a1, IMPL_VR5432
 	beq	a1, a2, 8f	# use Vr5432-specific flush algorithm
-	nop
 	
 	# Non-Vr5432 version of the code.
 	# (The distinctions being: CONFIG is truthful about secondary cache, 
@@ -159,15 +152,15 @@ __cpu_flush:
 
 	li	t2, (1 << CR_IB) # t2=mask over IB boolean
 	and	t2, t2, t0	# test IB field of CONFIG register value
-	beqz	t2, 1f		# 
 	li	a1, 16		# 16 bytes (branch shadow: always loaded.)
+	beqz	t2, 1f		# 
 	li	a1, 32		# non-zero, then 32bytes
 1:
 
 	li	t2, (1 << CR_DB) # t2=mask over DB boolean
 	and	t2, t2, t0	# test BD field of CONFIG register value
-	beqz	t2, 2f		# 
 	li	a0, 16		# 16bytes (branch shadow: always loaded.)
+	beqz	t2, 2f		# 
 	li	a0, 32		# non-zero, then 32bytes
 2:
 	lui	t1, ((K0BASE >> 16) & 0xFFFF)
@@ -187,12 +180,13 @@ __cpu_flush:
 	sub	t2, t2, a0	# t2=address of last line in Dcache
 3:
 	cache	INDEX_WRITEBACK_INVALIDATE_D,0(t3)
-	bne	t3, t2, 3b	# 
+	beq	t3, t2, 10f	# 
 	addu	t3, a0		# (delay slot) increment by Dcache line size
+	b	3b
 
 
 	# Now check CONFIG to see if there is a secondary cache
-	lui	t2, (1 << (CR_SC-16)) # t2=mask over SC boolean
+10:	lui	t2, (1 << (CR_SC-16)) # t2=mask over SC boolean
 	and	t2, t2, t0	# test SC in CONFIG
 	bnez	t2, 6f
 	
@@ -200,14 +194,14 @@ __cpu_flush:
 	
 	srl	t3, t0, CR_SS	# want SS field of CONFIG
 	andi	t3, t3, 0x3	# mask: now t3= code for cache size.
-	beqz	t3, 4f
 	lui	a3, ((512*1024)>>16)	# a3= 512K, code was 0
-	addu	t3, -1			# decrement code
 	beqz	t3, 4f
+	addu	t3, -1			# decrement code
 	lui	a3, ((1024*1024)>>16)	# a3= 1 M, code  1
-	addu	t3, -1			# decrement code
 	beqz	t3, 4f
+	addu	t3, -1			# decrement code
 	lui	a3, ((2*1024*1024)>>16)	# a3= 2 M, code 2
+	beqz	t3, 4f
 	j	6f			# no secondary cache, code 3
 
 4:	# a3 = secondary cache size in bytes
@@ -226,8 +220,9 @@ __cpu_flush:
 	sub	t2, t2, a0	# t2=address of last line in secondary cache
 5:
 	cache	INDEX_WRITEBACK_INVALIDATE_SD,0(t3)
-	bne	t3, t2, 5b
+	beq	t3, t2, 6f
 	addu	t3, a0		# (delay slot) increment by line size
+	b	5b
 
 	
 6:	# Any optional secondary cache done.  Now do I-cache and return.
@@ -242,10 +237,11 @@ __cpu_flush:
 	sub	t2, t2, a1	# t2=address of last line in Icache
 7:
 	cache	INDEX_INVALIDATE_I,0(t1)
-	bne	t1, t2, 7b
+	beq	t1, t2, 11f
 	addu	t1, a1		# (delay slot) increment by Icache line size
+	b	7b
 
-	j	ra	# return to the caller
+11:	j	ra	# return to the caller
 	nop
 
 8:
@@ -275,12 +271,11 @@ __cpu_flush:
 	cache	INDEX_WRITEBACK_INVALIDATE_D,1(t1)	# set 1
 	cache	INDEX_INVALIDATE_I,0(t1)	# set 0
 	cache	INDEX_INVALIDATE_I,1(t1)	# set 1
-	bne	t1, t2, 9b
+	beq	t1, t2, 12f
 	addu	t1, a0
+	b	9b
 
-	j	ra	# return to the caller
-	nop
-	.set	reorder
+12:	j	ra	# return to the caller
 	.end	__cpu_flush
 
 	# NOTE: This variable should *NOT* be addressed relative to
@@ -301,7 +296,6 @@ __k1_save:
         .globl __buserr
 __buserr:
         .set noat
-	.set noreorder
 	# k0 and k1 available for use:
 	mfc0	k0,C0_CAUSE
 	nop
@@ -309,11 +303,9 @@ __buserr:
 	andi	k0,k0,0x7c
 	sub	k0,k0,7 << 2
 	beq	k0,$0,__buserr_do
-	nop
 	# call the previous handler
 	la	k0,__previous
 	jr	k0
-	nop
 	#
 __buserr_do:
 	# TODO: check that the cause is indeed a bus error
@@ -339,17 +331,13 @@ __buserr_do:
 	eret
 #        j       k0
 #        rfe
-        .set reorder
         .set at
         .end __buserr
 
 __exception_code:
-	.set noreorder
 	lui	k0,%hi(__buserr)
 	daddiu	k0,k0,%lo(__buserr)
 	jr	k0
-	nop
-	.set reorder
 __exception_code_end:
 
 	.data
@@ -366,7 +354,6 @@ __previous:
 	.ent	__default_buserr_handler
 	.globl	__default_buserr_handler
 __default_buserr_handler:
-        .set noreorder
 	# attach our simple bus error handler:
 	# in:  void
 	# out: void
@@ -374,8 +361,8 @@ __default_buserr_handler:
 	nop
 	li	a1,SR_BEV
 	and	a1,a1,a0
-	beq	a1,$0,baseaddr
 	lui	a0,0x8000	# delay slot
+	beq	a1,$0,baseaddr
 	lui	a0,0xbfc0
 	daddiu	a0,a0,0x0200
 baseaddr:
@@ -396,18 +383,14 @@ copyloop:
 	daddiu	a3,a3,4
 	subu	a1,a1,4
 	bne	a1,$0,copyloop
-	nop
         la      a0,__buserr_cnt
 	sw	$0,0(a0)
 	j	ra
-	nop
-        .set reorder
 	.end	__default_buserr_handler
 
 	.ent	__restore_buserr_handler
 	.globl	__restore_buserr_handler
 __restore_buserr_handler:
-        .set noreorder
 	# restore original (monitor) bus error handler
 	# in:  void
 	# out: void
@@ -415,8 +398,8 @@ __restore_buserr_handler:
 	nop
 	li	a1,SR_BEV
 	and	a1,a1,a0
-	beq	a1,$0,res_baseaddr
 	lui	a0,0x8000	# delay slot
+	beq	a1,$0,res_baseaddr
 	lui	a0,0xbfc0
 	daddiu	a0,a0,0x0200
 res_baseaddr:
@@ -434,24 +417,18 @@ res_copyloop:
 	daddiu	a3,a3,4
 	subu	a1,a1,4
 	bne	a1,$0,res_copyloop
-	nop
 	j	ra
-	nop
-        .set reorder
 	.end	__restore_buserr_handler
 
 	.ent	__buserr_count
 	.globl	__buserr_count
 __buserr_count:
-        .set noreorder
 	# restore original (monitor) bus error handler
 	# in:  void
 	# out: unsigned int __buserr_cnt
         la      v0,__buserr_cnt
 	lw	v0,0(v0)
 	j	ra
-	nop
-        .set reorder
 	.end	__buserr_count
 
 /* EOF vr5xxx.S */

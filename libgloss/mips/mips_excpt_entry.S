@@ -72,7 +72,6 @@ NESTED(__exception_entry, 0, ra)
 	.org 0x180
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# Free up k1, defering sp adjustment until later
 	ST	k1, (-CTX_SIZE + CTX_K1)(sp)
@@ -80,7 +79,6 @@ NESTED(__exception_entry, 0, ra)
 	# Use k1 to invoke __exception_save
 	LA	k1, __exception_save
 	jr	k1
-	nop
 
 	.set    pop
 END(__exception_entry)
@@ -94,7 +92,6 @@ END(__exception_entry)
 NESTED(__exception_save, CTX_SIZE, zero)
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# k1 is already saved, so use it to save the users sp
 	move	k1, sp
@@ -185,7 +182,6 @@ NESTED(__exception_save, CTX_SIZE, zero)
 
 	# Exception
 	b	__exception
-	nop
 
 1:	# Return point from handler
 	# Load context

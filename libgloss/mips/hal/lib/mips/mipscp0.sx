@@ -119,13 +119,11 @@ END(_mips_xxc0)
 
 #if (__mips == 32 || __mips == 64) && __mips_isa_rev >= 2
 LEAF(_mips32r2_xchsrspss)
-	.set noreorder
 	mfc0	t0,C0_SRSCTL
 	ext	v0,t0,6,4
 	ins	t0,a0,6,4
 	mtc0	t0,C0_SRSCTL
-	jr.hb	ra
 	ehb
-	.set reorder
+	jr.hb	ra
 END(_mips32r2_xchsrspss)
 #endif

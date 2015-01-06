@@ -48,8 +48,6 @@
   .ent  __getargs
   .type __getargs, @function
 __getargs:
-  .set  noreorder
-  .set  nomacro
 
   move  t6, zero              /* argc */
   move  t4, zero              /* argv */
@@ -60,11 +58,9 @@ __getargs:
   .type argc, @function
 argc:
   ASM_SYSCALL (1)
-  nop
 
   /* return on error (-1) */
   blez  v0, .Lreturn
-  nop
 
   move  t6, v0                  /* argc: number of arguments */
   sll t7, t6, ptrsize
@@ -82,10 +78,8 @@ argc:
   .type arglen, @function
 arglen:
   ASM_SYSCALL (1)               /* get lenght of the arg N */
-  nop
 
   blez  v0, .Lreturn            /* return on error */
-  nop
 
   addu  v0, v0, 1
   subu  sp, sp, v0
@@ -105,15 +99,12 @@ arglen:
   .type argn, @function
 argn:
   ASM_SYSCALL (1)
-  nop
 
   bltz  v0, .Lreturn            /* return on error */
-  nop
 
   addu  t5, t5, 1
   slt v0, t5, t6
   bnez v0, .Lloop
-  nop
 
 .Lreturn:
   move  a0, t6
@@ -126,10 +117,7 @@ argn:
   addu  sp, sp, t1
 
   j $31
-  nop
 
-  .set  macro
-  .set  reorder
   .end  __getargs
   .size __getargs, .-__getargs
 

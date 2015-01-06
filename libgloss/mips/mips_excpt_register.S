@@ -95,7 +95,6 @@ __start_ctx:
 __register_excpt_handler:
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# Fetch initial status
 	mfc0	$8, C0_SR
@@ -133,13 +132,11 @@ __register_excpt_handler:
 	lui	$10, %hi(SR_BEV)
 	and	$10, $8, $10
 	beqz	$10, 1f
-	nop
 
 	# Yes - set chain_ebase to 0xbfc00000
 	lui	$10, 0xbfc0
 	ST	$10, chain_ebase($9)
 	b	2f
-	nop
 
 	# No - set chain_ebase to C0_EBASE
 1:	mfc0	$10, C0_EBASE
@@ -156,7 +153,6 @@ __register_excpt_handler:
 	mtc0	$8, C0_SR
 
 	jr	$31
-	nop
 
 	.set	pop
 	.end	__register_excpt_handler
@@ -172,7 +168,6 @@ __register_excpt_handler:
 __return_to_boot:
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# Restore C0_EBASE
 	LA	$9, __start_ctx
@@ -200,7 +195,6 @@ __return_to_boot:
 	# Return with exit code
 	move	$2, $4
 	jr.hb	$31
-	nop
 
 	.set	pop
 	.end	__return_to_boot
@@ -216,7 +210,6 @@ __return_to_boot:
 __chain_uhi_excpt:
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# Move context pointer into position
 	move	$3, $4
@@ -314,7 +307,6 @@ __chain_uhi_excpt:
 
 	# Chain
 	jr	$3
-	nop
 
 	.set	pop
 	.end	__chain_uhi_excpt
@@ -331,14 +323,12 @@ __chain_uhi_excpt:
 __get_startup_BEV:
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	LA	$2, __start_ctx
 	LD	$2, start_ctx_sr($2)
 	lui	$3, %hi(SR_BEV)
 	and	$2, $2, $3
 	jr	$31
-	nop
 
 	.set	pop
 	.end	__get_startup_BEV
