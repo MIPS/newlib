@@ -111,7 +111,7 @@
 
 #ifndef PTR_BC
 #if __mips_isa_rev > 5 && defined (__mips_micromips)
-#define PTR_BC	      bc32
+#define PTR_BC	      bc16
 #else
 #define PTR_BC	      bc
 #endif
@@ -355,8 +355,14 @@ L(memcpy):
  * align instruction.
  */
 	andi	t8,a0,7
+#ifdef __mips_micromips
+	auipc	t9,%pcrel_hi(L(atable))
+	addiu	t9,t9,%pcrel_lo(L(atable)+4)
+	PTR_LSA	t9,t8,t9,1
+#else
 	lapc	t9,L(atable)
 	PTR_LSA	t9,t8,t9,2
+#endif
 	jrc	t9
 L(atable):
 	PTR_BC	L(lb0)
@@ -397,8 +403,14 @@ L(lb1):
 L(lb0):
 
 	andi	t8,a1,(NSIZE-1)
+#ifdef __mips_micromips
+	auipc	t9,%pcrel_hi(L(jtable))
+	addiu	t9,t9,%pcrel_lo(L(jtable)+4)
+	PTR_LSA	t9,t8,t9,1
+#else
 	lapc	t9,L(jtable)
 	PTR_LSA	t9,t8,t9,2
+#endif
 	jrc	t9
 L(jtable):
         PTR_BC      L(aligned)

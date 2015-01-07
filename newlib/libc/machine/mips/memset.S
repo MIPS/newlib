@@ -103,7 +103,7 @@
 
 #ifndef PTR_BC
 #if __mips_isa_rev > 5 && defined (__mips_micromips)
-#define PTR_BC	      bc32
+#define PTR_BC	      bc16
 #else
 #define PTR_BC	      bc
 #endif
@@ -275,8 +275,14 @@ L(set0):
 	PTR_ADDU a0,a0,t2
 #else /* R6_CODE */
 	andi	t2,a0,7
+#ifdef __mips_micromips
+	auipc	t9,%pcrel_hi(L(atable))
+	addiu	t9,t9,%pcrel_lo(L(atable)+4)
+	PTR_LSA	t9,t2,t9,1
+#else
 	lapc	t9,L(atable)
 	PTR_LSA	t9,t2,t9,2
+#endif
 	jrc	t9
 L(atable):
 	PTR_BC	L(aligned)
