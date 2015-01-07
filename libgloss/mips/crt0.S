@@ -298,6 +298,7 @@ init:
 	LA (t0, __getargs)
 	beqz	t0, 1f
 	jalr	t0				# get arguments
+	b	.Lmain
 1:
 	/* no arguments */
 	move	a0,zero				# set argc to 0

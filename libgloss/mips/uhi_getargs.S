@@ -55,6 +55,7 @@ __getargs:
   move  t4, zero              /* argv */
 
   li  $25, __MIPS_UHI_ARGC
+  li  v0, __MIPS_UHI_SYSCALL_NUM
 
   .type argc, @function
 argc:
@@ -62,7 +63,7 @@ argc:
   nop
 
   /* return on error (-1) */
-  bltz  v0, .Lreturn
+  blez  v0, .Lreturn
   nop
 
   move  t6, v0                  /* argc: number of arguments */
@@ -75,6 +76,7 @@ argc:
 .Lloop:
 
   li  $25, __MIPS_UHI_ARGLEN
+  li  v0, __MIPS_UHI_SYSCALL_NUM
   move  a0, t5                  /* argument number */
 
   .type arglen, @function
@@ -96,6 +98,7 @@ arglen:
 #endif
 
   li  $25, __MIPS_UHI_ARGN
+  li  v0, __MIPS_UHI_SYSCALL_NUM
   move  a0, t5                  /* argument number */
   move  a1, sp                  /* argument buffer */
 

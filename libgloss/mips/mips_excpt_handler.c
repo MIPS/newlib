@@ -44,11 +44,11 @@ int _excpt_syscall (struct gpctx *ctx)
 	register regtype arg4 asm ("$7") = ctx->a[3];
 	register regtype op asm ("$25") = ctx->t2[1];
 	register regtype ret3 asm ("$24") = ctx->t2[0];
-	register regtype ret1 asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
+	register regtype ret1 asm ("$2") = 1;
 	register regtype ret2 asm ("$3");
 
 	__asm__ __volatile__(" # UHI indirect\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+                       "\tsdbbp 1"
                        : "+r" (ret1), "=r" (ret2), "+r" (arg1), "+r" (arg2)
                        : "r" (arg3), "r" (arg4), "r" (op));
 
@@ -56,6 +56,7 @@ int _excpt_syscall (struct gpctx *ctx)
 	ctx->v[1] = ret2;
 	ctx->a[0] = arg1;
 	ctx->a[1] = arg2;
+	ctx->epc += 4;	/* change EPC to point to next instruction */
 
 	return 1;	/* exception handled */
 }
