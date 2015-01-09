@@ -46,6 +46,7 @@
 #endif
 
 #define	C0_EBASE	$15,1
+#define	C0_CONFIG3	$16,3
 #define SR_IE		0x00000001
 #define ADJ		16
 
@@ -55,6 +56,10 @@
 __start_ctx:
 #ifdef __mips64
 	.space	56
+#if defined (__mips_micromips)
+	.space	8
+#define	start_ctx_conf3	56	/* saved Config3 $16,3 for micromips */
+#endif
 #define	start_ctx_sr	0
 #define	start_ctx_k0	8
 #define	start_ctx_k1	16
@@ -64,6 +69,10 @@ __start_ctx:
 #define	chain_ebase	48	/* chained EBASE */
 #else
 	.space	28
+#if defined (__mips_micromips)
+	.space	4
+#define	start_ctx_conf3	28	/* saved Config3 $16,3 for micromips */
+#endif
 #define	start_ctx_sr	0
 #define	start_ctx_k0	4
 #define	start_ctx_k1	8
@@ -108,6 +117,17 @@ __register_excpt_handler:
 	# Save C0_EBASE
 	mfc0	$10, C0_EBASE
 	ST	$10, start_ctx_ebase($9)
+
+#if defined (__mips_micromips)
+	# Save Config3
+	mfc0	$10, C0_CONFIG3
+	ST	$10, start_ctx_conf3($9)
+
+	# Set Config3.ISAOnExc for micromips
+	lui	$4, 1			/* 0x10000 */
+	or	$4, $4, $10
+	mtc0	$4, C0_CONFIG3
+#endif
 
 	# Check if we booted with BEV==1
 	lui	$10, %hi(SR_BEV)
@@ -165,6 +185,13 @@ __return_to_boot:
 	LD	$27, start_ctx_k1($9)
 	LD	$29, start_ctx_sp($9)
 	LD	$31, start_ctx_ra($9)
+
+#if defined (__mips_micromips)
+	# Restore Config3
+	LD	$2, start_ctx_conf3($9)
+	mtc0	$2, C0_CONFIG3
+#endif
+
 	LD	$9, start_ctx_sr($9)
 
 	# Restore C0_STATUS IE and BEV to boot value
@@ -261,7 +288,27 @@ __chain_uhi_excpt:
 	LD	$26, start_ctx_k0($3)
 	LD	$27, start_ctx_k1($3)
 
+#if defined (__mips_micromips)
+	# OR the address with Config3.ISAOnExc bit
+	LD	$3, start_ctx_conf3($3)
+	srl	$3, $3, 16
+	andi	$3, $3, 1
+	beqz	$3, 1f
+	nop
+
 	# Compute exception vector
+	LA	$3, __start_ctx
+	LD	$3, chain_ebase($3)
+	PTR_ADDU $3, $3, 0x181		# OR ISAOnExc bit
+
+	# Chain
+	jr	$3
+	nop
+1:
+	# Compute exception vector
+	LA	$3, __start_ctx
+#endif
+
 	LD	$3, chain_ebase($3)
 	PTR_ADDU $3, $3, 0x180
 
