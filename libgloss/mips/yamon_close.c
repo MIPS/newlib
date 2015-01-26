@@ -62,7 +62,7 @@ int32_t close (int32_t fd)
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
   
-  if (fd == 1)
+  if (fd == 0 || fd == 1 || fd == 2)
     return 0;
 
   __asm__ __volatile__(" # %0,%1 = close(%2) op=%3\n"
@@ -72,7 +72,12 @@ int32_t close (int32_t fd)
 		       : "$5");
 
   if (ret != 0)
-    errno = new_errno;
+    {
+      /* Do a dance to set errno, errno is a function call that can
+         clobber $3.  */
+      volatile uint32_t errno_tmp = new_errno;
+      errno = errno_tmp;
+    }
 
   return ret;
 }

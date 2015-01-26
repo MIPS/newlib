@@ -43,7 +43,7 @@ PROVIDE (software_init_hook = 0);
 
 SECTIONS
 {
-  . = 0x80020000;
+  . = 0x80200000;
   __excpt_ebase = .;
   .mips_exception : {
     * (.text.__exception_entry)
@@ -158,6 +158,7 @@ SECTIONS
     *(COMMON)
   }
 
+  . = ALIGN(4);
   PROVIDE (end = .);
   _end = .;
 

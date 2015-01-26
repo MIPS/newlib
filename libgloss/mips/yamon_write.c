@@ -70,7 +70,7 @@ int32_t write (int32_t fd, void *buffer, int32_t count)
   register int32_t new_errno asm ("$3") = 0;
 
   /* yamon print_count always writes to stdout */
-  if (fd == 1)
+  if (fd == 1 || fd == 2)
    {
      typedef int32_t (*funcptr) (int32_t, char *, int32_t);
      extern funcptr __yamon_functions[];
@@ -88,8 +88,13 @@ int32_t write (int32_t fd, void *buffer, int32_t count)
                          : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
 			 : "r" (arg3), "r" (op));
    }
-   if (ret < 0)
-    errno = new_errno;
+  if (ret < 0)
+    {
+      /* Do a dance to set errno, errno is a function call that can
+         clobber $3.  */
+      volatile uint32_t errno_tmp = new_errno;
+      errno = errno_tmp;
+    }
 
   return ret;
 }

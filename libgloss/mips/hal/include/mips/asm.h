@@ -36,6 +36,8 @@
 #define PTR_SUBU	subu	/* decrement pointer */
 #define PTR_ADDU	addu	/* increment pointer */
 #define PTR_MFC0	mfc0	/* access CP0 pointer width register */
+#define PTR_MTC0	mtc0	/* access CP0 pointer width register */
+#define LA		la	/* load an address */
 #define PTR		.word	/* pointer type pseudo */                  
 #elif _MIPS_SIM==_ABIO64
 /* Cygnus O64 */
@@ -54,6 +56,8 @@
 #define PTR_SUBU	subu	/* decrement pointer */			   
 #define PTR_ADDU	addu	/* increment pointer */			   
 #define PTR_MFC0	dmfc0	/* access CP0 pointer width register */
+#define PTR_MTC0	mtc0	/* access CP0 pointer width register */
+#define LA		la	/* load an address */
 #define PTR		.word	/* pointer type pseudo */                  
 #elif _MIPS_SIM==_ABIN32
 /* Standard N32 */
@@ -72,6 +76,8 @@
 #define PTR_SUBU	subu	/* decrement pointer (SGI uses sub) */
 #define PTR_ADDU	addu	/* increment pointer (SGI uses add) */
 #define PTR_MFC0	mfc0	/* access CP0 pointer width register */
+#define PTR_MTC0	mtc0	/* access CP0 pointer width register */
+#define LA		la	/* load an address */
 #define PTR		.word	/* pointer type pseudo */                  
 #elif _MIPS_SIM==_ABI64
 /* Standard N64 */
@@ -90,6 +96,8 @@
 #define PTR_SUBU	dsubu	/* decrement pointer */			   
 #define PTR_ADDU	daddu	/* increment pointer */			   
 #define PTR_MFC0	dmfc0	/* access CP0 pointer width register */
+#define PTR_MTC0	dmtc0	/* access CP0 pointer width register */
+#define LA		dla	/* load an address */
 #define PTR		.dword	/* pointer type pseudo */                  
 #else
 #error Unknown ABI

@@ -121,7 +121,7 @@ int fstat (int file, struct stat *sbuf)
   __check (__LINE__, offsetof (struct stat, st_spare4) == 52);
 #endif
 
-  if (file == 1)
+  if (file == 0 || file == 1 || file == 2)
   {
     sbuf->st_mode = S_IRUSR | S_IWUSR | S_IWGRP;
     sbuf->st_blksize = BUFSIZ;
@@ -150,7 +150,12 @@ int fstat (int file, struct stat *sbuf)
 		       : "r" (op));
 
   if (ret != 0)
-    errno = new_errno;
+    {
+      /* Do a dance to set errno, errno is a function call that can
+         clobber $3.  */
+      volatile uint32_t errno_tmp = new_errno;
+      errno = errno_tmp;
+    }
   else
     {
       sbuf->st_dev = hbuf.st_dev;

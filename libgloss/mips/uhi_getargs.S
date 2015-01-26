@@ -31,14 +31,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "regs.S"
+#include <mips/asm.h>
+#include <mips/regdef.h>
 #include "uhi_syscalls.h"
-
-#ifdef __mips64
-#define ptrsize 3
-#else
-#define ptrsize 2
-#endif
 
   .text
   .align  2
@@ -48,88 +43,69 @@
   .ent  __getargs
   .type __getargs, @function
 __getargs:
-  .set  noreorder
-  .set  nomacro
 
-  move  t6, zero              /* argc */
-  move  t4, zero              /* argv */
+  move  t0, zero              /* argc */
+  move  t1, zero              /* argv */
 
   li  $25, __MIPS_UHI_ARGC
   li  v0, __MIPS_UHI_SYSCALL_NUM
 
-  .type argc, @function
-argc:
   ASM_SYSCALL (1)
-  nop
 
   /* return on error (-1) */
   blez  v0, .Lreturn
-  nop
 
-  move  t6, v0                  /* argc: number of arguments */
-  sll t7, t6, ptrsize
-  subu  sp, sp, t7              /* make room for argv */
-  move  t4, sp                  /* argv */
-  subu  sp, sp, 16
-  move  t5, zero
+  move  t0, v0			/* argc: number of arguments */
+  sll  t3, t0, LOG2_SZPTR
+  addiu  t3, t3, ALSZ
+  and  t3, t3, ALMASK
+  PTR_SUBU  sp, sp, t3		/* make room for argv */
+  move  t1, sp			/* argv */
+  move  t2, zero
 
 .Lloop:
 
   li  $25, __MIPS_UHI_ARGLEN
   li  v0, __MIPS_UHI_SYSCALL_NUM
-  move  a0, t5                  /* argument number */
+  move  a0, t2                  /* argument number */
 
-  .type arglen, @function
-arglen:
-  ASM_SYSCALL (1)               /* get lenght of the arg N */
-  nop
+  ASM_SYSCALL (1)               /* get length of arg N */
 
   blez  v0, .Lreturn            /* return on error */
-  nop
 
-  addu  v0, v0, 1
-  subu  sp, sp, v0
-  sll t7, t5, ptrsize
-  addu  t7, t7, t4
-#ifdef __mips64
-  sd  sp, 0(t7)                 /* argv[i] */
-#else
-  sw  sp, 0(t7)                 /* argv[i] */
-#endif
+  addiu	 v0, v0, 1
+  addiu  v0, v0, ALSZ
+  and  v0, v0, ALMASK
+  PTR_SUBU  sp, sp, v0
+  sll  t3, t2, LOG2_SZPTR
+  PTR_ADDU  t3, t3, t1
+  PTR_S  sp, 0(t3)                 /* argv[i] */
 
   li  $25, __MIPS_UHI_ARGN
   li  v0, __MIPS_UHI_SYSCALL_NUM
-  move  a0, t5                  /* argument number */
+  move  a0, t2                  /* argument number */
   move  a1, sp                  /* argument buffer */
 
-  .type argn, @function
-argn:
   ASM_SYSCALL (1)
-  nop
 
   bltz  v0, .Lreturn            /* return on error */
-  nop
 
-  addu  t5, t5, 1
-  slt v0, t5, t6
+  addiu  t2, t2, 1
+  slt v0, t2, t0
   bnez v0, .Lloop
-  nop
 
 .Lreturn:
-  move  a0, t6
-  move  a1, t4
+  move  a0, t0
+  move  a1, t1
 
-  li  t1, 8
-  subu  sp, sp, 32
-  andi  t0, sp, 7
-  subu  t1, t1, t0
-  addu  sp, sp, t1
+  /* Leave 16-bytes for register arguments and up to 8 bytes for
+     a null envp.  Round up to 32 for alignment.  */
+  PTR_SUBU  sp, sp, 16+(NARGSAVE*SZARG)
+  PTR_ADDU  a2, sp, (NARGSAVE*SZARG)
+  PTR_S  $0, 0(a2)
 
-  j $31
-  nop
+  jr $31
 
-  .set  macro
-  .set  reorder
   .end  __getargs
   .size __getargs, .-__getargs
 

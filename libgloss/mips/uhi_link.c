@@ -71,7 +71,12 @@ int32_t link (const char *oldname, const char *newname)
 		       : "r" (op));
 
   if (ret != 0)
-    errno = new_errno;
+    {
+      /* Do a dance to set errno, errno is a function call that can
+         clobber $3.  */
+      volatile uint32_t errno_tmp = new_errno;
+      errno = errno_tmp;
+    }
 
   return ret;
 }

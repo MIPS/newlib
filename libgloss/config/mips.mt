@@ -60,8 +60,10 @@ uhi_unlink.o: $(srcdir)/uhi_unlink.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_write.o: $(srcdir)/uhi_write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-uhi_getargs.o: $(srcdir)/uhi_getargs.S
+uhi_exception.o: $(srcdir)/uhi_exception.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+uhi_getargs.o: $(srcdir)/uhi_getargs.S
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
 yamon_read.o: $(srcdir)/yamon_read.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 yamon_write.o: $(srcdir)/yamon_write.c
@@ -72,11 +74,13 @@ yamon_close.o: $(srcdir)/yamon_close.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 yamon_fstat.o: $(srcdir)/yamon_fstat.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+yamon_exception.o: $(srcdir)/yamon_exception.c
+	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 link.o: $(srcdir)/link.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 mips_excpt_handler.o: $(srcdir)/mips_excpt_handler.c $(srcdir)/excpt.h
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_entry.o: $(srcdir)/mips_excpt_entry.S $(srcdir)/excpt.h
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_register.o: $(srcdir)/mips_excpt_register.S $(srcdir)/excpt.h
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<

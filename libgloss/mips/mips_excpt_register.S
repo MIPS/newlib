@@ -1,93 +1,73 @@
-##############################################################################
+# Copyright (c) 2015, Imagination Technologies Ltd.
+# All rights reserved.
 #
-#               file : $File$
-#  date last revised : $Date$
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-#          copyright : 2013 - 2014 by Imagination Technologies.
-#                      All rights reserved.
-#                      No part of this software, either material or conceptual
-#                      may be copied or distributed, transmitted, transcribed,
-#                      stored in a retrieval system or translated into any
-#                      human or computer language in any form by any means,
-#                      electronic, mechanical, manual or otherwise, or
-#                      disclosed to third parties without the express written
-#                      permission of:
-#                        Imagination Technologies, Home Park Estate,
-#                        Kings Langley, Hertfordshire, WD4 8LZ, U.K.
+# 1. Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# 3. Neither the name of the copyright holder nor the names of its
+# contributors may be used to endorse or promote products derived from this
+# software without specific prior written permission.
 #
-#        description : Register exception handler
-#
-##############################################################################
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
-#include "regs.S"
+#include <mips/asm.h>
+#include <mips/cpu.h>
 #include "excpt.h"
-
-#if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
-     || defined (__mips_eabi))
-# define HAS_64BIT_ADDRESS
-#else
-# define HAS_32BIT_ADDRESS
-#endif
-
-#ifdef HAS_64BIT_ADDRESS
-# define LA	dla
-# define PTR_ADDU daddu
-#else
-# define LA	la
-# define PTR_ADDU addu
-#endif
-
-#ifdef __mips64
-# define LD	ld
-# define ST	sd
-#else
-# define LD	lw
-# define ST	sw
-#endif
-
-#define	C0_EBASE	$15,1
-#define	C0_CONFIG3	$16,3
-#define SR_IE		0x00000001
-#define ADJ		16
 
 	# Create space to store k0, k1, ra and sp
 	.data
 	.global	__start_ctx
 __start_ctx:
-#ifdef __mips64
-	.space	56
+	.space	SZREG * 17
+#define	start_ctx_sr	(SZREG * 0)
+#define	start_ctx_s0	(SZREG * 1)
+#define	start_ctx_s1	(SZREG * 2)
+#define	start_ctx_s2	(SZREG * 3)
+#define	start_ctx_s3	(SZREG * 4)
+#define	start_ctx_s4	(SZREG * 5)
+#define	start_ctx_s5	(SZREG * 6)
+#define	start_ctx_s6	(SZREG * 7)
+#define	start_ctx_s7	(SZREG * 8)
+#define	start_ctx_k0	(SZREG * 9)
+#define	start_ctx_k1	(SZREG * 10)
+#define	start_ctx_gp	(SZREG * 11)
+#define	start_ctx_sp	(SZREG * 12)
+#define	start_ctx_fp	(SZREG * 13)
+#define	start_ctx_ra	(SZREG * 14)
+#define	start_ctx_ebase	(SZREG * 15)	/* saved EBASE */
+#define	chain_ebase	(SZREG * 16)	/* chained EBASE */
+
 #if defined (__mips_micromips)
-	.space	8
-#define	start_ctx_conf3	56	/* saved Config3 $16,3 for micromips */
-#endif
-#define	start_ctx_sr	0
-#define	start_ctx_k0	8
-#define	start_ctx_k1	16
-#define	start_ctx_ra	24
-#define	start_ctx_sp	32
-#define	start_ctx_ebase	40	/* saved EBASE */
-#define	chain_ebase	48	/* chained EBASE */
-#else
-	.space	28
-#if defined (__mips_micromips)
-	.space	4
-#define	start_ctx_conf3	28	/* saved Config3 $16,3 for micromips */
-#endif
-#define	start_ctx_sr	0
-#define	start_ctx_k0	4
-#define	start_ctx_k1	8
-#define	start_ctx_ra	12
-#define	start_ctx_sp	16
-#define	start_ctx_ebase	20	/* saved EBASE */
-#define	chain_ebase	24	/* chained EBASE */
+	.space	SZREG
+#define	start_ctx_conf3	(SZREG * 17)	/* saved Config3 $16,3 for micromips */
 #endif
 
+# Used to support an alternate entry point that overlays the TLB refill
+# exception entry point.  This flag must be cleared before exceptions
+# are ready to be handled.
+EXPORTS(__first_boot, 4)
+	.word	0x1
 
 #
 # FUNCTION:	__register_excpt_handler
 #
 # DESCRIPTION: Save k0, k1, ra and sp. Register __exception_entry
-#	       at EBASE+0x180
+#	       at EBASE+0x180. Return the new value for C0_SR.
 #
 	.text
 	.weak	__register_excpt_handler
@@ -100,28 +80,40 @@ __register_excpt_handler:
 	# Fetch initial status
 	mfc0	$8, C0_SR
 
-	# Disable interrupts before anything else gets in
-	di
-	nop
+	# Get into a sane state.
+	# Important things: base mode is kernel and ERL, ESL, IE are clear
+	# Set BEV=1 to allow changing EBASE later
+	lui	$10, %hi(SR_BEV)
+	mtc0	$10, C0_SR
+	ehb
+
+	# Clear first boot flag
+	LA	$9, __first_boot
+	sw	$0, 0($9)
 
 	# Save C0_SR IE and BEV
 	LA	$9, __start_ctx
-	ST	$8, start_ctx_sr($9)
+	REG_S	$8, start_ctx_sr($9)
 
-	# Save k0, k1, ra, sp
-	ST	$26, start_ctx_k0($9)
-	ST	$27, start_ctx_k1($9)
-	ST	$4, start_ctx_ra($9)	/* $4 holds $31 */
-	ST	$29, start_ctx_sp($9)
-
-	# Save C0_EBASE
-	mfc0	$10, C0_EBASE
-	ST	$10, start_ctx_ebase($9)
+	REG_S	$16, start_ctx_s0($9)
+	REG_S	$17, start_ctx_s1($9)
+	REG_S	$18, start_ctx_s2($9)
+	REG_S	$19, start_ctx_s3($9)
+	REG_S	$20, start_ctx_s4($9)
+	REG_S	$21, start_ctx_s5($9)
+	REG_S	$22, start_ctx_s6($9)
+	REG_S	$23, start_ctx_s7($9)
+	REG_S	$26, start_ctx_k0($9)
+	REG_S	$27, start_ctx_k1($9)
+	REG_S	$28, start_ctx_gp($9)
+	REG_S	$29, start_ctx_sp($9)
+	REG_S	$30, start_ctx_fp($9)
+	REG_S	$4, start_ctx_ra($9)	/* $4 holds $31 */
 
 #if defined (__mips_micromips)
 	# Save Config3
 	mfc0	$10, C0_CONFIG3
-	ST	$10, start_ctx_conf3($9)
+	REG_S	$10, start_ctx_conf3($9)
 
 	# Set Config3.ISAOnExc for micromips
 	lui	$4, 1			/* 0x10000 */
@@ -129,31 +121,44 @@ __register_excpt_handler:
 	mtc0	$4, C0_CONFIG3
 #endif
 
+	# Save C0_EBASE
+	PTR_MFC0 $10, C0_EBASE
+	REG_S	$10, start_ctx_ebase($9)
+
 	# Check if we booted with BEV==1
-	lui	$10, %hi(SR_BEV)
-	and	$10, $8, $10
-	beqz	$10, 1f
+	lui	$11, %hi(SR_BEV)
+	and	$11, $8, $11
+	beqz	$11, 1f
 	nop
 
-	# Yes - set chain_ebase to 0xbfc00000
+	# BEV==0 - set chain_ebase to 0xbfc00200
+	# Apply the offset of 0x200 so that the boot vector entries line up
+	# with the offsets in a non-boot vector
 	lui	$10, 0xbfc0
-	ST	$10, chain_ebase($9)
-	b	2f
-	nop
+	ori	$10, $10, 0x200
 
 	# No - set chain_ebase to C0_EBASE
-1:	mfc0	$10, C0_EBASE
-	ST	$10, chain_ebase($9)
+1:	REG_S	$10, chain_ebase($9)
 
 	# Set desired EBASE
-2:	LA	$10, __excpt_ebase
-	mtc0	$10, C0_EBASE
+	LA	$10, __excpt_ebase
+	# Always set the write gate as the requested EBASE may not be in kseg0.
+	# This may or may not exist in hardware but if it doesn't then the
+	# ebase address will simply get masked with inevitable consequences.
+	PTR_MTC0 $10, C0_EBASE
+	ehb
 
 	# Clear BEV
-	lui	$9, %hi(~SR_BEV)
-	ori	$9, %lo(~SR_BEV)
-	and	$8, $8, $9
-	mtc0	$8, C0_SR
+	mtc0	$0, C0_SR
+	ehb
+
+	# Turn on use of the special exception vector and enable interrupts
+	lui	$9, %hi(CR_IV)
+	mtc0	$9, C0_CAUSE
+	ehb
+
+	# Enable interrupts in the new status value
+	addiu	$2, $0, SR_IE
 
 	jr	$31
 	nop
@@ -174,28 +179,56 @@ __return_to_boot:
 	.set	noat
 	.set	noreorder
 
+	# Set BEV=1 to allow changing EBASE
+	mfc0	$9, C0_SR
+	lui	$10, %hi(SR_BEV)
+	or	$9, $9, $10
+	mtc0	$9, C0_SR
+	ehb
+
 	# Restore C0_EBASE
 	LA	$9, __start_ctx
-	LD	$9, start_ctx_ebase($9)
-	mtc0	$9, C0_EBASE
+	REG_L	$9, start_ctx_ebase($9)
+	# Set the write gate to potentially change upper bits
+	ori	$10, $9, EBASE_WG
+	PTR_MTC0 $10, C0_EBASE
+	# Check if the write gate was set on startup
+	andi	$11, $9, EBASE_WG
+	bnez	$11, 1f
+	nop
 
-	# Restore k0, k1, ra, sp and sr
+	# If write gate wasn't set then clear the write gate again
+	PTR_MTC0 $9, C0_EBASE
+1:	ehb
+
+	# Restore original state
 	LA	$9, __start_ctx
-	LD	$26, start_ctx_k0($9)
-	LD	$27, start_ctx_k1($9)
-	LD	$29, start_ctx_sp($9)
-	LD	$31, start_ctx_ra($9)
+	REG_L	$16, start_ctx_s0($9)
+	REG_L	$17, start_ctx_s1($9)
+	REG_L	$18, start_ctx_s2($9)
+	REG_L	$19, start_ctx_s3($9)
+	REG_L	$20, start_ctx_s4($9)
+	REG_L	$21, start_ctx_s5($9)
+	REG_L	$22, start_ctx_s6($9)
+	REG_L	$23, start_ctx_s7($9)
+	REG_L	$26, start_ctx_k0($9)
+	REG_L	$27, start_ctx_k1($9)
+	REG_L	$28, start_ctx_gp($9)
+	REG_L	$29, start_ctx_sp($9)
+	REG_L	$30, start_ctx_fp($9)
+	REG_L	$31, start_ctx_ra($9)
 
 #if defined (__mips_micromips)
 	# Restore Config3
-	LD	$2, start_ctx_conf3($9)
+	REG_L	$2, start_ctx_conf3($9)
 	mtc0	$2, C0_CONFIG3
 #endif
 
-	LD	$9, start_ctx_sr($9)
+	REG_L	$9, start_ctx_sr($9)
 
 	# Restore C0_STATUS IE and BEV to boot value
 	mtc0	$9, C0_SR
+	mtc0	$0, C0_CAUSE
 
 	# Return with exit code
 	move	$2, $4
@@ -218,79 +251,62 @@ __chain_uhi_excpt:
 	.set	noat
 	.set	noreorder
 
-	# Move context pointer into position
+	# Move context pointer into position.  Use $3 as scratch
+	# as it is the only register that is clobbered by all
+	# UHI calls and is not used as an input.
 	move	$3, $4
 
-#if defined (__mips_dsp)
-	LD	$9, CTX_DSPC($3)
-	wrdsp	$9
-	LD	$10, CTX_HI1($3)
-	LD	$11, CTX_LO1($3)
-	LD	$12, CTX_HI2($3)
-	LD	$13, CTX_LO2($3)
-	LD	$14, CTX_HI3($3)
-	LD	$15, CTX_LO3($3)
-	mthi	$10, $ac1
-	mtlo	$11, $ac1
-	mthi	$12, $ac2
-	mtlo	$13, $ac2
-	mthi	$14, $ac3
-	mtlo	$15, $ac3
-#endif
-
 #if (__mips_isa_rev < 6)
-	LD	$9, CTX_HI0($3)
-	LD	$10, CTX_LO0($3)
+	REG_L	$9, CTX_HI0($3)
+	REG_L	$10, CTX_LO0($3)
 	mthi	$9
 	mtlo	$10
-#elif defined (__mips_dsp)
-	LD	$9, CTX_HI0($3)
-	LD	$10, CTX_LO0($3)
-	mthi	$9, $ac0
-	mtlo	$10, $ac0
 #endif
 
-	LD	$9, CTX_EPC($3)
-	mtc0	$9, C0_EPC
+	lw	$9, CTX_STATUS($3)
+	mtc0	$9, C0_SR
+	REG_L	$9, CTX_EPC($3)
+	PTR_MTC0 $9, C0_EPC
+	ehb
 
 	# Restore the common context
-	LD	$1, CTX_AT($3)
-	LD	$2, CTX_V0($3)
-	LD	$4, CTX_A0($3)
-	LD	$5, CTX_A1($3)
-	LD	$6, CTX_A2($3)
-	LD	$7, CTX_A3($3)
-	LD	$8, CTX_T0($3)
-	LD	$9, CTX_T1($3)
-	LD	$10, CTX_T2($3)
-	LD	$11, CTX_T3($3)
-	LD	$12, CTX_T4($3)
-	LD	$13, CTX_T5($3)
-	LD	$14, CTX_T6($3)
-	LD	$15, CTX_T7($3)
-	LD	$16, CTX_S0($3)
-	LD	$17, CTX_S1($3)
-	LD	$18, CTX_S2($3)
-	LD	$19, CTX_S3($3)
-	LD	$20, CTX_S4($3)
-	LD	$21, CTX_S5($3)
-	LD	$22, CTX_S6($3)
-	LD	$23, CTX_S7($3)
-	LD	$24, CTX_T8($3)
-	LD	$25, CTX_T9($3)
-	LD	$28, CTX_GP($3)
-	LD	$29, CTX_SP($3)
-	LD	$30, CTX_FP($3)
-	LD	$31, CTX_RA($3)
+	REG_L	$1, CTX_AT($3)
+	REG_L	$2, CTX_V0($3)
+	REG_L	$4, CTX_A0($3)
+	REG_L	$5, CTX_A1($3)
+	REG_L	$6, CTX_A2($3)
+	REG_L	$7, CTX_A3($3)
+	REG_L	$8, CTX_T0($3)
+	REG_L	$9, CTX_T1($3)
+	REG_L	$10, CTX_T2($3)
+	REG_L	$11, CTX_T3($3)
+	REG_L	$12, CTX_T4($3)
+	REG_L	$13, CTX_T5($3)
+	REG_L	$14, CTX_T6($3)
+	REG_L	$15, CTX_T7($3)
+	REG_L	$16, CTX_S0($3)
+	REG_L	$17, CTX_S1($3)
+	REG_L	$18, CTX_S2($3)
+	REG_L	$19, CTX_S3($3)
+	REG_L	$20, CTX_S4($3)
+	REG_L	$21, CTX_S5($3)
+	REG_L	$22, CTX_S6($3)
+	REG_L	$23, CTX_S7($3)
+	REG_L	$24, CTX_T8($3)
+	REG_L	$25, CTX_T9($3)
+	REG_L	$28, CTX_GP($3)
+	REG_L	$29, CTX_SP($3)
+	REG_L	$30, CTX_FP($3)
+	REG_L	$31, CTX_RA($3)
 
 	# Restore chained exception handlers kernel regs
 	LA	$3, __start_ctx
-	LD	$26, start_ctx_k0($3)
-	LD	$27, start_ctx_k1($3)
+	REG_L	$26, start_ctx_k0($3)
+	REG_L	$27, start_ctx_k1($3)
 
 #if defined (__mips_micromips)
 	# OR the address with Config3.ISAOnExc bit
-	LD	$3, start_ctx_conf3($3)
+	REG_L	$3, start_ctx_conf3($3)
 	srl	$3, $3, 16
 	andi	$3, $3, 1
 	beqz	$3, 1f
@@ -298,7 +314,7 @@ __chain_uhi_excpt:
 
 	# Compute exception vector
 	LA	$3, __start_ctx
-	LD	$3, chain_ebase($3)
+	REG_L	$3, chain_ebase($3)
 	PTR_ADDU $3, $3, 0x181		# OR ISAOnExc bit
 
 	# Chain
@@ -309,7 +325,7 @@ __chain_uhi_excpt:
 	LA	$3, __start_ctx
 #endif
 
-	LD	$3, chain_ebase($3)
+	REG_L	$3, chain_ebase($3)
 	PTR_ADDU $3, $3, 0x180
 
 	# Chain
@@ -334,7 +350,7 @@ __get_startup_BEV:
 	.set	noreorder
 
 	LA	$2, __start_ctx
-	LD	$2, start_ctx_sr($2)
+	REG_L	$2, start_ctx_sr($2)
 	lui	$3, %hi(SR_BEV)
 	and	$2, $2, $3
 	jr	$31

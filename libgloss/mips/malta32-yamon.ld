@@ -4,16 +4,29 @@
 
 ENTRY(_start)
 OUTPUT_FORMAT("elf32-tradlittlemips", "elf32-tradbigmips", "elf32-tradlittlemips")
-GROUP(-lc -lyamon -luhi -lgcc)
+GROUP(-lc -lyamon -luhi -lgcc -lhal)
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 STARTUP(crt0.o)
+EXTERN(__exception_entry)
+EXTERN(__getargs)
 
+/*
+ * Allocate the stack to be at the top of memory, since the stack
+ * grows down
+ */
 PROVIDE (__stack = 0);
 /* PROVIDE (__global = 0); */
 
 /* Size of the memory returned by get_mem_info */
 PROVIDE (__memory_size = 1M);
+
+/*
+ * 0 = Do not use exception handler present in boot
+ * 1 = Use exception handler present in boot if BEV is 0 at startup
+ * 2 = Always use exception handler present in boot
+ */
+PROVIDE (__use_excpt_boot = 0);
 
 /* Define where the yamon entry point table is */
 __yamon_functions = 0x9fc00500;
@@ -33,7 +46,12 @@ PROVIDE (software_init_hook = 0);
 
 SECTIONS
 {
-  . = 0x80100000;
+  . = 0x80200000;
+  __excpt_ebase = .;
+  .mips_exception : {
+    * (.text.__exception_entry)
+  }
+
   .text : {
      _ftext = . ;
     PROVIDE (eprol  =  .);
@@ -94,6 +112,11 @@ SECTIONS
   }
 
   . = .;
+  .MIPS.abiflags : {
+    __MIPS_abiflags_start = .;
+    *(.MIPS.abiflags)
+    __MIPS_abiflags_end = .;
+  }
   .rodata : {
     *(.rdata)
     *(.rodata)
@@ -138,6 +161,7 @@ SECTIONS
     *(COMMON)
   }
 
+  . = ALIGN(4);
   PROVIDE (end = .);
   _end = .;
 

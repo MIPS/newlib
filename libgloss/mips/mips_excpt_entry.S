@@ -1,23 +1,29 @@
-##############################################################################
+# Copyright (c) 2015, Imagination Technologies Ltd.
+# All rights reserved.
 #
-#               file : $File$
-#  date last revised : $Date$
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-#          copyright : 2013 - 2014 by Imagination Technologies.
-#                      All rights reserved.
-#                      No part of this software, either material or conceptual
-#                      may be copied or distributed, transmitted, transcribed,
-#                      stored in a retrieval system or translated into any
-#                      human or computer language in any form by any means,
-#                      electronic, mechanical, manual or otherwise, or
-#                      disclosed to third parties without the express written
-#                      permission of:
-#                        Imagination Technologies, Home Park Estate,
-#                        Kings Langley, Hertfordshire, WD4 8LZ, U.K.
+# 1. Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# 3. Neither the name of the copyright holder nor the names of its
+# contributors may be used to endorse or promote products derived from this
+# software without specific prior written permission.
 #
-#        description : Exception code
-#
-##############################################################################
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
 # Keep each function in a separate named section
 #define _FUNCTION_SECTIONS_
@@ -27,58 +33,84 @@
 #include <mips/cpu.h>
 #include "excpt.h"
 
-#if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
-     || defined (__mips_eabi))
-# define HAS_64BIT_ADDRESS
-#else
-# define HAS_32BIT_ADDRESS
-#endif
-
-#ifdef HAS_64BIT_ADDRESS
-# define LA	dla
-# define MFC0	dmfc0
-#else
-# define LA	la
-# define MFC0	mfc0
-#endif
-
-#ifdef __mips64
-# define LD	ld
-# define ST	sd
-#else
-# define LD	lw
-# define ST	sw
-#endif
-
 # Context size, adjusted for ABI parameter area
-#define ADJ 16
-#define CTX_SIZEADJ (CTX_SIZE + ADJ)
+#define ADJ (NARGSAVE * SZARG)
+# Round up to 16-byte boundary (maximum stack alignment required for any
+# supported ABI)
+#define CTX_SIZEROUND ((CTX_SIZE + ALSZ) & ALMASK)
+#define CTX_SIZEADJ (CTX_SIZEROUND + ADJ)
 
 #define e_ISR	s1
 #define e_CR	s3
-#define e_SRO	s4
+#define e_BADV	s4
 #define e_SR	s5
 #define e_EPC	s6
 #define e_RA	s7
 
-#
-# FUNCTION:	__exception_entry
-#
 # DESCRIPTION: Exception entry point. This is small because it must go at
 #			   EBASE+0x180. It saves enough context to chain onwards to
 #			   __exception_save.
 #
-NESTED(__exception_entry, 0, ra)
-	.org 0x180
+LEAF(__exception_entry)
 	.set	push
 	.set	noat
 	.set	noreorder
+.weak   _mips_tlb_refill
+	_mips_tlb_refill = __exception_save
+__tlb_refill_loop:
+	# Support an alternative entry point at the start of the exception
+	# vector.  Since the exception vector is normally placed first
+	# in the link map this allows a user to start execution from the
+	# same address that an executable is loaded to.
+	LA	k1, __first_boot
+	lw	k1, 0(k1)
+	beqz	k1, 1f
+	nop
+	# The start code is responsible for clearing __first_boot prior
+	# to installing the exception handlers.
+	j	_start
+	nop
+1:
+	LA	k1, _mips_tlb_refill
+	beqz	k1, __tlb_refill_loop
+	nop
+	jr	k1
+	nop
 
+	.org 0x80
+.weak   _mips_xtlb_refill
+	_mips_xtlb_refill = __exception_save
+__xtlb_refill_loop:
+	LA	k1, _mips_xtlb_refill
+	beqz	k1, __xtlb_refill_loop
+	nop
+	jr	k1
+	nop
+
+	.org 0x100
+.weak   _mips_cache_error
+__cache_error_loop:
+	LA	k1, _mips_cache_error
+	beqz	k1, __cache_error_loop
+	nop
+	jr	k1
+	nop
+
+	.org 0x180
 	# Free up k1, defering sp adjustment until later
-	ST	k1, (-CTX_SIZE + CTX_K1)(sp)
+	REG_S	k1, (-CTX_SIZEROUND + CTX_K1)(sp)
 
 	# Use k1 to invoke __exception_save
-	LA	k1, __exception_save
+	LA	k1, _mips_general_exception
+	jr	k1
+	nop
+
+	.org 0x200
+.weak   _mips_interrupt
+__interrupt_loop:
+	LA	k1, _mips_interrupt
+	beqz	k1, __interrupt_loop
+	nop
 	jr	k1
 	nop
 
@@ -91,7 +123,8 @@ END(__exception_entry)
 # DESCRIPTION: Exception context save. Save the context, then fake up a call
 #              frame.
 #
-NESTED(__exception_save, CTX_SIZE, zero)
+ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
+	.globl  __exception_save;
 	.set	push
 	.set	noat
 	.set	noreorder
@@ -99,78 +132,83 @@ NESTED(__exception_save, CTX_SIZE, zero)
 	# k1 is already saved, so use it to save the users sp
 	move	k1, sp
 	# Finally adjust sp
-	addiu	sp, sp, -CTX_SIZEADJ	# This should be picked up by the backtracer
+	PTR_ADDU sp, sp, -CTX_SIZEADJ	# This should be picked up by the backtracer
 
 	# Save context
-	ST	$1, CTX_AT + ADJ(sp)
-	ST	v0, CTX_V0 + ADJ(sp)
-	ST	v1, CTX_V1 + ADJ(sp)
-	ST	a0, CTX_A0 + ADJ(sp)
-	ST	a1, CTX_A1 + ADJ(sp)
-	ST	a2, CTX_A2 + ADJ(sp)
-	ST	a3, CTX_A3 + ADJ(sp)
-	ST	$8, CTX_T0 + ADJ(sp)	# a4 or t0
-	ST	$9, CTX_T1 + ADJ(sp)	# a5 or t1
-	ST	$10, CTX_T2 + ADJ(sp)	# a6 or t2
-	ST	$11, CTX_T3 + ADJ(sp)	# a7 or t3
-	ST	$12, CTX_T4 + ADJ(sp)	# t0 or t4
-	ST	$13, CTX_T5 + ADJ(sp)	# t1 or t5
-	ST	$14, CTX_T6 + ADJ(sp)	# t2 or t6
-	ST	$15, CTX_T7 + ADJ(sp)	# t3 or t7
-	ST	s0, CTX_S0 + ADJ(sp)
-	ST	s1, CTX_S1 + ADJ(sp)
-	ST	s2, CTX_S2 + ADJ(sp)
-	ST	s3, CTX_S3 + ADJ(sp)
-	ST	s4, CTX_S4 + ADJ(sp)
-	ST	s5, CTX_S5 + ADJ(sp)
-	ST	s6, CTX_S6 + ADJ(sp)
-	ST	s7, CTX_S7 + ADJ(sp)
-	ST	t8, CTX_T8 + ADJ(sp)
-	ST	t9, CTX_T9 + ADJ(sp)
-	ST	k0, CTX_K0 + ADJ(sp)
-	ST	gp, CTX_GP + ADJ(sp)
-	ST	k1, CTX_SP + ADJ(sp) # Use saved sp from earlier
-	ST	fp, CTX_FP + ADJ(sp)
-	ST	ra, CTX_RA + ADJ(sp)
-
-	# Save DSP context
-#if defined (__mips_dsp)
-	rddsp	$9	# DSP Control register
-	ST	$9, CTX_DSPC + ADJ(sp) 
-	mfhi	$10, $ac1
-	mflo	$11, $ac1
-	mfhi	$12, $ac2
-	mflo	$13, $ac2
-	mfhi	$14, $ac3
-	mflo	$15, $ac3
-	ST	$10, CTX_HI1 + ADJ(sp)
-	ST	$11, CTX_LO1 + ADJ(sp)
-	ST	$12, CTX_HI2 + ADJ(sp)
-	ST	$13, CTX_LO2 + ADJ(sp)
-	ST	$14, CTX_HI3 + ADJ(sp)
-	ST	$15, CTX_LO3 + ADJ(sp)
-#endif
+	REG_S	$1, CTX_AT + ADJ(sp)
+	REG_S	v0, CTX_V0 + ADJ(sp)
+	REG_S	v1, CTX_V1 + ADJ(sp)
+	REG_S	a0, CTX_A0 + ADJ(sp)
+	REG_S	a1, CTX_A1 + ADJ(sp)
+	REG_S	a2, CTX_A2 + ADJ(sp)
+	REG_S	a3, CTX_A3 + ADJ(sp)
+	REG_S	$8, CTX_T0 + ADJ(sp)	# a4 or t0
+	REG_S	$9, CTX_T1 + ADJ(sp)	# a5 or t1
+	REG_S	$10, CTX_T2 + ADJ(sp)	# a6 or t2
+	REG_S	$11, CTX_T3 + ADJ(sp)	# a7 or t3
+	REG_S	$12, CTX_T4 + ADJ(sp)	# t0 or t4
+	REG_S	$13, CTX_T5 + ADJ(sp)	# t1 or t5
+	REG_S	$14, CTX_T6 + ADJ(sp)	# t2 or t6
+	REG_S	$15, CTX_T7 + ADJ(sp)	# t3 or t7
+	REG_S	s0, CTX_S0 + ADJ(sp)
+	REG_S	s1, CTX_S1 + ADJ(sp)
+	REG_S	s2, CTX_S2 + ADJ(sp)
+	REG_S	s3, CTX_S3 + ADJ(sp)
+	REG_S	s4, CTX_S4 + ADJ(sp)
+	REG_S	s5, CTX_S5 + ADJ(sp)
+	REG_S	s6, CTX_S6 + ADJ(sp)
+	REG_S	s7, CTX_S7 + ADJ(sp)
+	REG_S	t8, CTX_T8 + ADJ(sp)
+	REG_S	t9, CTX_T9 + ADJ(sp)
+	REG_S	k0, CTX_K0 + ADJ(sp)
+	REG_S	gp, CTX_GP + ADJ(sp)
+	REG_S	k1, CTX_SP + ADJ(sp) # Use saved sp from earlier
+	REG_S	fp, CTX_FP + ADJ(sp)
+	REG_S	ra, CTX_RA + ADJ(sp)
+	PTR_S	$0, CTX_LINK + ADJ(sp) # Clear the link field
 
 #if (__mips_isa_rev < 6) 
 	mfhi	$9
 	mflo	$10
-	ST	$9, CTX_HI0 + ADJ(sp)
-	ST	$10, CTX_LO0 + ADJ(sp)
-#elif defined (__mips_dsp)
-	mfhi	$9, $ac0
-	mflo	$10, $ac0
-	ST	$9, CTX_HI0 + ADJ(sp)
-	ST	$10, CTX_LO0 + ADJ(sp)
+	REG_S	$9, CTX_HI0 + ADJ(sp)
+	REG_S	$10, CTX_LO0 + ADJ(sp)
 #endif
 
 	# Trick the backtracer into stepping back to the point where the exception
 	# occurred.
-	MFC0	ra, C0_EPC
+	PTR_MFC0 ra, C0_EPC
 	mfc0	e_CR, C0_CR
-	ST	ra, CTX_EPC + ADJ(sp)
+	REG_S	ra, CTX_EPC + ADJ(sp)
+
+	# Finish storing the rest of the CP0 registers
+	PTR_MFC0 $9, C0_BADVADDR
+	REG_S	$9, CTX_BADVADDR + ADJ(sp)
+	sw	e_CR, CTX_CAUSE + ADJ(sp)
+
+	move	$11, $0
+	move	$12, $0
+	mfc0	$9, C0_CONFIG3
+	ext	$10, $9, CFG3_BP_BIT, 1
+	beqz	$10, 1f
+	mfc0	$11, C0_BADPINSTR
+1:
+	ext	$9, $9, CFG3_BI_BIT, 1
+	beqz	$9, 1f
+	mfc0	$12, C0_BADINSTR
+1:
+	sw	$11, CTX_BADPINSTR + ADJ(sp)
+	sw	$12, CTX_BADINSTR + ADJ(sp)
 
 	# Start computing the address of the context for a0
 	move	a0, sp
+
+	# Clear EXL.  Exceptions can now nest.
+	mfc0	e_SR, C0_SR
+	lui	$9, %hi(~SR_EXL)
+	addiu	$9, $9, %lo(~SR_EXL)
+	and	e_SR, e_SR, $9
+	mtc0	e_SR, C0_SR
+	sw	e_SR, CTX_STATUS + ADJ(sp)
 
 	# Manually set up the return address to restore the context below
 	LA	ra, 1f
@@ -183,75 +221,57 @@ NESTED(__exception_save, CTX_SIZE, zero)
 	# Shift exception number down into expected range
 	srl	a1, 2
 
-	# Exception
-	b	__exception
+	# Call the handler, indirect through t9 albeit not for any specific
+	# reason
+	LA	t9, _mips_handle_exception
+	jr	t9
 	nop
 
 1:	# Return point from handler
 	# Load context
 
-#if defined (__mips_dsp)
-	LD	$9, CTX_DSPC + ADJ(sp)
-	wrdsp	$9
-	LD	$10, CTX_HI1 + ADJ(sp)
-	LD	$11, CTX_LO1 + ADJ(sp)
-	LD	$12, CTX_HI2 + ADJ(sp)
-	LD	$13, CTX_LO2 + ADJ(sp)
-	LD	$14, CTX_HI3 + ADJ(sp)
-	LD	$15, CTX_LO3 + ADJ(sp)
-	mthi	$10, $ac1
-	mtlo	$11, $ac1
-	mthi	$12, $ac2
-	mtlo	$13, $ac2
-	mthi	$14, $ac3
-	mtlo	$15, $ac3
-#endif
-
 #if (__mips_isa_rev < 6)
-	LD	$9, CTX_HI0 + ADJ(sp)
-	LD	$10, CTX_LO0 + ADJ(sp)
+	REG_L	$9, CTX_HI0 + ADJ(sp)
+	REG_L	$10, CTX_LO0 + ADJ(sp)
 	mthi	$9
 	mtlo	$10
-#elif defined (__mips_dsp)
-	LD	$9, CTX_HI0 + ADJ(sp)
-	LD	$10, CTX_LO0 + ADJ(sp)
-	mthi	$9, $ac0
-	mtlo	$10, $ac0
 #endif
 
-	LD	e_EPC, CTX_EPC + ADJ(sp)
-	mtc0	e_EPC, C0_EPC
-	LD	$1, CTX_AT + ADJ(sp)
-	LD	v0, CTX_V0 + ADJ(sp)
-	LD	v1, CTX_V1 + ADJ(sp)
-	LD	a0, CTX_A0 + ADJ(sp)
-	LD	a1, CTX_A1 + ADJ(sp)
-	LD	a2, CTX_A2 + ADJ(sp)
-	LD	a3, CTX_A3 + ADJ(sp)
-	LD	$8, CTX_T0 + ADJ(sp)
-	LD	$9, CTX_T1 + ADJ(sp)
-	LD	$10, CTX_T2 + ADJ(sp)
-	LD	$11, CTX_T3 + ADJ(sp)
-	LD	$12, CTX_T4 + ADJ(sp)
-	LD	$13, CTX_T5 + ADJ(sp)
-	LD	$14, CTX_T6 + ADJ(sp)
-	LD	$15, CTX_T7 + ADJ(sp)
-	LD	s0, CTX_S0 + ADJ(sp)
-	LD	s1, CTX_S1 + ADJ(sp)
-	LD	s2, CTX_S2 + ADJ(sp)
-	LD	s3, CTX_S3 + ADJ(sp)
-	LD	s4, CTX_S4 + ADJ(sp)
-	LD	s5, CTX_S5 + ADJ(sp)
-	LD	s6, CTX_S6 + ADJ(sp)
-	LD	s7, CTX_S7 + ADJ(sp)
-	LD	t8, CTX_T8 + ADJ(sp)
-	LD	t9, CTX_T9 + ADJ(sp)
-	LD	k0, CTX_K0 + ADJ(sp)
-	LD	k1, CTX_K1 + ADJ(sp)
-	LD	gp, CTX_GP + ADJ(sp)
-	LD	fp, CTX_FP + ADJ(sp)
-	LD	ra, CTX_RA + ADJ(sp)
-	LD	sp, CTX_SP + ADJ(sp)
+	lw	e_SR, CTX_STATUS + ADJ(sp)
+	mtc0	e_SR, C0_SR
+	REG_L	e_EPC, CTX_EPC + ADJ(sp)
+	PTR_MTC0 e_EPC, C0_EPC
+	REG_L	$1, CTX_AT + ADJ(sp)
+	REG_L	v0, CTX_V0 + ADJ(sp)
+	REG_L	v1, CTX_V1 + ADJ(sp)
+	REG_L	a0, CTX_A0 + ADJ(sp)
+	REG_L	a1, CTX_A1 + ADJ(sp)
+	REG_L	a2, CTX_A2 + ADJ(sp)
+	REG_L	a3, CTX_A3 + ADJ(sp)
+	REG_L	$8, CTX_T0 + ADJ(sp)
+	REG_L	$9, CTX_T1 + ADJ(sp)
+	REG_L	$10, CTX_T2 + ADJ(sp)
+	REG_L	$11, CTX_T3 + ADJ(sp)
+	REG_L	$12, CTX_T4 + ADJ(sp)
+	REG_L	$13, CTX_T5 + ADJ(sp)
+	REG_L	$14, CTX_T6 + ADJ(sp)
+	REG_L	$15, CTX_T7 + ADJ(sp)
+	REG_L	s0, CTX_S0 + ADJ(sp)
+	REG_L	s1, CTX_S1 + ADJ(sp)
+	REG_L	s2, CTX_S2 + ADJ(sp)
+	REG_L	s3, CTX_S3 + ADJ(sp)
+	REG_L	s4, CTX_S4 + ADJ(sp)
+	REG_L	s5, CTX_S5 + ADJ(sp)
+	REG_L	s6, CTX_S6 + ADJ(sp)
+	REG_L	s7, CTX_S7 + ADJ(sp)
+	REG_L	t8, CTX_T8 + ADJ(sp)
+	REG_L	t9, CTX_T9 + ADJ(sp)
+	REG_L	k0, CTX_K0 + ADJ(sp)
+	REG_L	k1, CTX_K1 + ADJ(sp)
+	REG_L	gp, CTX_GP + ADJ(sp)
+	REG_L	fp, CTX_FP + ADJ(sp)
+	REG_L	ra, CTX_RA + ADJ(sp)
+	REG_L	sp, CTX_SP + ADJ(sp)
 	# Return from exception
 	eret
 	.set	pop

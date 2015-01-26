@@ -44,14 +44,14 @@ extern "C" {
 #define EXC_CPU		11	/* coprocessor unusable */
 #define EXC_OVF		12	/* integer overflow */
 #define EXC_TRAP	13	/* trap exception */
-#define EXC_RES14	14
+#define EXC_MSAFPE	14	/* MSA floating point exception */
 #define EXC_FPE		15	/* floating point exception */
 #define EXC_IS1		16	/* implementation-specific 1 */
 #define EXC_IS2		17	/* implementation-specific 2 */
 #define EXC_C2E		18	/* coprocessor 2 exception */
 #define EXC_RES19	19
 #define EXC_RES20	20
-#define EXC_RES21	21
+#define EXC_MSAU	21	/* MSA unusable exception */
 #define EXC_MDMX	22	/* mdmx unusable */
 #define EXC_WATCH	23	/* watchpoint */
 #define EXC_MCHECK	24	/* machine check */
@@ -267,6 +267,8 @@ extern "C" {
  * MIPS32r2 Config3 Register (CP0 Register 16, Select 3)
  */
 #define CFG3_M		0x80000000	/* Config4 implemented */
+#define CFG3_BP_BIT	27		/* BadInstrP implemented */
+#define CFG3_BI_BIT	26		/* BadInstr implemented */
 #define CFG3_DSPP	0x00000400	/* DSP ASE present */
 #define CFG3_LPA	0x00000080	/* Large physical addresses */
 #define CFG3_VEIC	0x00000040	/* Vectored external i/u controller */
@@ -375,6 +377,7 @@ extern "C" {
 /* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */
 #define EBASE_BASE	0xfffff000	/* Exception base */
 #define EBASE_CPU	0x000003ff	/* CPU number */
+#define EBASE_WG	0x00000800	/* Write Gate */
 
 #ifdef __ASSEMBLER__
 
@@ -397,6 +400,8 @@ extern "C" {
 #define C0_HWRENA	$7
 #define C0_BADVADDR 	$8
 #define C0_VADDR 	$8
+#define C0_BADINSTR 	$8,1
+#define C0_BADPINSTR 	$8,2
 #define C0_COUNT 	$9
 #define C0_ENTRYHI	$10
 #define C0_TLBHI	$10

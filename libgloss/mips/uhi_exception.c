@@ -1,5 +1,5 @@
 /*
- * uhi_plog.c
+ * uhi_exception.c
 */
 
 /*
@@ -32,52 +32,36 @@
 */
 
 /*
- * @Synopsis     int32_t plog (int8_t *fmt, int32_t num);
+ * @Synopsis     int __uhi_exception (struct gp_ctx *ctx);
  *
  *               Parameters:
- *                 $4 - Format string
- *                 $5 - The only int argument
- *
- *               Return:
- *                 $2 - Number of chars written
+ *                 $4 - GP context
  *
  *               Arguments to syscall:
- *                 $25 - Operation code for __plog
- *                 $4 - Format string
- *                 $5 - The only int argument
+ *                 $25 - Operation code for __uhi_exception
+ *                 $4 - GP context
  *
  *               Return from syscall:
- *                 $2 - Number of chars written
- *                 $3 - errno
+ *                 $2 - 
  *
- * @Description  Print information
+ * @Description  Handle an unhandled exception
 */
 
 #include <stdint.h>
-#include <errno.h>
 #include "uhi_syscalls.h"
+#include "excpt.h"
 
-int32_t __plog (int8_t *fmt, int32_t num)
+int32_t
+__uhi_exception (struct gpctx *ctx)
 {
-  register int8_t *arg1 asm ("$4") = fmt;
-  register int32_t arg2 asm ("$5") = num;
-  register int32_t op asm ("$25") = __MIPS_UHI_LOG;
+  register struct gpctx *arg1 asm ("$4") = ctx;
+  register int32_t op asm ("$25") = __MIPS_UHI_EXCEPTION;
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
-  register int32_t new_errno asm ("$3") = 0;
 
-  __asm__ __volatile__(" # %0,%1 = __plog(%2, %3) op=%4\n"
+  __asm__ __volatile__(" # %0 = __uhi_exception(%2) op=%3\n"
                        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
-		       : "r" (op));
-
-  if (ret != 0)
-    {
-      /* Do a dance to set errno, errno is a function call that can
-         clobber $3.  */
-      volatile uint32_t errno_tmp = new_errno;
-      errno = errno_tmp;
-    }
-
+                       : "+r" (ret), "+r" (arg1)
+		       : "r" (op)
+		       : "$3", "$5");
   return ret;
 }
-

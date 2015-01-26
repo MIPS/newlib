@@ -79,12 +79,14 @@ CYGMONOBJS = open.o close.o cygmon.o @part_specific_obj@ ${GENOBJS}
 UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
   uhi_get_mem_info.o uhi_lseek.o uhi_open.o uhi_plog.o \
   uhi_pread.o uhi_pwrite.o uhi_read.o uhi_link.o uhi_stat.o \
-  uhi_unlink.o uhi_write.o uhi_getargs.o syscalls.o getpid.o isatty.o \
-  kill.o mips_excpt_entry.o mips_excpt_handler.o mips_excpt_register.o
+  uhi_unlink.o uhi_write.o uhi_getargs.o uhi_exception.o \
+  syscalls.o getpid.o isatty.o kill.o
+
 YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
-  yamon_fstat.o
+  yamon_fstat.o yamon_exception.o
 HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb.o \
-  m32tlb_ops.o mipscp0.o
+  m32tlb_ops.o mipscp0.o \
+  mips_excpt_entry.o mips_excpt_handler.o mips_excpt_register.o
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
@@ -230,7 +232,7 @@ cfe-test: cfe-test.srec cfe-test.dis
 doc:
 
 clean mostlyclean:
-	rm -f a.out core *.i *~ *.o *-test *.srec *.dis *.map *.x
+	rm -f a.out core *.i *~ *.a *.o *-test *.srec *.dis *.map *.x
 
 distclean maintainer-clean realclean: clean
 	rm -f Makefile config.status a.out
