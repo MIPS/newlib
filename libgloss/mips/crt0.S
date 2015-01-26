@@ -36,24 +36,35 @@
 #  define LA(t,x) la t,x-PICBASE ; addu t,s0,t
 # endif
 #else /* __mips_embedded_pic */
-#if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
-     || defined (__mips_eabi))
+# if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
+      || defined (__mips_eabi))
 #  define LA(t,x)	dla	t,x
+#  define PTR_ADDU	daddu
+#  define LD_LONG	ld
 # else
 #  define LA(t,x)	la	t,x
+#  define PTR_ADDU	addu
+#  define LD_LONG	lw
 # endif
 #endif /* __mips_embedded_pic */
+
+#if (defined (__mips64) && (_MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIO64 || \
+     _MIPS_SIM == _ABIN32 || defined (__mips_eabi)))
+# define REGSIZE 8
+# define LD ld
+# define ST sd
+#else
+# define REGSIZE 4
+# define LD lw
+# define ST sw
+#endif
 
 	.comm	__memsize, 12
 	.comm	__lstack, STARTUP_STACK_SIZE
 
 	.data
 __temp_space:	   /* Temporary space to save arguments */
-#ifdef __mips64
-	.space	32
-#else
-	.space	16
-#endif
+	.space	REGSIZE * 4
 
 	.text
 	.align	2
@@ -96,17 +107,10 @@ _start:
 
 	/* Save argument registers */
 	LA (t0, __temp_space)
-#ifdef __mips64
-	sd	a0, 0(t0)
-	sd	a1, 8(t0)
-	sd	a2, 16(t0)
-	sd	$7, 24(t0)	/* reserved */
-#else
-	sw	a0, 0(t0)
-	sw	a1, 4(t0)
-	sw	a2, 8(t0)
-	sw	$7, 12(t0)	/* reserved */
-#endif
+	ST	a0, (REGSIZE * 0)(t0)
+	ST	a1, (REGSIZE * 1)(t0)
+	ST	a2, (REGSIZE * 2)(t0)
+	ST	$7, (REGSIZE * 3)(t0)	/* reserved */
 
 	/* 
 	 * Save k0, k1, ra and sp and register
@@ -129,7 +133,7 @@ _start:
 	.weak	__MIPS_abiflags_end
 	LA	(t0,__MIPS_abiflags_start)
 	LA	(t1,__MIPS_abiflags_end)
-	addiu	t1,t1,-24
+	PTR_ADDU t1,t1,-24
 	move	v0,zero			/* Mask for C0_SR.  */
 
 	/* Branch to 1f is the .MIPS.abiflags section is not 24 bytes.  This
@@ -216,7 +220,7 @@ zerobss:
 	LA (v1, _end)
 	beq	v0,v1,2f
 1:
-	addiu	v0,v0,4
+	PTR_ADDU v0,v0,4
 	sw	zero,-4(v0)
 	bne	v0,v1,1b
 2:
@@ -225,21 +229,21 @@ zerobss:
 	bne	t0,zero,4f
 
 	LA (t0, __lstack)			# make a small stack so we
-	addiu	sp, t0, STARTUP_STACK_SIZE	# can run some C code
+	PTR_ADDU sp, t0, STARTUP_STACK_SIZE	# can run some C code
 	LA (a0, __memsize)			# get the usable memory size
 	jal	get_mem_info
 
 	/* NOTE: a0[0] contains the amount of memory available, and
 	         not the last memory address. */
 	LA (a0, __memsize)
-	lw	t0,0(a0)			# amount of memory available
+	LD_LONG	t0,0(a0)			# amount of memory available
 	LA (t1, K0BASE)				# cached kernel memory
-	addu	t0,t0,t1			# get the end of memory address
+	PTR_ADDU t0,t0,t1			# get the end of memory address
 	/* Allocate 32 bytes for the register parameters.  Allocate 16
 	   bytes for a null argv and envp.  Round the result up to 64
 	   bytes to preserve alignment.  */
 4:
-	subu	t0,t0,64
+	PTR_ADDU t0,t0,-64
 	move	sp,t0				# set stack pointer
 	.end	zerobss
 
@@ -279,17 +283,10 @@ init:
 
 	/* restore argument registers */
 	LA (t0, __temp_space)
-#ifdef __mips64
-	ld	a0,0(t0)
-	ld	a1,8(t0)
-	ld	a2,16(t0)
-	ld	$7,24(t0)
-#else
-	lw	a0,0(t0)
-	lw	a1,4(t0)
-	lw	a2,8(t0)
-	lw	$7,12(t0)
-#endif
+	LD	a0,(REGSIZE * 0)(t0)
+	LD	a1,(REGSIZE * 1)(t0)
+	LD	a2,(REGSIZE * 2)(t0)
+	LD	$7,(REGSIZE * 3)(t0)
 
 	/* if a0 >= 0 then we have arguments ready in a0 to a2 registers */
 	bgez	a0,.Lmain
@@ -302,15 +299,10 @@ init:
 1:
 	/* no arguments */
 	move	a0,zero				# set argc to 0
-	addiu	a1,sp,32			# argv = sp + 32
-	addiu	a2,sp,40			# envp = sp + 40
-#ifdef __mips64
-	sd	zero,(a1)			# argv[argc] = 0
-	sd	zero,(a2)			# envp[0] = 0
-#else
-	sw	zero,(a1)
-	sw	zero,(a2)
-#endif
+	PTR_ADDU a1,sp,32			# argv = sp + 32
+	PTR_ADDU a2,sp,40			# envp = sp + 40
+	ST	zero,(a1)			# argv[argc] = 0
+	ST	zero,(a2)			# envp[0] = 0
 
 .Lmain:
 	jal	main				# call the program start function
@@ -343,11 +335,7 @@ _exit:
 
 	# save exit code
 	LA (t0, __temp_space)
-#ifdef __mips64
-	sd	a0,0(t0)
-#else
-	sw	a0,0(t0)
-#endif
+	ST	a0,0(t0)
 
 #ifdef __mips_embedded_pic
 	/* Need to reinit PICBASE, since we might be called via exit()
@@ -371,11 +359,7 @@ _exit:
 
 	# restore return value from main
 	LA (t0, __temp_space)
-#ifdef __mips64
-	ld	a0,0(t0)
-#else
-	lw	a0,0(t0)
-#endif
+	LD	a0,0(t0)
 
 	.global __exit .text
 	jal	__exit

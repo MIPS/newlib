@@ -69,16 +69,50 @@
 #			   __exception_save.
 #
 NESTED(__exception_entry, 0, ra)
-	.org 0x180
 	.set	push
 	.set	noat
 	.set	noreorder
+.weak   _mips_tlb_refill
+__tlb_refill_loop:
+	LA	k1, _mips_tlb_refill
+	beqz	k1, __tlb_refill_loop
+	nop
+	jr	k1
+	nop
 
+	.org 0x80
+.weak   _mips_xtlb_refill
+__xtlb_refill_loop:
+	LA	k1, _mips_xtlb_refill
+	beqz	k1, __xtlb_refill_loop
+	nop
+	jr	k1
+	nop
+
+	.org 0x100
+.weak   _mips_cache_error
+__cache_error_loop:
+	LA	k1, _mips_cache_error
+	beqz	k1, __cache_error_loop
+	nop
+	jr	k1
+	nop
+
+	.org 0x180
 	# Free up k1, defering sp adjustment until later
 	ST	k1, (-CTX_SIZE + CTX_K1)(sp)
 
 	# Use k1 to invoke __exception_save
-	LA	k1, __exception_save
+	LA	k1, _mips_general_exception
+	jr	k1
+	nop
+
+	.org 0x200
+.weak   _mips_interrupt
+__interrupt_loop:
+	LA	k1, _mips_interrupt
+	beqz	k1, __interrupt_loop
+	nop
 	jr	k1
 	nop
 
@@ -91,7 +125,7 @@ END(__exception_entry)
 # DESCRIPTION: Exception context save. Save the context, then fake up a call
 #              frame.
 #
-NESTED(__exception_save, CTX_SIZE, zero)
+ANESTED(__exception_save, _mips_general_exception, CTX_SIZE, zero)
 	.set	push
 	.set	noat
 	.set	noreorder
@@ -99,7 +133,7 @@ NESTED(__exception_save, CTX_SIZE, zero)
 	# k1 is already saved, so use it to save the users sp
 	move	k1, sp
 	# Finally adjust sp
-	addiu	sp, sp, -CTX_SIZEADJ	# This should be picked up by the backtracer
+	PTR_ADDU sp, sp, -CTX_SIZEADJ	# This should be picked up by the backtracer
 
 	# Save context
 	ST	$1, CTX_AT + ADJ(sp)
@@ -133,32 +167,9 @@ NESTED(__exception_save, CTX_SIZE, zero)
 	ST	fp, CTX_FP + ADJ(sp)
 	ST	ra, CTX_RA + ADJ(sp)
 
-	# Save DSP context
-#if defined (__mips_dsp)
-	rddsp	$9	# DSP Control register
-	ST	$9, CTX_DSPC + ADJ(sp) 
-	mfhi	$10, $ac1
-	mflo	$11, $ac1
-	mfhi	$12, $ac2
-	mflo	$13, $ac2
-	mfhi	$14, $ac3
-	mflo	$15, $ac3
-	ST	$10, CTX_HI1 + ADJ(sp)
-	ST	$11, CTX_LO1 + ADJ(sp)
-	ST	$12, CTX_HI2 + ADJ(sp)
-	ST	$13, CTX_LO2 + ADJ(sp)
-	ST	$14, CTX_HI3 + ADJ(sp)
-	ST	$15, CTX_LO3 + ADJ(sp)
-#endif
-
 #if (__mips_isa_rev < 6) 
 	mfhi	$9
 	mflo	$10
-	ST	$9, CTX_HI0 + ADJ(sp)
-	ST	$10, CTX_LO0 + ADJ(sp)
-#elif defined (__mips_dsp)
-	mfhi	$9, $ac0
-	mflo	$10, $ac0
 	ST	$9, CTX_HI0 + ADJ(sp)
 	ST	$10, CTX_LO0 + ADJ(sp)
 #endif
@@ -172,6 +183,13 @@ NESTED(__exception_save, CTX_SIZE, zero)
 	# Start computing the address of the context for a0
 	move	a0, sp
 
+	# Clear EXL.  Exceptions can now nest.
+	mfc0	e_SR, C0_SR
+	lui	$9, %hi(~SR_EXL)
+	addiu	$9, $9, %lo(~SR_EXL)
+	and	e_SR, e_SR, $9
+	mtc0	e_SR, C0_SR
+
 	# Manually set up the return address to restore the context below
 	LA	ra, 1f
 	# Extract the cause code
@@ -183,40 +201,20 @@ NESTED(__exception_save, CTX_SIZE, zero)
 	# Shift exception number down into expected range
 	srl	a1, 2
 
-	# Exception
-	b	__exception
+	# Call the handler, indirect through t9 albeit not for any specific
+	# reason
+	LA	t9, _mips_handle_exception
+	jr	t9
 	nop
 
 1:	# Return point from handler
 	# Load context
-
-#if defined (__mips_dsp)
-	LD	$9, CTX_DSPC + ADJ(sp)
-	wrdsp	$9
-	LD	$10, CTX_HI1 + ADJ(sp)
-	LD	$11, CTX_LO1 + ADJ(sp)
-	LD	$12, CTX_HI2 + ADJ(sp)
-	LD	$13, CTX_LO2 + ADJ(sp)
-	LD	$14, CTX_HI3 + ADJ(sp)
-	LD	$15, CTX_LO3 + ADJ(sp)
-	mthi	$10, $ac1
-	mtlo	$11, $ac1
-	mthi	$12, $ac2
-	mtlo	$13, $ac2
-	mthi	$14, $ac3
-	mtlo	$15, $ac3
-#endif
 
 #if (__mips_isa_rev < 6)
 	LD	$9, CTX_HI0 + ADJ(sp)
 	LD	$10, CTX_LO0 + ADJ(sp)
 	mthi	$9
 	mtlo	$10
-#elif defined (__mips_dsp)
-	LD	$9, CTX_HI0 + ADJ(sp)
-	LD	$10, CTX_LO0 + ADJ(sp)
-	mthi	$9, $ac0
-	mtlo	$10, $ac0
 #endif
 
 	LD	e_EPC, CTX_EPC + ADJ(sp)

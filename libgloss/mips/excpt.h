@@ -72,14 +72,7 @@ typedef uint64_t regtype;
 #define CTX_EPC		((STRIDE)*31)
 #define CTX_HI0		((STRIDE)*32)
 #define CTX_LO0		((STRIDE)*33)
-#define CTX_HI1		((STRIDE)*34)
-#define CTX_LO1		((STRIDE)*35)
-#define CTX_HI2		((STRIDE)*36)
-#define CTX_LO2		((STRIDE)*37)
-#define CTX_HI3		((STRIDE)*38)
-#define CTX_LO3		((STRIDE)*39)
-#define CTX_DSPC	((STRIDE)*40)
-#define CTX_SIZE	((STRIDE)*41)
+#define CTX_SIZE	((STRIDE)*34)
 
 #ifndef __ASSEMBLER__
 
@@ -96,11 +89,10 @@ struct gpctx {
 	regtype fp;
 	regtype ra;
 	regtype epc;
-	struct {
-		regtype hi;
-		regtype lo;
-	} acc[4];
-	regtype DSPControl;
+#if __mips_isa_rev < 6
+	regtype hi;
+	regtype lo;
+#endif
 };
 
 /*

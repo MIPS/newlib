@@ -74,7 +74,12 @@ int32_t write (int32_t fd, void *buffer, int32_t count)
 		       : "r" (arg3), "r" (op));
 
   if (ret == -1)
-    errno = new_errno;
+    {
+      /* Do a dance to set errno, errno is a function call that can
+         clobber $3.  */
+      volatile uint32_t errno_tmp = new_errno;
+      errno = errno_tmp;
+    }
 
   return ret;
 }

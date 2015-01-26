@@ -24,12 +24,6 @@
 
 #if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
      || defined (__mips_eabi))
-# define HAS_64BIT_ADDRESS
-#else
-# define HAS_32BIT_ADDRESS
-#endif
-
-#ifdef HAS_64BIT_ADDRESS
 # define LA	dla
 # define PTR_ADDU daddu
 #else
@@ -37,10 +31,13 @@
 # define PTR_ADDU addu
 #endif
 
-#ifdef __mips64
+#if (defined (__mips64) && (_MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIO64 || \
+     _MIPS_SIM == _ABIN32 || defined (__mips_eabi)))
+# define STRIDE  8
 # define LD	ld
 # define ST	sd
 #else
+# define STRIDE  4
 # define LD	lw
 # define ST	sw
 #endif
@@ -54,33 +51,18 @@
 	.data
 	.global	__start_ctx
 __start_ctx:
-#ifdef __mips64
-	.space	56
+	.space	STRIDE * 7
 #if defined (__mips_micromips)
-	.space	8
-#define	start_ctx_conf3	56	/* saved Config3 $16,3 for micromips */
+	.space	STRIDE
+#define	start_ctx_conf3	(STRIDE * 7)	/* saved Config3 $16,3 for micromips */
 #endif
-#define	start_ctx_sr	0
-#define	start_ctx_k0	8
-#define	start_ctx_k1	16
-#define	start_ctx_ra	24
-#define	start_ctx_sp	32
-#define	start_ctx_ebase	40	/* saved EBASE */
-#define	chain_ebase	48	/* chained EBASE */
-#else
-	.space	28
-#if defined (__mips_micromips)
-	.space	4
-#define	start_ctx_conf3	28	/* saved Config3 $16,3 for micromips */
-#endif
-#define	start_ctx_sr	0
-#define	start_ctx_k0	4
-#define	start_ctx_k1	8
-#define	start_ctx_ra	12
-#define	start_ctx_sp	16
-#define	start_ctx_ebase	20	/* saved EBASE */
-#define	chain_ebase	24	/* chained EBASE */
-#endif
+#define	start_ctx_sr	(STRIDE * 0)
+#define	start_ctx_k0	(STRIDE * 1)
+#define	start_ctx_k1	(STRIDE * 2)
+#define	start_ctx_ra	(STRIDE * 3)
+#define	start_ctx_sp	(STRIDE * 4)
+#define	start_ctx_ebase	(STRIDE * 5)	/* saved EBASE */
+#define	chain_ebase	(STRIDE * 6)	/* chained EBASE */
 
 
 #
@@ -135,8 +117,11 @@ __register_excpt_handler:
 	beqz	$10, 1f
 	nop
 
-	# Yes - set chain_ebase to 0xbfc00000
+	# Yes - set chain_ebase to 0xbfc00200
+	# Apply the offset of 0x200 so that the boot vector entries line up
+	# with the offsets in a non-boot vector
 	lui	$10, 0xbfc0
+	ori	$10, $10, 0x200
 	ST	$10, chain_ebase($9)
 	b	2f
 	nop
@@ -145,13 +130,18 @@ __register_excpt_handler:
 1:	mfc0	$10, C0_EBASE
 	ST	$10, chain_ebase($9)
 
+	# Set BEV=1 to allow changing EBASE
+	lui	$10, %hi(SR_BEV)
+	or	$8, $8, $10
+	mtc0	$8, C0_SR
+
 	# Set desired EBASE
 2:	LA	$10, __excpt_ebase
 	mtc0	$10, C0_EBASE
 
 	# Clear BEV
 	lui	$9, %hi(~SR_BEV)
-	ori	$9, %lo(~SR_BEV)
+	addiu	$9, %lo(~SR_BEV)
 	and	$8, $8, $9
 	mtc0	$8, C0_SR
 
@@ -173,6 +163,12 @@ __return_to_boot:
 	.set	push
 	.set	noat
 	.set	noreorder
+
+	# Set BEV=1 to allow changing EBASE
+	mfc0	$9, C0_SR
+	lui	$10, %hi(SR_BEV)
+	or	$9, $9, $10
+	mtc0	$9, C0_SR
 
 	# Restore C0_EBASE
 	LA	$9, __start_ctx
@@ -218,40 +214,20 @@ __chain_uhi_excpt:
 	.set	noat
 	.set	noreorder
 
-	# Move context pointer into position
+	# Move context pointer into position.  Use $3 as scratch
+	# as it is the only register that is clobbered by all
+	# UHI calls and is not used as an input.
 	move	$3, $4
-
-#if defined (__mips_dsp)
-	LD	$9, CTX_DSPC($3)
-	wrdsp	$9
-	LD	$10, CTX_HI1($3)
-	LD	$11, CTX_LO1($3)
-	LD	$12, CTX_HI2($3)
-	LD	$13, CTX_LO2($3)
-	LD	$14, CTX_HI3($3)
-	LD	$15, CTX_LO3($3)
-	mthi	$10, $ac1
-	mtlo	$11, $ac1
-	mthi	$12, $ac2
-	mtlo	$13, $ac2
-	mthi	$14, $ac3
-	mtlo	$15, $ac3
-#endif
 
 #if (__mips_isa_rev < 6)
 	LD	$9, CTX_HI0($3)
 	LD	$10, CTX_LO0($3)
 	mthi	$9
 	mtlo	$10
-#elif defined (__mips_dsp)
-	LD	$9, CTX_HI0($3)
-	LD	$10, CTX_LO0($3)
-	mthi	$9, $ac0
-	mtlo	$10, $ac0
 #endif
 
 	LD	$9, CTX_EPC($3)
-	mtc0	$9, C0_EPC
+	MTC0	$9, C0_EPC
 
 	# Restore the common context
 	LD	$1, CTX_AT($3)
