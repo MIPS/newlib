@@ -127,22 +127,7 @@ __exception_handle (struct gpctx *ctx, int exception)
 
   switch (exception)
     {
-    case EXC_SYS:
-      /* Process a UHI SYSCALL, all other SYSCALLs should have been processed
-         by our caller.  __use_excpt_boot has following values:
-	 0 = Do not use exception handler present in boot.
-	 1 = Use exception handler present in boot if BEV
-	     is 0 at startup.
-	 2 = Always use exception handler present in boot.   */
-
-      if (((long) __use_excpt_boot == 2) ||
-          (long) __use_excpt_boot == 1 && __get_startup_BEV () == 0)
-        /* This will not return.  */
-        __chain_uhi_excpt (ctx);
-      else
-        _excpt_syscall (ctx);
-      return;
-    case EXC_MOD:
+   case EXC_MOD:
       WRITE ("TLB modification exception\n");
       break;
     case EXC_TLBL:
@@ -167,6 +152,21 @@ __exception_handle (struct gpctx *ctx, int exception)
     case EXC_DBE:
       WRITE ("Data bus error\n");
       break;
+    case EXC_SYS:
+      /* Process a UHI SYSCALL, all other SYSCALLs should have been processed
+         by our caller.  __use_excpt_boot has following values:
+	 0 = Do not use exception handler present in boot.
+	 1 = Use exception handler present in boot if BEV
+	     is 0 at startup.
+	 2 = Always use exception handler present in boot.   */
+
+      if (((long) __use_excpt_boot == 2) ||
+          (long) __use_excpt_boot == 1 && __get_startup_BEV () == 0)
+        /* This will not return.  */
+        __chain_uhi_excpt (ctx);
+      else
+        _excpt_syscall (ctx);
+      return;
     case EXC_BP:
       putsns ("Breakpoint @0x", ctx->epc, "\n");
       break;
@@ -174,7 +174,7 @@ __exception_handle (struct gpctx *ctx, int exception)
       putsns ("Illegal instruction @0x", ctx->epc, "\n");
       break;
     case EXC_CPU:
-      WRITE ("Coprocessor unusable\n");
+      putsns ("Coprocessor unusable @0x", ctx->epc, "\n");
       break;
     case EXC_OVF:
       WRITE ("Overflow\n");
@@ -182,14 +182,17 @@ __exception_handle (struct gpctx *ctx, int exception)
     case EXC_TRAP:
       WRITE ("Trap\n");
       break;
+    case EXC_MSAFPE:
+      WRITE ("MSA Floating point error\n");
+      break;
     case EXC_FPE:
       WRITE ("Floating point error\n");
       break;
     case EXC_IS1:
-      WRITE ("Coprocessor 2 implementation specific exception\n");
+      WRITE ("Implementation specific exception (16)\n");
       break;
     case EXC_IS2:
-      WRITE ("CorExtend unusable\n");
+      WRITE ("Implementation specific exception (17)\n");
       break;
     case EXC_C2E:
       WRITE ("Precise Coprocessor 2 exception\n");
@@ -199,6 +202,9 @@ __exception_handle (struct gpctx *ctx, int exception)
       break;
     case EXC_RES20:
       WRITE ("TLB execute inhibit exception\n");
+      break;
+    case EXC_MSAU:
+      putsns ("MSA unusable @0x", ctx->epc, "\n");
       break;
     case EXC_MDMX:
       putsns ("MDMX exception @0x", ctx->epc, "\n");
@@ -213,7 +219,7 @@ __exception_handle (struct gpctx *ctx, int exception)
       WRITE ("Thread exception\n");
       break;
     case EXC_DSPU:
-      WRITE ("DSP availability exception\n");
+      WRITE ("DSP unusable\n");
       break;
     case EXC_RES30:
       WRITE ("Cache error\n");

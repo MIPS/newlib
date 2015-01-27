@@ -44,14 +44,14 @@ extern "C" {
 #define EXC_CPU		11	/* coprocessor unusable */
 #define EXC_OVF		12	/* integer overflow */
 #define EXC_TRAP	13	/* trap exception */
-#define EXC_RES14	14
+#define EXC_MSAFPE	14	/* MSA floating point exception */
 #define EXC_FPE		15	/* floating point exception */
 #define EXC_IS1		16	/* implementation-specific 1 */
 #define EXC_IS2		17	/* implementation-specific 2 */
 #define EXC_C2E		18	/* coprocessor 2 exception */
 #define EXC_RES19	19
 #define EXC_RES20	20
-#define EXC_RES21	21
+#define EXC_MSAU	21	/* MSA unusable exception */
 #define EXC_MDMX	22	/* mdmx unusable */
 #define EXC_WATCH	23	/* watchpoint */
 #define EXC_MCHECK	24	/* machine check */
