@@ -80,7 +80,7 @@ static void
 __uhi_exception (struct gpctx * ctx)
 {
   register regtype op asm ("$25") = __MIPS_UHI_EXCEPTION;
-  register regtype arg1 asm ("$4") = (regtype)ctx;
+  register struct gpctx *arg1 asm ("$4") = ctx;
   register regtype ret1 asm ("$2") = 1;
 
   __asm__ __volatile__(" # UHI exception\n"
@@ -121,9 +121,9 @@ __exception_handle (struct gpctx *ctx, int exception)
   regtype badvaddr;
 
   if (sizeof (regtype) == 4)
-    badvaddr = _m32c0_mfc0(C0_BADVADDR, 0);
+    badvaddr = _m32c0_mfc0 (C0_BADVADDR, 0);
   else
-    badvaddr = _m64c0_dmfc0(C0_BADVADDR, 0);
+    badvaddr = _m64c0_dmfc0 (C0_BADVADDR, 0);
 
   switch (exception)
     {
@@ -274,7 +274,8 @@ __exception_handle (struct gpctx *ctx, int exception)
   putsns ("lo:\t", (uint32_t) ctx->acc.lo, "\t");
 #endif
   putsns ("epc:\t", ctx->epc, "\t");
-  putsns ("BadVAddr:\t", badvaddr, "\n");
+  putsns ("BadVAddr:\t", badvaddr, "\t");
+  putsns ("Status:\t", _m32c0_mfc0 (C0_STATUS, 0), "\n");
 
   /* Raise UHI exception which may or may not return.  */
   __uhi_exception (ctx);

@@ -69,7 +69,7 @@ __start_ctx:
 # FUNCTION:	__register_excpt_handler
 #
 # DESCRIPTION: Save k0, k1, ra and sp. Register __exception_entry
-#	       at EBASE+0x180
+#	       at EBASE+0x180. Return the new value for C0_SR.
 #
 	.text
 	.weak	__register_excpt_handler
@@ -82,9 +82,10 @@ __register_excpt_handler:
 	# Fetch initial status
 	mfc0	$8, C0_SR
 
-	# Disable interrupts before anything else gets in
-	di
-	nop
+	# Get into a sane state.
+	# Important things: base mode is kernel and ERL, ESL, IE, BEV are clear
+	mfc0	$0, C0_SR
+	ehb
 
 	# Save C0_SR IE and BEV
 	LA	$9, __start_ctx
@@ -132,18 +133,25 @@ __register_excpt_handler:
 
 	# Set BEV=1 to allow changing EBASE
 	lui	$10, %hi(SR_BEV)
-	or	$8, $8, $10
-	mtc0	$8, C0_SR
+	mtc0	$10, C0_SR
+	ehb
 
 	# Set desired EBASE
 2:	LA	$10, __excpt_ebase
 	mtc0	$10, C0_EBASE
+	ehb
 
 	# Clear BEV
-	lui	$9, %hi(~SR_BEV)
-	addiu	$9, %lo(~SR_BEV)
-	and	$8, $8, $9
-	mtc0	$8, C0_SR
+	mtc0	$0, C0_SR
+	ehb
+
+	# Turn on use of the special exception vector and enable interrupts
+	lui	$9, %hi(CAUSE_IV)
+	mtc0	$9, C0_CAUSE
+	ehb
+
+	# Enable interrupts in the new status value
+	addiu	$2, $0, SR_IE
 
 	jr	$31
 	nop
@@ -169,11 +177,13 @@ __return_to_boot:
 	lui	$10, %hi(SR_BEV)
 	or	$9, $9, $10
 	mtc0	$9, C0_SR
+	ehb
 
 	# Restore C0_EBASE
 	LA	$9, __start_ctx
 	LD	$9, start_ctx_ebase($9)
 	mtc0	$9, C0_EBASE
+	ehb
 
 	# Restore k0, k1, ra, sp and sr
 	LA	$9, __start_ctx
@@ -192,6 +202,7 @@ __return_to_boot:
 
 	# Restore C0_STATUS IE and BEV to boot value
 	mtc0	$9, C0_SR
+	mtc0	$0, C0_CAUSE
 
 	# Return with exit code
 	move	$2, $4

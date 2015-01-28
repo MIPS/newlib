@@ -162,6 +162,7 @@ SECTIONS
     *(COMMON)
   }
 
+  . = ALIGN(4);
   PROVIDE (end = .);
   _end = .;
 

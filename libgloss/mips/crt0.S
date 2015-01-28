@@ -121,12 +121,13 @@ _start:
 	beqz	t9, 1f
 	move	a0, ra		/* save ra */
 	jalr	t9
+	b	2f
 1:
-
 	/* Clear Cause register.  */
 	mtc0	zero,C0_CAUSE
 	nop
-
+	move	v0,zero			/* Mask for C0_SR.  */
+2:
 	/* Read MIPS_abiflags structure and set status/config registers
 	   accordingly.  */
 	.weak	__MIPS_abiflags_start
@@ -134,7 +135,6 @@ _start:
 	LA	(t0,__MIPS_abiflags_start)
 	LA	(t1,__MIPS_abiflags_end)
 	PTR_ADDU t1,t1,-24
-	move	v0,zero			/* Mask for C0_SR.  */
 
 	/* Branch to 1f is the .MIPS.abiflags section is not 24 bytes.  This
 	   indicates it is either missing or corrupt.  */
@@ -152,6 +152,13 @@ _start:
 	bne	t1,zero,5f
 	or	v0,v0,v1		/* Enable extended addressing.  */
 5:
+	/* Check DSP,DSP2,MDMX ase. */
+	lw      t1,ABIFlags_ases(t0)
+	andi    t1,t1,(AFL_ASE_DSP|AFL_ASE_DSPR2|AFL_ASE_MDMX)
+	li	v1,SR_MX
+	beq	t1,zero,6f
+	or	v0,v0,v1
+6:
 	/* Check fp_abi.  */
 	lbu	t1,ABIFlags_fp_abi(t0)
 	xori	t1,t1,Val_GNU_MIPS_ABI_FP_SOFT
@@ -166,13 +173,13 @@ _start:
 	bne	t1,zero,3f
 	or	v0,v0,v1		/* Enable 64-bit FPU registers.  */
 3:
-	/* Check ases.  */
+	/* Check MSA ase.  */
 	lw	t1,ABIFlags_ases(t0)
 	andi	t1,t1,AFL_ASE_MSA
 	li	v1,SR_FR
 	beq	t1,zero,2f
 	or	v0,v0,v1		/* Enable 64-bit FPU registers.  */
-	li	v1,SR_MSA
+	li	v1,C5_MSA
 	.set	push
 	.set	mips32
 	mtc0	v1,C0_CONFIG,5		/* Enable MSA.  */
