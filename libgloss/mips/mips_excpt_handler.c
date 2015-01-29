@@ -28,20 +28,12 @@
 */
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <mips/cpu.h>
 #include "excpt.h"
 #include "uhi_syscalls.h"
-
-#define _m64c0_dmfc0(reg, sel) \
-__extension__ ({ \
-  register unsigned long long __r; \
-  __asm__ __volatile ("dmfc0 %0,$%1,%2" \
-		      : "=d" (__r) \
-		      : "JK" (reg), "JK" (sel)); \
-  __r; \
-})
 
 int __get_startup_BEV (void);
 int __chain_uhi_excpt (struct gpctx *);
@@ -96,9 +88,8 @@ __uhi_exception (struct gpctx * ctx)
  * Write a string, a formatted number, then a string.
  */
 static void
-putsns (const char *pre, regtype value, const char *post)
+putsnds (const char *pre, regtype value, int digits, const char *post)
 {
-  unsigned int digits = sizeof (regtype) * 2;
   char buf[digits];
   int shift;
   int idx = 0;
@@ -114,36 +105,35 @@ putsns (const char *pre, regtype value, const char *post)
     write (1, post, strlen (post));
 }
 
+static void
+putsns (const char *pre, regtype value, const char *post)
+{
+  putsnds (pre, value, sizeof (regtype) * 2, post);
+}
+
 /* Handle an exception */
 void
 __exception_handle (struct gpctx *ctx, int exception)
 {
-  regtype badvaddr;
-
-  if (sizeof (regtype) == 4)
-    badvaddr = _m32c0_mfc0 (C0_BADVADDR, 0);
-  else
-    badvaddr = _m64c0_dmfc0 (C0_BADVADDR, 0);
-
   switch (exception)
     {
    case EXC_MOD:
       WRITE ("TLB modification exception\n");
       break;
     case EXC_TLBL:
-      putsns ("TLB error on load from 0x", badvaddr, NULL);
+      putsns ("TLB error on load from 0x", ctx->badvaddr, NULL);
       putsns (" @0x", ctx->epc, "\n");
       break;
     case EXC_TLBS:
-      putsns ("TLB error on store to 0x", badvaddr, NULL);
+      putsns ("TLB error on store to 0x", ctx->badvaddr, NULL);
       putsns (" @0x", ctx->epc, "\n");
       break;
     case EXC_ADEL:
-      putsns ("Address error on load from 0x", badvaddr, NULL);
+      putsns ("Address error on load from 0x", ctx->badvaddr, NULL);
       putsns (" @0x", ctx->epc, "\n");
       break;
     case EXC_ADES:
-      putsns ("Address error on store to 0x", badvaddr, NULL);
+      putsns ("Address error on store to 0x", ctx->badvaddr, NULL);
       putsns (" @0x", ctx->epc, "\n");
       break;
     case EXC_IBE:
@@ -270,15 +260,21 @@ __exception_handle (struct gpctx *ctx, int exception)
   putsns ("ra:\t", ctx->ra, "\n");
 
 #if __mips_isa_rev < 6
-  putsns ("hi:\t", (uint32_t) ctx->acc.hi, "\t");
-  putsns ("lo:\t", (uint32_t) ctx->acc.lo, "\t");
+  putsns ("hi:\t", ctx->hi, "\t");
+  putsns ("lo:\t", ctx->lo, "\n");
 #endif
-  putsns ("epc:\t", ctx->epc, "\t");
-  putsns ("BadVAddr:\t", badvaddr, "\t");
-  putsns ("Status:\t", _m32c0_mfc0 (C0_STATUS, 0), "\n");
+
+  putsns ("epc:     \t", ctx->epc, "\n");
+  putsns ("BadVAddr:\t", ctx->badvaddr, "\n");
+
+  putsnds ("Status:   \t", ctx->status, 8, "\n");
+  putsnds ("Cause:    \t", ctx->cause, 8, "\n");
+  putsnds ("BadInstr: \t", ctx->badinstr, 8, "\n");
+  putsnds ("BadPInstr:\t", ctx->badpinstr, 8, "\n");
 
   /* Raise UHI exception which may or may not return.  */
   __uhi_exception (ctx);
+  _exit (2);
 }
 
 /* Provide _mips_handle_exception allowing a user to intercept and then fall

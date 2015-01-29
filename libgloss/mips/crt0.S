@@ -40,11 +40,9 @@
       || defined (__mips_eabi))
 #  define LA(t,x)	dla	t,x
 #  define PTR_ADDU	daddu
-#  define LD_LONG	ld
 # else
 #  define LA(t,x)	la	t,x
 #  define PTR_ADDU	addu
-#  define LD_LONG	lw
 # endif
 #endif /* __mips_embedded_pic */
 
@@ -243,7 +241,7 @@ zerobss:
 	/* NOTE: a0[0] contains the amount of memory available, and
 	         not the last memory address. */
 	LA (a0, __memsize)
-	LD_LONG	t0,0(a0)			# amount of memory available
+	lw	t0,0(a0)			# amount of memory available
 	LA (t1, K0BASE)				# cached kernel memory
 	PTR_ADDU t0,t0,t1			# get the end of memory address
 	/* Allocate 32 bytes for the register parameters.  Allocate 16

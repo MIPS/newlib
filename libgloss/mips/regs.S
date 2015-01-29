@@ -101,9 +101,6 @@
 #define SR_MX		0x01000000	/* MDMX or DSP ASE */
 #define C5_MSA		0x08000000	/* MSA ASE */
 
-/* Standard Cause Register bitmasks */
-#define CAUSE_IV	0x00800000	/* Enable special exception vector */
-
 /* Standard (R4000) cache operations. Taken from "MIPS R4000
    Microprocessor User's Manual" 2nd edition: */
 

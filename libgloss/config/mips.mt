@@ -75,8 +75,8 @@ yamon_fstat.o: $(srcdir)/yamon_fstat.c
 link.o: $(srcdir)/link.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 mips_excpt_handler.o: $(srcdir)/mips_excpt_handler.c $(srcdir)/excpt.h
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_entry.o: $(srcdir)/mips_excpt_entry.S $(srcdir)/excpt.h
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_register.o: $(srcdir)/mips_excpt_register.S $(srcdir)/excpt.h
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<

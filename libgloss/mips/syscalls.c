@@ -31,8 +31,8 @@ sbrk (nbytes)
   /* NOTE: The value returned from the get_mem_info call is the amount
      of memory, and not the address of the (last byte + 1) */
 
-  if (((size_t)heap_ptr >= heap_start) && ((size_t)heap_ptr < (heap_start + mem.size))) {
-    avail = (heap_start + mem.size) - (size_t)heap_ptr;
+  if ((heap_ptr >= heap_start) && (heap_ptr < (heap_start + mem.size))) {
+    avail = (heap_start + mem.size) - heap_ptr;
     base = heap_ptr;
   } /* else will fail since "nbytes" will be greater than zeroed "avail" value */
 

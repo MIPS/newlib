@@ -28,6 +28,12 @@
 #else
 #define STRIDE	4
 #endif
+#if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
+     || defined (__mips_eabi))
+#define PTR_SIZE 8
+#else
+#define PTR_SIZE 4
+#endif
 
 #ifndef __ASSEMBLER__
 #include <stdint.h>
@@ -70,29 +76,44 @@ typedef uint64_t regtype;
 #define CTX_FP		((STRIDE)*29)
 #define CTX_RA		((STRIDE)*30)
 #define CTX_EPC		((STRIDE)*31)
-#define CTX_HI0		((STRIDE)*32)
-#define CTX_LO0		((STRIDE)*33)
-#define CTX_SIZE	((STRIDE)*34)
+#define CTX_BADVADDR	((STRIDE)*32)
+#define CTX_HI0		((STRIDE)*33)
+#define CTX_LO0		((STRIDE)*34)
+#define CTX_LINK	((STRIDE)*35)
+#define CTX_STATUS	(((STRIDE)*35)+PTR_SIZE)
+#define CTX_CAUSE	(((STRIDE)*35)+PTR_SIZE+4)
+#define CTX_BADINSTR	(((STRIDE)*35)+PTR_SIZE+8)
+#define CTX_BADPINSTR	(((STRIDE)*35)+PTR_SIZE+12)
+#define CTX_SIZE	(((STRIDE)*35)+PTR_SIZE+16)
 
 #ifndef __ASSEMBLER__
 
-struct gpctx {
-	regtype at;
-	regtype v[2];
-	regtype a[4];
-	regtype t[8];
-	regtype s[8];
-	regtype t2[2];
-	regtype k[2];
-	regtype gp;
-	regtype sp;
-	regtype fp;
-	regtype ra;
-	regtype epc;
-#if __mips_isa_rev < 6
-	regtype hi;
-	regtype lo;
-#endif
+struct gpctx
+{
+  regtype at;
+  regtype v[2];
+  regtype a[4];
+  regtype t[8];
+  regtype s[8];
+  regtype t2[2];
+  regtype k[2];
+  regtype gp;
+  regtype sp;
+  regtype fp;
+  regtype ra;
+  regtype epc;
+  regtype badvaddr;
+  regtype hi;
+  regtype lo;
+  /* This field is for future extension */
+  void *link;
+  /* Status represents the status at the point of exception but
+     with EXL cleared */
+  uint32_t status;
+  /* These fields should be considered read-only */
+  uint32_t cause;
+  uint32_t badinstr;
+  uint32_t badpinstr;
 };
 
 /*

@@ -267,6 +267,8 @@ extern "C" {
  * MIPS32r2 Config3 Register (CP0 Register 16, Select 3)
  */
 #define CFG3_M		0x80000000	/* Config4 implemented */
+#define CFG3_BP_BIT	27		/* BadInstrP implemented */
+#define CFG3_BI_BIT	26		/* BadInstr implemented */
 #define CFG3_DSPP	0x00000400	/* DSP ASE present */
 #define CFG3_LPA	0x00000080	/* Large physical addresses */
 #define CFG3_VEIC	0x00000040	/* Vectored external i/u controller */
@@ -397,6 +399,8 @@ extern "C" {
 #define C0_HWRENA	$7
 #define C0_BADVADDR 	$8
 #define C0_VADDR 	$8
+#define C0_BADINSTR 	$8,1
+#define C0_BADPINSTR 	$8,2
 #define C0_COUNT 	$9
 #define C0_ENTRYHI	$10
 #define C0_TLBHI	$10

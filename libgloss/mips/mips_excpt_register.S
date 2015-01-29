@@ -1,69 +1,50 @@
-##############################################################################
+# Copyright (c) 2015, Imagination Technologies Ltd.
+# All rights reserved.
 #
-#               file : $File$
-#  date last revised : $Date$
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-#          copyright : 2013 - 2014 by Imagination Technologies.
-#                      All rights reserved.
-#                      No part of this software, either material or conceptual
-#                      may be copied or distributed, transmitted, transcribed,
-#                      stored in a retrieval system or translated into any
-#                      human or computer language in any form by any means,
-#                      electronic, mechanical, manual or otherwise, or
-#                      disclosed to third parties without the express written
-#                      permission of:
-#                        Imagination Technologies, Home Park Estate,
-#                        Kings Langley, Hertfordshire, WD4 8LZ, U.K.
+# 1. Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# 3. Neither the name of the copyright holder nor the names of its
+# contributors may be used to endorse or promote products derived from this
+# software without specific prior written permission.
 #
-#        description : Register exception handler
-#
-##############################################################################
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
-#include "regs.S"
+#include <mips/asm.h>
+#include <mips/cpu.h>
 #include "excpt.h"
-
-#if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
-     || defined (__mips_eabi))
-# define LA	dla
-# define PTR_ADDU daddu
-#else
-# define LA	la
-# define PTR_ADDU addu
-#endif
-
-#if (defined (__mips64) && (_MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIO64 || \
-     _MIPS_SIM == _ABIN32 || defined (__mips_eabi)))
-# define STRIDE  8
-# define LD	ld
-# define ST	sd
-#else
-# define STRIDE  4
-# define LD	lw
-# define ST	sw
-#endif
-
-#define	C0_EBASE	$15,1
-#define	C0_CONFIG3	$16,3
-#define SR_IE		0x00000001
-#define ADJ		16
 
 	# Create space to store k0, k1, ra and sp
 	.data
 	.global	__start_ctx
 __start_ctx:
-	.space	STRIDE * 7
+	.space	SZREG * 7
 #if defined (__mips_micromips)
-	.space	STRIDE
-#define	start_ctx_conf3	(STRIDE * 7)	/* saved Config3 $16,3 for micromips */
+	.space	SZREG
+#define	start_ctx_conf3	(SZREG * 7)	/* saved Config3 $16,3 for micromips */
 #endif
-#define	start_ctx_sr	(STRIDE * 0)
-#define	start_ctx_k0	(STRIDE * 1)
-#define	start_ctx_k1	(STRIDE * 2)
-#define	start_ctx_ra	(STRIDE * 3)
-#define	start_ctx_sp	(STRIDE * 4)
-#define	start_ctx_ebase	(STRIDE * 5)	/* saved EBASE */
-#define	chain_ebase	(STRIDE * 6)	/* chained EBASE */
-
+#define	start_ctx_sr	(SZREG * 0)
+#define	start_ctx_k0	(SZREG * 1)
+#define	start_ctx_k1	(SZREG * 2)
+#define	start_ctx_ra	(SZREG * 3)
+#define	start_ctx_sp	(SZREG * 4)
+#define	start_ctx_ebase	(SZREG * 5)	/* saved EBASE */
+#define	chain_ebase	(SZREG * 6)	/* chained EBASE */
 
 #
 # FUNCTION:	__register_excpt_handler
@@ -89,22 +70,22 @@ __register_excpt_handler:
 
 	# Save C0_SR IE and BEV
 	LA	$9, __start_ctx
-	ST	$8, start_ctx_sr($9)
+	REG_S	$8, start_ctx_sr($9)
 
 	# Save k0, k1, ra, sp
-	ST	$26, start_ctx_k0($9)
-	ST	$27, start_ctx_k1($9)
-	ST	$4, start_ctx_ra($9)	/* $4 holds $31 */
-	ST	$29, start_ctx_sp($9)
+	REG_S	$26, start_ctx_k0($9)
+	REG_S	$27, start_ctx_k1($9)
+	REG_S	$4, start_ctx_ra($9)	/* $4 holds $31 */
+	REG_S	$29, start_ctx_sp($9)
 
 	# Save C0_EBASE
 	mfc0	$10, C0_EBASE
-	ST	$10, start_ctx_ebase($9)
+	REG_S	$10, start_ctx_ebase($9)
 
 #if defined (__mips_micromips)
 	# Save Config3
 	mfc0	$10, C0_CONFIG3
-	ST	$10, start_ctx_conf3($9)
+	REG_S	$10, start_ctx_conf3($9)
 
 	# Set Config3.ISAOnExc for micromips
 	lui	$4, 1			/* 0x10000 */
@@ -123,13 +104,13 @@ __register_excpt_handler:
 	# with the offsets in a non-boot vector
 	lui	$10, 0xbfc0
 	ori	$10, $10, 0x200
-	ST	$10, chain_ebase($9)
+	REG_S	$10, chain_ebase($9)
 	b	2f
 	nop
 
 	# No - set chain_ebase to C0_EBASE
 1:	mfc0	$10, C0_EBASE
-	ST	$10, chain_ebase($9)
+	REG_S	$10, chain_ebase($9)
 
 	# Set BEV=1 to allow changing EBASE
 	lui	$10, %hi(SR_BEV)
@@ -146,7 +127,7 @@ __register_excpt_handler:
 	ehb
 
 	# Turn on use of the special exception vector and enable interrupts
-	lui	$9, %hi(CAUSE_IV)
+	lui	$9, %hi(CR_IV)
 	mtc0	$9, C0_CAUSE
 	ehb
 
@@ -237,8 +218,11 @@ __chain_uhi_excpt:
 	mtlo	$10
 #endif
 
+	lw	$9, CTX_STATUS($3)
+	mtc0	$9, C0_SR
 	LD	$9, CTX_EPC($3)
-	MTC0	$9, C0_EPC
+	PTR_MTC0 $9, C0_EPC
+	ehb
 
 	# Restore the common context
 	LD	$1, CTX_AT($3)
