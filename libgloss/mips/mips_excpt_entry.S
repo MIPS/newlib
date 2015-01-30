@@ -59,6 +59,7 @@ NESTED(__exception_entry, 0, ra)
 	.set	noat
 	.set	noreorder
 .weak   _mips_tlb_refill
+	_mips_tlb_refill = __exception_save
 __tlb_refill_loop:
 	LA	k1, _mips_tlb_refill
 	beqz	k1, __tlb_refill_loop
@@ -68,6 +69,7 @@ __tlb_refill_loop:
 
 	.org 0x80
 .weak   _mips_xtlb_refill
+	_mips_xtlb_refill = __exception_save
 __xtlb_refill_loop:
 	LA	k1, _mips_xtlb_refill
 	beqz	k1, __xtlb_refill_loop
