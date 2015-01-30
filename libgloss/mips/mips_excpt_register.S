@@ -162,24 +162,24 @@ __return_to_boot:
 
 	# Restore C0_EBASE
 	LA	$9, __start_ctx
-	LD	$9, start_ctx_ebase($9)
+	REG_L	$9, start_ctx_ebase($9)
 	mtc0	$9, C0_EBASE
 	ehb
 
 	# Restore k0, k1, ra, sp and sr
 	LA	$9, __start_ctx
-	LD	$26, start_ctx_k0($9)
-	LD	$27, start_ctx_k1($9)
-	LD	$29, start_ctx_sp($9)
-	LD	$31, start_ctx_ra($9)
+	REG_L	$26, start_ctx_k0($9)
+	REG_L	$27, start_ctx_k1($9)
+	REG_L	$29, start_ctx_sp($9)
+	REG_L	$31, start_ctx_ra($9)
 
 #if defined (__mips_micromips)
 	# Restore Config3
-	LD	$2, start_ctx_conf3($9)
+	REG_L	$2, start_ctx_conf3($9)
 	mtc0	$2, C0_CONFIG3
 #endif
 
-	LD	$9, start_ctx_sr($9)
+	REG_L	$9, start_ctx_sr($9)
 
 	# Restore C0_STATUS IE and BEV to boot value
 	mtc0	$9, C0_SR
@@ -212,56 +212,56 @@ __chain_uhi_excpt:
 	move	$3, $4
 
 #if (__mips_isa_rev < 6)
-	LD	$9, CTX_HI0($3)
-	LD	$10, CTX_LO0($3)
+	REG_L	$9, CTX_HI0($3)
+	REG_L	$10, CTX_LO0($3)
 	mthi	$9
 	mtlo	$10
 #endif
 
 	lw	$9, CTX_STATUS($3)
 	mtc0	$9, C0_SR
-	LD	$9, CTX_EPC($3)
+	REG_L	$9, CTX_EPC($3)
 	PTR_MTC0 $9, C0_EPC
 	ehb
 
 	# Restore the common context
-	LD	$1, CTX_AT($3)
-	LD	$2, CTX_V0($3)
-	LD	$4, CTX_A0($3)
-	LD	$5, CTX_A1($3)
-	LD	$6, CTX_A2($3)
-	LD	$7, CTX_A3($3)
-	LD	$8, CTX_T0($3)
-	LD	$9, CTX_T1($3)
-	LD	$10, CTX_T2($3)
-	LD	$11, CTX_T3($3)
-	LD	$12, CTX_T4($3)
-	LD	$13, CTX_T5($3)
-	LD	$14, CTX_T6($3)
-	LD	$15, CTX_T7($3)
-	LD	$16, CTX_S0($3)
-	LD	$17, CTX_S1($3)
-	LD	$18, CTX_S2($3)
-	LD	$19, CTX_S3($3)
-	LD	$20, CTX_S4($3)
-	LD	$21, CTX_S5($3)
-	LD	$22, CTX_S6($3)
-	LD	$23, CTX_S7($3)
-	LD	$24, CTX_T8($3)
-	LD	$25, CTX_T9($3)
-	LD	$28, CTX_GP($3)
-	LD	$29, CTX_SP($3)
-	LD	$30, CTX_FP($3)
-	LD	$31, CTX_RA($3)
+	REG_L	$1, CTX_AT($3)
+	REG_L	$2, CTX_V0($3)
+	REG_L	$4, CTX_A0($3)
+	REG_L	$5, CTX_A1($3)
+	REG_L	$6, CTX_A2($3)
+	REG_L	$7, CTX_A3($3)
+	REG_L	$8, CTX_T0($3)
+	REG_L	$9, CTX_T1($3)
+	REG_L	$10, CTX_T2($3)
+	REG_L	$11, CTX_T3($3)
+	REG_L	$12, CTX_T4($3)
+	REG_L	$13, CTX_T5($3)
+	REG_L	$14, CTX_T6($3)
+	REG_L	$15, CTX_T7($3)
+	REG_L	$16, CTX_S0($3)
+	REG_L	$17, CTX_S1($3)
+	REG_L	$18, CTX_S2($3)
+	REG_L	$19, CTX_S3($3)
+	REG_L	$20, CTX_S4($3)
+	REG_L	$21, CTX_S5($3)
+	REG_L	$22, CTX_S6($3)
+	REG_L	$23, CTX_S7($3)
+	REG_L	$24, CTX_T8($3)
+	REG_L	$25, CTX_T9($3)
+	REG_L	$28, CTX_GP($3)
+	REG_L	$29, CTX_SP($3)
+	REG_L	$30, CTX_FP($3)
+	REG_L	$31, CTX_RA($3)
 
 	# Restore chained exception handlers kernel regs
 	LA	$3, __start_ctx
-	LD	$26, start_ctx_k0($3)
-	LD	$27, start_ctx_k1($3)
+	REG_L	$26, start_ctx_k0($3)
+	REG_L	$27, start_ctx_k1($3)
 
 #if defined (__mips_micromips)
 	# OR the address with Config3.ISAOnExc bit
-	LD	$3, start_ctx_conf3($3)
+	REG_L	$3, start_ctx_conf3($3)
 	srl	$3, $3, 16
 	andi	$3, $3, 1
 	beqz	$3, 1f
@@ -269,7 +269,7 @@ __chain_uhi_excpt:
 
 	# Compute exception vector
 	LA	$3, __start_ctx
-	LD	$3, chain_ebase($3)
+	REG_L	$3, chain_ebase($3)
 	PTR_ADDU $3, $3, 0x181		# OR ISAOnExc bit
 
 	# Chain
@@ -280,7 +280,7 @@ __chain_uhi_excpt:
 	LA	$3, __start_ctx
 #endif
 
-	LD	$3, chain_ebase($3)
+	REG_L	$3, chain_ebase($3)
 	PTR_ADDU $3, $3, 0x180
 
 	# Chain
@@ -305,7 +305,7 @@ __get_startup_BEV:
 	.set	noreorder
 
 	LA	$2, __start_ctx
-	LD	$2, start_ctx_sr($2)
+	REG_L	$2, start_ctx_sr($2)
 	lui	$3, %hi(SR_BEV)
 	and	$2, $2, $3
 	jr	$31

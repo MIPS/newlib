@@ -76,7 +76,7 @@ __uhi_exception (struct gpctx * ctx)
   register regtype ret1 asm ("$2") = 1;
 
   __asm__ __volatile__(" # UHI exception\n"
-		       "\tsdbbp 1"
+		       "\tsyscall 1"
 		       : "+r" (ret1), "+r" (arg1)
 		       : "r" (op)
 		       : "$3", "$5"); 
