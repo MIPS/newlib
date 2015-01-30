@@ -33,19 +33,29 @@
 	.data
 	.global	__start_ctx
 __start_ctx:
-	.space	SZREG * 7
+	.space	SZREG * 17
+#define	start_ctx_sr	(SZREG * 0)
+#define	start_ctx_s0	(SZREG * 1)
+#define	start_ctx_s1	(SZREG * 2)
+#define	start_ctx_s2	(SZREG * 3)
+#define	start_ctx_s3	(SZREG * 4)
+#define	start_ctx_s4	(SZREG * 5)
+#define	start_ctx_s5	(SZREG * 6)
+#define	start_ctx_s6	(SZREG * 7)
+#define	start_ctx_s7	(SZREG * 8)
+#define	start_ctx_k0	(SZREG * 9)
+#define	start_ctx_k1	(SZREG * 10)
+#define	start_ctx_gp	(SZREG * 11)
+#define	start_ctx_sp	(SZREG * 12)
+#define	start_ctx_fp	(SZREG * 13)
+#define	start_ctx_ra	(SZREG * 14)
+#define	start_ctx_ebase	(SZREG * 15)	/* saved EBASE */
+#define	chain_ebase	(SZREG * 16)	/* chained EBASE */
+
 #if defined (__mips_micromips)
 	.space	SZREG
-#define	start_ctx_conf3	(SZREG * 7)	/* saved Config3 $16,3 for micromips */
+#define	start_ctx_conf3	(SZREG * 17)	/* saved Config3 $16,3 for micromips */
 #endif
-#define	start_ctx_sr	(SZREG * 0)
-#define	start_ctx_k0	(SZREG * 1)
-#define	start_ctx_k1	(SZREG * 2)
-#define	start_ctx_ra	(SZREG * 3)
-#define	start_ctx_sp	(SZREG * 4)
-#define	start_ctx_ebase	(SZREG * 5)	/* saved EBASE */
-#define	chain_ebase	(SZREG * 6)	/* chained EBASE */
-
 #
 # FUNCTION:	__register_excpt_handler
 #
@@ -72,11 +82,20 @@ __register_excpt_handler:
 	LA	$9, __start_ctx
 	REG_S	$8, start_ctx_sr($9)
 
-	# Save k0, k1, ra, sp
+	REG_S	$16, start_ctx_s0($9)
+	REG_S	$17, start_ctx_s1($9)
+	REG_S	$18, start_ctx_s2($9)
+	REG_S	$19, start_ctx_s3($9)
+	REG_S	$20, start_ctx_s4($9)
+	REG_S	$21, start_ctx_s5($9)
+	REG_S	$22, start_ctx_s6($9)
+	REG_S	$23, start_ctx_s7($9)
 	REG_S	$26, start_ctx_k0($9)
 	REG_S	$27, start_ctx_k1($9)
-	REG_S	$4, start_ctx_ra($9)	/* $4 holds $31 */
+	REG_S	$28, start_ctx_gp($9)
 	REG_S	$29, start_ctx_sp($9)
+	REG_S	$30, start_ctx_fp($9)
+	REG_S	$4, start_ctx_ra($9)	/* $4 holds $31 */
 
 	# Save C0_EBASE
 	mfc0	$10, C0_EBASE
@@ -166,11 +185,21 @@ __return_to_boot:
 	mtc0	$9, C0_EBASE
 	ehb
 
-	# Restore k0, k1, ra, sp and sr
+	# Restore original state
 	LA	$9, __start_ctx
+	REG_L	$16, start_ctx_s0($9)
+	REG_L	$17, start_ctx_s1($9)
+	REG_L	$18, start_ctx_s2($9)
+	REG_L	$19, start_ctx_s3($9)
+	REG_L	$20, start_ctx_s4($9)
+	REG_L	$21, start_ctx_s5($9)
+	REG_L	$22, start_ctx_s6($9)
+	REG_L	$23, start_ctx_s7($9)
 	REG_L	$26, start_ctx_k0($9)
 	REG_L	$27, start_ctx_k1($9)
+	REG_L	$28, start_ctx_gp($9)
 	REG_L	$29, start_ctx_sp($9)
+	REG_L	$30, start_ctx_fp($9)
 	REG_L	$31, start_ctx_ra($9)
 
 #if defined (__mips_micromips)
