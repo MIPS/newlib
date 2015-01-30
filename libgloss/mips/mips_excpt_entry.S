@@ -47,14 +47,11 @@
 #define e_EPC	s6
 #define e_RA	s7
 
-#
-# FUNCTION:	__exception_entry
-#
 # DESCRIPTION: Exception entry point. This is small because it must go at
 #			   EBASE+0x180. It saves enough context to chain onwards to
 #			   __exception_save.
 #
-NESTED(__exception_entry, 0, ra)
+SLEAF(__exception_entry)
 	.set	push
 	.set	noat
 	.set	noreorder
@@ -114,6 +111,7 @@ END(__exception_entry)
 #              frame.
 #
 ANESTED(__exception_save, _mips_general_exception, CTX_SIZEROUND, zero)
+	.globl  __exception_save;
 	.set	push
 	.set	noat
 	.set	noreorder
