@@ -51,7 +51,7 @@
 #			   EBASE+0x180. It saves enough context to chain onwards to
 #			   __exception_save.
 #
-SLEAF(__exception_entry)
+LEAF(__exception_entry)
 	.set	push
 	.set	noat
 	.set	noreorder
@@ -110,7 +110,7 @@ END(__exception_entry)
 # DESCRIPTION: Exception context save. Save the context, then fake up a call
 #              frame.
 #
-ANESTED(__exception_save, _mips_general_exception, CTX_SIZEROUND, zero)
+ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	.globl  __exception_save;
 	.set	push
 	.set	noat
