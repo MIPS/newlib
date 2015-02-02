@@ -47,7 +47,7 @@ PROVIDE (software_init_hook = 0);
 
 SECTIONS
 {
-  . = 0xFFFFFFFF80020000;
+  . = 0xFFFFFFFF80200000;
   __excpt_ebase = .;
   .mips_exception : {
     * (.text.__exception_entry)

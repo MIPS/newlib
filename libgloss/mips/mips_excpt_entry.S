@@ -58,6 +58,19 @@ LEAF(__exception_entry)
 .weak   _mips_tlb_refill
 	_mips_tlb_refill = __exception_save
 __tlb_refill_loop:
+	# Support an alternative entry point at the start of the exception
+	# vector.  Since the exception vector is normally placed first
+	# in the link map this allows a user to start execution from the
+	# same address that an executable is loaded to.
+	LA	k1, __first_boot
+	lw	k1, 0(k1)
+	beqz	k1, 1f
+	nop
+	# The start code is responsible for clearing __first_boot prior
+	# to installing the exception handlers.
+	j	_start
+	nop
+1:
 	LA	k1, _mips_tlb_refill
 	beqz	k1, __tlb_refill_loop
 	nop

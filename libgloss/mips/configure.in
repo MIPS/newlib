@@ -70,7 +70,7 @@ case "${target}" in
 	crt0="crt0.o"
 	part_specific_obj=
 	part_specific_defines=
-	script_list="idt nullmon mti32 mti64 mti64_n32 mti64_64 mti32-uhi mti64-uhi mti64_64-uhi mti64_n32-uhi malta32-yamon malta32-uboot"
+	script_list="idt nullmon mti32 mti64 mti64_n32 mti64_64 mti32-uhi mti64-uhi mti64_64-uhi mti64_n32-uhi malta32-yamon"
 	bsp_list="libidt.a libnullmon.a libuhi.a libyamon.a"
 	;;
   mips*-lsi*-*)

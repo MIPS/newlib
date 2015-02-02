@@ -56,6 +56,13 @@ __start_ctx:
 	.space	SZREG
 #define	start_ctx_conf3	(SZREG * 17)	/* saved Config3 $16,3 for micromips */
 #endif
+
+# Used to support an alternate entry point that overlays the TLB refill
+# exception entry point.  This flag must be cleared before exceptions
+# are ready to be handled.
+EXPORTS(__first_boot, 4)
+	.word	0x1
+
 #
 # FUNCTION:	__register_excpt_handler
 #
@@ -74,9 +81,15 @@ __register_excpt_handler:
 	mfc0	$8, C0_SR
 
 	# Get into a sane state.
-	# Important things: base mode is kernel and ERL, ESL, IE, BEV are clear
-	mfc0	$0, C0_SR
+	# Important things: base mode is kernel and ERL, ESL, IE are clear
+	# Set BEV=1 to allow changing EBASE later
+	lui	$10, %hi(SR_BEV)
+	mtc0	$10, C0_SR
 	ehb
+
+	# Clear first boot flag
+	LA	$9, __first_boot
+	sw	$0, 0($9)
 
 	# Save C0_SR IE and BEV
 	LA	$9, __start_ctx
@@ -113,31 +126,22 @@ __register_excpt_handler:
 #endif
 
 	# Check if we booted with BEV==1
-	lui	$10, %hi(SR_BEV)
-	and	$10, $8, $10
-	beqz	$10, 1f
-	nop
+	lui	$11, %hi(SR_BEV)
+	and	$11, $8, $11
+	beqz	$11, 1f
+	mfc0	$10, C0_EBASE
 
-	# Yes - set chain_ebase to 0xbfc00200
+	# BEV==0 - set chain_ebase to 0xbfc00200
 	# Apply the offset of 0x200 so that the boot vector entries line up
 	# with the offsets in a non-boot vector
 	lui	$10, 0xbfc0
 	ori	$10, $10, 0x200
-	REG_S	$10, chain_ebase($9)
-	b	2f
-	nop
 
 	# No - set chain_ebase to C0_EBASE
-1:	mfc0	$10, C0_EBASE
-	REG_S	$10, chain_ebase($9)
-
-	# Set BEV=1 to allow changing EBASE
-	lui	$10, %hi(SR_BEV)
-	mtc0	$10, C0_SR
-	ehb
+1:	REG_S	$10, chain_ebase($9)
 
 	# Set desired EBASE
-2:	LA	$10, __excpt_ebase
+	LA	$10, __excpt_ebase
 	mtc0	$10, C0_EBASE
 	ehb
 

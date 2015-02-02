@@ -37,13 +37,14 @@
 
 int __get_startup_BEV (void);
 int __chain_uhi_excpt (struct gpctx *);
+int32_t __uhi_exception (struct gp_ctx *);
 
 /* Defined in .ld file */
 extern char __use_excpt_boot[];
 
 /* Handle syscall exception.  */
-int
-_excpt_syscall (struct gpctx *ctx)
+static int
+__excpt_uhi_sdbbp (struct gpctx *ctx)
 {
   register regtype arg1 asm ("$4") = ctx->a[0];
   register regtype arg2 asm ("$5") = ctx->a[1];
@@ -66,20 +67,6 @@ _excpt_syscall (struct gpctx *ctx)
   ctx->epc += 4;
 
   return 1; /* exception handled */
-}
-
-static void
-__uhi_exception (struct gpctx * ctx)
-{
-  register regtype op asm ("$25") = __MIPS_UHI_EXCEPTION;
-  register struct gpctx *arg1 asm ("$4") = ctx;
-  register regtype ret1 asm ("$2") = 1;
-
-  __asm__ __volatile__(" # UHI exception\n"
-		       "\tsyscall 1"
-		       : "+r" (ret1), "+r" (arg1)
-		       : "r" (op)
-		       : "$3", "$5"); 
 }
 
 #define WRITE(MSG) write (1, (MSG), strlen (MSG))
@@ -155,7 +142,7 @@ __exception_handle (struct gpctx *ctx, int exception)
         /* This will not return.  */
         __chain_uhi_excpt (ctx);
       else
-        _excpt_syscall (ctx);
+        __excpt_uhi_sdbbp (ctx);
       return;
     case EXC_BP:
       putsns ("Breakpoint @0x", ctx->epc, "\n");
@@ -274,6 +261,9 @@ __exception_handle (struct gpctx *ctx, int exception)
 
   /* Raise UHI exception which may or may not return.  */
   __uhi_exception (ctx);
+
+  /* Temporary until __uhi_exception is handled correctly in all
+     environments.  */
   _exit (2);
 }
 
