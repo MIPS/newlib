@@ -110,10 +110,6 @@ __register_excpt_handler:
 	REG_S	$30, start_ctx_fp($9)
 	REG_S	$4, start_ctx_ra($9)	/* $4 holds $31 */
 
-	# Save C0_EBASE
-	mfc0	$10, C0_EBASE
-	REG_S	$10, start_ctx_ebase($9)
-
 #if defined (__mips_micromips)
 	# Save Config3
 	mfc0	$10, C0_CONFIG3
@@ -125,11 +121,15 @@ __register_excpt_handler:
 	mtc0	$4, C0_CONFIG3
 #endif
 
+	# Save C0_EBASE
+	PTR_MFC0 $10, C0_EBASE
+	REG_S	$10, start_ctx_ebase($9)
+
 	# Check if we booted with BEV==1
 	lui	$11, %hi(SR_BEV)
 	and	$11, $8, $11
 	beqz	$11, 1f
-	mfc0	$10, C0_EBASE
+	nop
 
 	# BEV==0 - set chain_ebase to 0xbfc00200
 	# Apply the offset of 0x200 so that the boot vector entries line up
@@ -142,7 +142,10 @@ __register_excpt_handler:
 
 	# Set desired EBASE
 	LA	$10, __excpt_ebase
-	mtc0	$10, C0_EBASE
+	# Always set the write gate as the requested EBASE may not be in kseg0.
+	# This may or may not exist in hardware but if it doesn't then the
+	# ebase address will simply get masked with inevitable consequences.
+	PTR_MTC0 $10, C0_EBASE
 	ehb
 
 	# Clear BEV
@@ -186,8 +189,17 @@ __return_to_boot:
 	# Restore C0_EBASE
 	LA	$9, __start_ctx
 	REG_L	$9, start_ctx_ebase($9)
-	mtc0	$9, C0_EBASE
-	ehb
+	# Set the write gate to potentially change upper bits
+	ori	$10, $9, EBASE_WG
+	PTR_MTC0 $10, C0_EBASE
+	# Check if the write gate was set on startup
+	andi	$11, $9, EBASE_WG
+	bnez	$11, 1f
+	nop
+
+	# If write gate wasn't set then clear the write gate again
+	PTR_MTC0 $9, C0_EBASE
+1:	ehb
 
 	# Restore original state
 	LA	$9, __start_ctx

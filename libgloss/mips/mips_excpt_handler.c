@@ -37,7 +37,7 @@
 
 int __get_startup_BEV (void);
 int __chain_uhi_excpt (struct gpctx *);
-int32_t __uhi_exception (struct gp_ctx *);
+int32_t __uhi_exception (struct gpctx *);
 
 /* Defined in .ld file */
 extern char __use_excpt_boot[];

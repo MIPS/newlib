@@ -377,6 +377,7 @@ extern "C" {
 /* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */
 #define EBASE_BASE	0xfffff000	/* Exception base */
 #define EBASE_CPU	0x000003ff	/* CPU number */
+#define EBASE_WG	0x00000800	/* Write Gate */
 
 #ifdef __ASSEMBLER__
 
