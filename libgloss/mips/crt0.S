@@ -293,9 +293,16 @@ init:
 	LD	a2,(REGSIZE * 2)(t0)
 	LD	$7,(REGSIZE * 3)(t0)
 
-	/* if a0 >= 0 then we have arguments ready in a0 to a2 registers */
-	bgez	a0,.Lmain
+	/* if a0 > 0 then we have arguments ready in a0 to a2 registers */
+	bgtz	a0,.Lmain
+	/* if a0 == 0 then no arguments have been set up */
+	beqz	a0, 1f
+	/* if a0 < -1 then we have undefined behaviour so assume no
+	   arguments have been set up */
+	slti	a0, a0, -1
+	bnez	a0, 1f
 
+	/* a0 == -1 */
 	.weak	__getargs
 	LA (t0, __getargs)
 	beqz	t0, 1f
