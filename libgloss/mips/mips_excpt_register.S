@@ -32,6 +32,7 @@
 	# Create space to store k0, k1, ra and sp
 	.data
 	.global	__start_ctx
+	.balign	SZREG
 __start_ctx:
 	.space	SZREG * 17
 #define	start_ctx_sr	(SZREG * 0)
@@ -145,6 +146,7 @@ __register_excpt_handler:
 	# Always set the write gate as the requested EBASE may not be in kseg0.
 	# This may or may not exist in hardware but if it doesn't then the
 	# ebase address will simply get masked with inevitable consequences.
+	ori	$10, $10, EBASE_WG
 	PTR_MTC0 $10, C0_EBASE
 	ehb
 
