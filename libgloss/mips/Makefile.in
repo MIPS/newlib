@@ -67,7 +67,8 @@ OBJCOPY = `if [ -f ${objroot}/../binutils/objcopy ] ; \
 CRT0 = @crt0@
 PCRT0 = @pcrt0@
 GENOBJS = syscalls.o fstat.o getpid.o isatty.o kill.o \
-	lseek.o print.o putnum.o stat.o unlink.o __exit.o link.o
+	lseek.o print.o putnum.o stat.o unlink.o __exit.o link.o \
+	get_ram_range.o
 GENOBJS2 = open.o close.o read.o write.o
 IDTOBJS = idtmon.o @part_specific_obj@ ${GENOBJS}
 PMONOBJS = pmon.o @part_specific_obj@ ${GENOBJS}
@@ -77,19 +78,25 @@ JMR3904OBJS = jmr3904-io.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 CFEOBJS = cfe.o cfe_api.o cfe_mem.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 CYGMONOBJS = open.o close.o cygmon.o @part_specific_obj@ ${GENOBJS}
 UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
-  uhi_get_mem_info.o uhi_lseek.o uhi_open.o uhi_plog.o \
+  uhi_lseek.o uhi_open.o uhi_plog.o \
   uhi_pread.o uhi_pwrite.o uhi_read.o uhi_link.o uhi_stat.o \
   uhi_unlink.o uhi_write.o uhi_getargs.o uhi_exception.o \
+  uhi_get_ram_range.o uhi_indirect.o \
   syscalls.o getpid.o isatty.o kill.o
 
 YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
   yamon_fstat.o yamon_exception.o
-HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb.o \
-  m32tlb_ops.o mipscp0.o \
-  mips_excpt_entry.o mips_excpt_handler.o mips_excpt_register.o
+HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb_ops.o \
+  mips_excpt_entry.o mips_excpt_handler.o mips_excpt_handler_quiet.o \
+  mips_excpt_register.o mips_excpt_boot.o mips_excpt_isr.o
+HALINCLUDE = -I $(srcdir)/hal/include
+BOOTOBJ = reset.o init_cp0.o init_caches.o init_l23caches.o
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
+
+EXAMPLES = custom_excpt fault_recovery interrupt_handler isr_vector_space \
+	   romable romable_minimal romable_predef
 
 CFLAGS = -g
 
@@ -159,8 +166,8 @@ libyamon.a: $(YAMONOBJS)
 	${AR} ${ARFLAGS} $@ $(YAMONOBJS)
 	${RANLIB} $@
 
-libhal.a: $(HALOBJ)
-	${AR} ${ARFLAGS} $@ $(HALOBJ)
+libhal.a: $(HALOBJ) $(BOOTOBJ)
+	${AR} ${ARFLAGS} $@ $^
 	${RANLIB} $@
 
 # nullmon.a , This is what you want if you want crt0 but NO mon services
@@ -177,21 +184,6 @@ libnullmon.a: $(NULLMONOBJS)
 
 test: $(OBJS) ${BSP} pmon-test idt-test cfe-test
 	@echo Done...
-
-cache.o: $(srcdir)/hal/lib/mips/cache.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
-cache_ops.o: $(srcdir)/hal/lib/mips/cache_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
-m32cache.o: $(srcdir)/hal/lib/mips/m32cache.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
-m32cache_ops.o: $(srcdir)/hal/lib/mips/m32cache_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
-m32tlb.o: $(srcdir)/hal/lib/mips/m32tlb.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
-m32tlb_ops.o: $(srcdir)/hal/lib/mips/m32tlb_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
-mipscp0.o: $(srcdir)/hal/lib/mips/mipscp0.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) -I ${srcdir}/hal/include $(INCLUDES) -o $@ -c $<
 
 dtor.o:  $(srcdir)/dtor.C
 	$(CC) $(CFLAGS_FOR_TARGET) $(INCLUDES) -o $@ -c $<
@@ -250,6 +242,25 @@ install:
 	@for header in ${srcdir}/hal/include/mips/*.h; do\
 	  $(INSTALL_DATA) $${header} $(DESTDIR)$(tooldir)/include/mips; \
 	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/boot
+	@for file in ${srcdir}/hal/boot/*.[hS] ; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/boot/; \
+	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/hal
+	@for file in ${srcdir}/hal/lib/mips/*.[hSc] ${srcdir}/crt0.S; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/hal/; \
+	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/rules
+	@$(INSTALL_DATA) ${srcdir}/hal/mipshal.mk $(DESTDIR)$(exec_prefix)/share/mips/rules/
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples
+	@for example in $(EXAMPLES); do\
+	  mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}; \
+	  for file in ${srcdir}/hal/examples/$${example}/{*.[cS],*.txt,Makefile}; do\
+	    $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
+	  done; \
+	done
+	$(INSTALL_PROGRAM) ${srcdir}/hal/examples/romable_minimal/makescripts.sh \
+	  $(DESTDIR)$(exec_prefix)/share/mips/examples/romable_minimal/makescripts.sh
 
 info:
 install-info:

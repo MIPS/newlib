@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,80 +33,77 @@
 
 #include <mips/asm.h>
 #include <mips/regdef.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
-  .text
-  .align  2
-  .globl  __getargs
-  .set  nomips16
-  .set  nomicromips
-  .ent  __getargs
-  .type __getargs, @function
+	.text
+	.align  2
+	.globl  __getargs
+	.set  nomips16
+	.ent  __getargs
+	.type __getargs, @function
 __getargs:
 
-  move  t0, zero              /* argc */
-  move  t1, zero              /* argv */
+	move	t0, zero		/* argc */
+	move	t1, zero		/* argv */
 
-  li  $25, __MIPS_UHI_ARGC
-  li  v0, __MIPS_UHI_SYSCALL_NUM
+	li	$25, __MIPS_UHI_ARGC
+	li	v0, __MIPS_UHI_SYSCALL_NUM
 
-  ASM_SYSCALL (1)
+	ASM_SYSCALL (__MIPS_UHI_SYSCALL_NUM)
 
-  /* return on error (-1) */
-  blez  v0, .Lreturn
+	/* return on error (-1) */
+	blez	v0, .Lreturn
 
-  move  t0, v0			/* argc: number of arguments */
-  sll  t3, t0, LOG2_SZPTR
-  addiu  t3, t3, ALSZ
-  and  t3, t3, ALMASK
-  PTR_SUBU  sp, sp, t3		/* make room for argv */
-  move  t1, sp			/* argv */
-  move  t2, zero
+	move	t0, v0			/* argc: number of arguments */
+	sll	t3, t0, LOG2_SZPTR	/* Multiply by size of pointer */
+	addiu	t3, t3, ALSZ		/* Round to stack alignment */
+	and	t3, t3, ALMASK
+	PTR_SUBU  sp, sp, t3		/* make room for argv */
+	move	t1, sp			/* argv */
+	move	t2, zero
 
 .Lloop:
 
-  li  $25, __MIPS_UHI_ARGLEN
-  li  v0, __MIPS_UHI_SYSCALL_NUM
-  move  a0, t2                  /* argument number */
+	li	$25, __MIPS_UHI_ARGLEN
+	li	v0, __MIPS_UHI_SYSCALL_NUM
+	move	a0, t2			/* argument number */
 
-  ASM_SYSCALL (1)               /* get length of arg N */
+	ASM_SYSCALL (__MIPS_UHI_SYSCALL_NUM)	/* get length of arg N */
 
-  blez  v0, .Lreturn            /* return on error */
+	blez	v0, .Lreturn		/* return on error */
 
-  addiu	 v0, v0, 1
-  addiu  v0, v0, ALSZ
-  and  v0, v0, ALMASK
-  PTR_SUBU  sp, sp, v0
-  sll  t3, t2, LOG2_SZPTR
-  PTR_ADDU  t3, t3, t1
-  PTR_S  sp, 0(t3)                 /* argv[i] */
+	addiu	v0, v0, 1
+	addiu	v0, v0, ALSZ
+	and	v0, v0, ALMASK
+	PTR_SUBU sp, sp, v0
+	sll	t3, t2, LOG2_SZPTR
+	PTR_ADDU t3, t3, t1
+	PTR_S	sp, 0(t3)		/* argv[i] */
 
-  li  $25, __MIPS_UHI_ARGN
-  li  v0, __MIPS_UHI_SYSCALL_NUM
-  move  a0, t2                  /* argument number */
-  move  a1, sp                  /* argument buffer */
+	li	$25, __MIPS_UHI_ARGN
+	li	v0, __MIPS_UHI_SYSCALL_NUM
+	move	a0, t2			/* argument number */
+	move	a1, sp			/* argument buffer */
 
-  ASM_SYSCALL (1)
+	ASM_SYSCALL (__MIPS_UHI_SYSCALL_NUM)
 
-  bltz  v0, .Lreturn            /* return on error */
+	bltz	v0, .Lreturn		/* return on error */
 
-  addiu  t2, t2, 1
-  slt v0, t2, t0
-  bnez v0, .Lloop
+	addiu	t2, t2, 1
+	slt	v0, t2, t0
+	bnez	v0, .Lloop
 
 .Lreturn:
-  move  a0, t0
-  move  a1, t1
+	move	a0, t0
+	move	a1, t1
 
-  /* Leave 16-bytes for register arguments and up to 8 bytes for
-     a null envp.  Round up to 32 for alignment.  */
-  PTR_SUBU  sp, sp, 16+(NARGSAVE*SZARG)
-  PTR_ADDU  a2, sp, (NARGSAVE*SZARG)
-  PTR_S  $0, 0(a2)
+	/* Leave 16-bytes for register arguments and up to 8 bytes for
+	   a null envp.  Round up to 32 for alignment.  */
+	PTR_SUBU sp, sp, 16+(NARGSAVE*SZARG)
+	PTR_ADDU a2, sp, (NARGSAVE*SZARG)
+	PTR_S	$0, 0(a2)
 
-  jr $31
+	jr	$31
 
-  .end  __getargs
-  .size __getargs, .-__getargs
-
-/* EOF uhi_getargs.S */
+	.end  __getargs
+	.size __getargs, .-__getargs

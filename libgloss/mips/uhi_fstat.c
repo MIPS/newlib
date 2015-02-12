@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,23 +32,23 @@
 */
 
 /*
- * @Synopsis     int32_t fstat (int32_t file, struct stat *sbuf);
+ * @Synopsis	 int32_t fstat (int32_t file, struct stat *sbuf);
  *
- *               Parameters:
- *                 $4 - File handle
- *                 $5 - Pointer to dst buffer (struct stat *)
+ *		 Parameters:
+ *		   file - File handle
+ *		   sbuf - Pointer to dst buffer
  *
- *               Return:
- *                 $2 - 0 on success else -1
+ *		 Return:
+ *		   0 on success else -1
  *
- *               Arguments to syscall:
- *                 $25 - Operation code for fstat
- *                 $4 - File handle
- *                 $5 - Pointer to dst buffer (struct stat *)
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for fstat
+ *		   $4 - File handle
+ *		   $5 - Pointer to dst buffer (struct stat *)
  *
- *               Return from syscall:
- *                 $2 - 0 on success else -1
- *                 $3 - errno
+ *		 Return from syscall:
+ *		   $2 - 0 on success else -1
+ *		   $3 - errno
  *
  * @Description  File statistics
 */
@@ -60,14 +60,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stddef.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 #include "uhi_stat.h"
 
 /* This macro declares a dummy type with -ve size if CONDITION is false */
 #define __paste(STR1, STR2) STR1##STR2
 #define __check(LINE, CONDITION) typedef char __paste(assertion_failed_at_line_, LINE) [(int)(CONDITION)-1]
 
-int fstat (int file, struct stat *sbuf)
+int
+fstat (int file, struct stat *sbuf)
 {
   struct uhi_stat hbuf = {0,};
   register int32_t arg1 asm ("$4") = file;
@@ -121,15 +122,16 @@ int fstat (int file, struct stat *sbuf)
   __check (__LINE__, offsetof (struct stat, st_spare4) == 52);
 #endif
 
-  __asm__ __volatile__(" # %0,%1 = fstat(%2, %3) op=%4\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
-		       : "r" (op));
+  __asm__ __volatile__ (" # %0,%1 = fstat(%2, %3) op=%4\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "=r" (new_errno), "+r" (arg1),
+			  "+r" (arg2)
+			: "r" (op));
 
   if (ret != 0)
     {
       /* Do a dance to set errno, errno is a function call that can
-         clobber $3.  */
+	 clobber $3.  */
       volatile uint32_t errno_tmp = new_errno;
       errno = errno_tmp;
     }
@@ -160,4 +162,3 @@ int fstat (int file, struct stat *sbuf)
 
 #undef __paste
 #undef __check
-

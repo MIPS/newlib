@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted under the terms of the MIPS Free To Use 1.0 
- * license that you will have received with this package. If you haven't 
- * received this file, please contact Imagination Technologies or see the 
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
  * following URL for details.
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  *
@@ -30,8 +30,8 @@ extern "C" {
 
 #ifdef __ASSEMBLER__
 
-/* 
- * Stub 32-bit memory regions 
+/*
+ * Stub 32-bit memory regions
  */
 #define	KSEG0_BASE	0x80000000
 #define	KSEG1_BASE	0xa0000000
@@ -39,7 +39,7 @@ extern "C" {
 #define KSEG1_SIZE	0x20000000
 #define RVEC_BASE	ROM_BASE
 
-/* 
+/*
  * Translate a kernel address in KSEG0 or KSEG1 to a real
  * physical address and back.
  */
@@ -64,8 +64,8 @@ typedef unsigned long		vaddr_t;	/* a virtual address */
 #define _VADDR_T_DEFINED_
 #endif
 
-/* 
- * Stub 32-bit memory regions 
+/*
+ * Stub 32-bit memory regions
  */
 #define KSEG0_BASE	((void  *)0x80000000)
 #define KSEG1_BASE	((void  *)0xa0000000)
@@ -74,7 +74,7 @@ typedef unsigned long		vaddr_t;	/* a virtual address */
 
 #define RVEC_BASE	((void *)ROM_BASE)	/* reset vector base */
 
-/* 
+/*
  * Translate a kernel virtual address in KSEG0 or KSEG1 to a real
  * physical address and back.
  */

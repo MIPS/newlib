@@ -58,7 +58,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include "yamon_syscalls.h"
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 int32_t write (int32_t fd, void *buffer, int32_t count)
 {

@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,7 @@
 */
 
 /*
- * @Synopsis     int32_t stat (const char *filename, struct stat *buf);
- *
- *               Parameters:
- *                 $4 - File name
- *                 $5 - Pointer to dst buffer (struct stat *)
- *
- *               Return:
- *                 $2 - 0 on success else -1
+ * @Synopsis	 stat
  *
  * @Description  File statistics
 */
@@ -47,10 +40,11 @@
 #include <stdint.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 #include "uhi_stat.h"
 
-int stat (const char *filename, struct stat *buf)
+int
+stat (const char *filename, struct stat *buf)
 {
   int32_t fid, ret = -1;
 
@@ -64,4 +58,3 @@ int stat (const char *filename, struct stat *buf)
 
   return ret;
 }
-

@@ -33,7 +33,8 @@
 
 #include <errno.h>
 
-int link (const char *oldname, const char *newname)
+int
+link (const char *oldname, const char *newname)
 {
   (void) oldname;
   (void) newname;

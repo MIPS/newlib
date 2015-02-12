@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,34 +33,36 @@
 
 /*
  * @Synopsis     void __assert_func (const char *filename, int32_t line_num,
- *                 const char *func, const char *expr);
+ *				     const char *func, const char *expr);
  *
- *               Parameters:
- *                 $4 - Name of the file
- *                 $5 - Line number
- *                 $6 - Name of the function
- *                 %7 - Expression
+ *		 Parameters:
+ *		   filename - Name of the file
+ *		   line_num - Line number
+ *		   func - Name of the function
+ *		   expr - Expression
  *
- *               Return:
- *                 None
+ *		 Return:
+ *		   None
  *
- *               Arguments to syscall:
- *                 $25 - Operation code for __assert_func
- *                 $4 - Name of the file
- *                 $5 - Line number
- *                 $6 - Name of the function
- *                 %7 - Expression
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for __assert_func
+ *		   $4 - Name of the file
+ *		   $5 - Line number
+ *		   $6 - Name of the function
+ *		   $7 - Expression
  *
- *               Return from syscall:
- *                 None
+ *		 Return from syscall:
+ *		   None
  *
  * @Description  Assert
 */
 
 #include <stdint.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
-void __assert_func (const char *filename, int32_t line_num, const char *func, const char *expr)
+void
+__assert_func (const char *filename, int32_t line_num, const char *func,
+	       const char *expr)
 {
   register const char *arg1 asm ("$4") = filename;
   register int32_t arg2 asm ("$5") = line_num;
@@ -70,11 +72,8 @@ void __assert_func (const char *filename, int32_t line_num, const char *func, co
   register int32_t ret1 asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t ret2 asm ("$3") = 0;
 
-  __asm__ __volatile__(" # __assert_func(%0, %1, %2, %3, %4, %5) op=%6\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret1), "+r" (ret2), "+r" (arg1), "+r" (arg2)
-		       : "r" (arg3), "r" (arg4), "r" (op));
-
-  return;
+  __asm__ __volatile__ (" # __assert_func(%0, %1, %2, %3, %4, %5) op=%6\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret1), "+r" (ret2), "+r" (arg1), "+r" (arg2)
+			: "r" (arg3), "r" (arg4), "r" (op));
 }
-

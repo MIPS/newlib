@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,55 +32,48 @@
 */
 
 /*
- * @Synopsis     int32_t write (int32_t fd, void *buffer, int32_t count);
+ * @Synopsis	 write
  *
- *               Parameters:
- *                 $4 - File handle
- *                 $5 - Buffer to write
- *                 $6 - Length of the buffer
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for write
+ *		   $4 - File handle
+ *		   $5 - Buffer to write
+ *		   $6 - Length of the buffer
  *
- *               Return:
- *                 $2 - Number of bytes written
- *
- *               Arguments to syscall:
- *                 $25 - Operation code for write
- *                 $4 - File handle
- *                 $5 - Buffer to write
- *                 $6 - Length of the buffer
- *
- *               Return from syscall:
- *                 $2 - Number of bytes written
- *                 $3 - errno
+ *		 Return from syscall:
+ *		   $2 - Number of bytes written
+ *		   $3 - errno
  *
  * @Description  File write
 */
 
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
-int32_t write (int32_t fd, void *buffer, int32_t count)
+int
+write (int fd, const void *buf, size_t count)
 {
   register int32_t arg1 asm ("$4") = fd;
-  register void *arg2 asm ("$5") = buffer;
+  register const void *arg2 asm ("$5") = buf;
   register int32_t arg3 asm ("$6") = count;
   register int32_t op asm ("$25") = __MIPS_UHI_WRITE;
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
-  __asm__ __volatile__(" # %0,%1 = write(%2, %3, %4) op=%5\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
-		       : "r" (arg3), "r" (op));
+  __asm__ __volatile__ (" # %0,%1 = write(%2, %3, %4) op=%5\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "=r" (new_errno), "+r" (arg1),
+			  "+r" (arg2)
+			: "r" (arg3), "r" (op));
 
   if (ret == -1)
     {
       /* Do a dance to set errno, errno is a function call that can
-         clobber $3.  */
+	 clobber $3.  */
       volatile uint32_t errno_tmp = new_errno;
       errno = errno_tmp;
     }
 
   return ret;
 }
-

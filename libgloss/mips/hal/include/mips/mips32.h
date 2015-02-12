@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted under the terms of the MIPS Free To Use 1.0 
- * license that you will have received with this package. If you haven't 
- * received this file, please contact Imagination Technologies or see the 
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
  * following URL for details.
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  *
@@ -29,30 +29,11 @@ extern "C" {
 
 /* C interface to clz/clo instructions */
 
-# if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-
-/* use GCC builtins for better optimisation */
-
 /* count leading zeros */
 # define mips_clz(x) __builtin_clz (x)
 
 /* count trailing zeros */
 # define mips_ctz(x) __builtin_ctz (x)
-
-#else
-
-/* count leading zeros */
-#define mips_clz(x) __extension__({ \
-    unsigned int __x = (x); \
-    unsigned int __v; \
-    __asm__ ("clz %0,%1" : "=d" (__v) : "d" (__x)); \
-    __v; \
-})
-
-/* count trailing zeros */
-#define mips_ctz(x) (31 ^ mips_clz ((x) & -(x)))
-
-#endif
 
 #define mips_clo(x) __extension__({ \
     unsigned int __x = (x); \
@@ -85,8 +66,6 @@ extern "C" {
     __ldx ? mips_ctz(__ldx) : (63 ^ mips_clz(__hdx & -__hdx)); \
    })
 #endif
-
-#if __mips_isa_rev >= 2
 
 /* MIPS32r2 wsbh opcode */
 #define _mips32r2_wsbh(x) __extension__({ \
@@ -123,27 +102,6 @@ extern "C" {
 	     : "dJ" (__x), "I" (pos), "I" (sz)); \
     __v; \
 })
-
-#endif /* __mips_isa_rev >= 2 */
-
-/* MIPS32r2 jr.hb */
-#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABIO64
-#define mips32_jr_hb() __asm__ __volatile__(	\
-       "bltzal	$0,0f\n"			\
-"0:	addiu	$31,1f-0b\n"			\
-"	jr.hb	$31\n"				\
-"1:"						\
-	: : : "$31")
-#elif _MIPS_SIM==_ABI64
-#define mips32_jr_hb() __asm__ __volatile__(	\
-       "bltzal	$0,0f\n"			\
-"0:	daddiu	$31,1f-0b\n"			\
-"	jr.hb	$31\n"				\
-"1:"						\
-	: : : "$31")
-#else
-#error Unknown ABI
-#endif
 
 #endif /* ! __mips16 */
 

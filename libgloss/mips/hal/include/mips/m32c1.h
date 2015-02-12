@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted under the terms of the MIPS Free To Use 1.0 
- * license that you will have received with this package. If you haven't 
- * received this file, please contact Imagination Technologies or see the 
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
  * following URL for details.
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  *
@@ -13,7 +13,7 @@
 
 
 /*
- * m32c1.h : MIPS32 coprocessor 1 (fpu) definitions
+ * m32c1.h : MIPS32 coprocessor 1 (fpu and msa) definitions
  */
 
 
@@ -25,48 +25,21 @@ extern "C" {
 
 #ifndef __ASSEMBLER__
 
-#if __mips == 64 || __mipsfp64
-typedef unsigned long long _fpreg_t;
-#else
-typedef unsigned long _fpreg_t;
-#endif
-
-struct fpactx {
-    unsigned	sr;		/* floating-point status register */
-    unsigned	dummy;		
-    _fpreg_t	regs[32];	/* floating-point registers $f0-$f31 */
-#if __mips == 64 || __mipsfp64
-    _fpreg_t	acl;		/* MDMX accumulator (low 64 bits) */
-    _fpreg_t	acm;		/* MDMX accumulator (middle 64 bits) */
-    _fpreg_t	ach;		/* MDMX accumulator (high 64 bits) */
-#endif
-};
-
-#ifdef __STDC__
-int	 fpa_enable(int);	/* enable fpa, return 1 if present (always) */
 unsigned fpa_getrid(void);	/* get fpa revision id */
 unsigned fpa_getsr(void);	/* get fpa status register */
 void	 fpa_setsr(unsigned);
 unsigned fpa_xchsr(unsigned);
 unsigned fpa_bicsr(unsigned);
 unsigned fpa_bissr(unsigned);
-void	fpa_save(struct fpactx *);
-void	fpa_restore(const struct fpactx *);
-#else
-int	 fpa_enable();
-unsigned fpa_getrid();
-unsigned fpa_getsr();
-void	 fpa_setsr();
-unsigned fpa_xchsr();
-unsigned fpa_bicsr();
-unsigned fpa_bissr();
-void	fpa_save();
-void	fpa_restore();
-#endif /* __STDC__ */
 
+unsigned msa_getmir(void);	/* get msa revision id */
+unsigned msa_getsr(void);	/* get msa status register */
+void	 msa_setsr(unsigned);
+unsigned msa_xchsr(unsigned);
+unsigned msa_bicsr(unsigned);
+unsigned msa_bissr(unsigned);
 
-
-/* 
+/*
  * Define macros to accessing the Coprocessor 1 control registers.
  * Most apart from "set" return the original register value.
  */
@@ -102,7 +75,6 @@ __extension__({ \
     __o; \
 })
 
-
 #define fpa_bissr(val) \
 __extension__({ \
     register unsigned __o, __n; \
@@ -111,7 +83,6 @@ __extension__({ \
     __asm__ __volatile ("ctc1 %0,$31" : : "d" (__n)); \
     __o; \
 })
-
 
 #define fpa_bicsr(val) \
 __extension__({ \
@@ -123,11 +94,93 @@ __extension__({ \
 })
 
 
+#define msa_getmir() \
+__extension__({ \
+  register unsigned __r; \
+  __asm__ __volatile (".set push\n" \
+		      ".set fp=64\n" \
+		      ".set msa\n" \
+		      "cfcmsa %0,$0\n" \
+		      ".set pop": "=d" (__r)); \
+  __r; \
+})
+
+#define msa_getsr() \
+__extension__({ \
+  register unsigned __r; \
+  __asm__ __volatile (".set push\n" \
+		      ".set fp=64\n" \
+		      ".set msa\n" \
+		      "cfcmsa %0,$1\n" \
+		      ".set pop": "=d" (__r)); \
+  __r; \
+})
+
+#define msa_setsr(val) \
+__extension__({ \
+    register unsigned __r = (val); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"ctcmsa $1,%0\n" \
+			".set pop": : "d" (__r)); \
+    __r; \
+})
+
+#define msa_xchsr(val) \
+__extension__({ \
+    register unsigned __o, __n = (val); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"cfcmsa %0,$1\n" \
+			".set pop": "=d" (__o)); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"ctcmsa $1,%0\n" \
+			".set pop": : "d" (__n)); \
+    __o; \
+})
+
+#define msa_bissr(val) \
+__extension__({ \
+    register unsigned __o, __n; \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"cfcmsa %0,$1\n" \
+			".set pop": "=d" (__o)); \
+    __n = __o | (val); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"ctcmsa $1,%0\n" \
+			".set pop": : "d" (__n)); \
+    __o; \
+})
+
+#define msa_bicsr(val) \
+__extension__({ \
+    register unsigned __o, __n; \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"cfcmsa %0,$1\n" \
+			".set pop": "=d" (__o)); \
+    __n = __o &~ (val); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"ctcmsa $1,%0" \
+			".set pop": : "d" (__n)); \
+    __o; \
+})
 
 #endif /* !ASSEMBLER */
 
-/* 
- * FCSR - FPU Control & Status Register 
+/*
+ * FCSR - FPU Control & Status Register
  */
 #define FPA_CSR_MD0	0x00200000	/* machine dependent */
 #define FPA_CSR_MD1	0x00400000	/* machine dependent */
@@ -188,20 +241,6 @@ __extension__({ \
 #define FPA_FIR_REV	0x000000ff	/* Revision */
 
 #ifdef __ASSEMBLER__
-
-	.struct 0
-FPACTX_SR:	.word	0
-FPACTX_DUMMY:	.word	0
-#if __mips == 64 || __mipsfp64
-FPACTX_REGS:	.dword	0:32
-FPACTX_ACL:	.dword	0
-FPACTX_ACM:	.dword	0
-FPACTX_ACH:	.dword	0
-#define FPACTX_RSIZE	8
-#else
-FPACTX_REGS:	.word	0:32
-#define FPACTX_RSIZE	4
-#endif
 
 	.previous
 
