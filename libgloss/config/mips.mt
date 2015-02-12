@@ -29,6 +29,8 @@ unlink.o: ${srcdir}/../unlink.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 write.o: ${srcdir}/../write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+get_ram_range.o: ${srcdir}/get_ram_range.c
+	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 
 uhi_assert.o: $(srcdir)/uhi_assert.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
@@ -37,8 +39,6 @@ uhi_close.o: $(srcdir)/uhi_close.c
 uhi_exit.o: $(srcdir)/uhi_exit.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_fstat.o: $(srcdir)/uhi_fstat.c
-	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-uhi_get_mem_info.o: $(srcdir)/uhi_get_mem_info.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_lseek.o: $(srcdir)/uhi_lseek.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
@@ -59,6 +59,8 @@ uhi_stat.o: $(srcdir)/uhi_stat.c
 uhi_unlink.o: $(srcdir)/uhi_unlink.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_write.o: $(srcdir)/uhi_write.c
+	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+uhi_get_ram_range.o: $(srcdir)/uhi_get_ram_range.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_exception.o: $(srcdir)/uhi_exception.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?

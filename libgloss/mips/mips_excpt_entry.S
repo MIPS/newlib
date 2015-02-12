@@ -104,18 +104,128 @@ __cache_error_loop:
 	LA	k1, _mips_general_exception
 	jr	k1
 	nop
+	.set    pop
+END(__exception_entry)
 
-	.org 0x200
-.weak   _mips_interrupt
-__interrupt_loop:
-	LA	k1, _mips_interrupt
-	beqz	k1, __interrupt_loop
+LEAF(__isr_sw0)
+	.set	push
+	.set	noat
+	.set	noreorder
+.weak   _mips_isr_sw0
+1:
+	li	k0, 0
+	LA	k1, _mips_isr_sw0
+	beqz	k1, 1b
 	nop
 	jr	k1
 	nop
-
 	.set    pop
-END(__exception_entry)
+END(__isr_sw0)
+
+LEAF(__isr_sw1)
+	.set	push
+	.set	noat
+	.set	noreorder
+.weak   _mips_isr_sw1
+1:
+	li	k0, 1
+	LA	k1, _mips_isr_sw1
+	beqz	k1, 1b
+	nop
+	jr	k1
+	nop
+	.set    pop
+END(__isr_sw1)
+
+LEAF(__isr_hw0)
+	.set	push
+	.set	noat
+	.set	noreorder
+.weak   _mips_isr_hw0
+1:
+	li	k0, 2
+	LA	k1, _mips_isr_hw0
+	beqz	k1, 1b
+	nop
+	jr	k1
+	nop
+	.set    pop
+END(__isr_hw0)
+
+LEAF(__isr_hw1)
+	.set	push
+	.set	noat
+	.set	noreorder
+.weak   _mips_isr_hw1
+1:
+	li	k0, 3
+	LA	k1, _mips_isr_hw1
+	beqz	k1, 1b
+	nop
+	jr	k1
+	nop
+	.set    pop
+END(__isr_hw1)
+
+LEAF(__isr_hw2)
+	.set	push
+	.set	noat
+	.set	noreorder
+.weak   _mips_isr_hw2
+1:
+	li	k0, 4
+	LA	k1, _mips_isr_hw2
+	beqz	k1, 1b
+	nop
+	jr	k1
+	nop
+	.set    pop
+END(__isr_hw2)
+
+LEAF(__isr_hw3)
+	.set	push
+	.set	noat
+	.set	noreorder
+.weak   _mips_isr_hw3
+1:
+	li	k0, 5
+	LA	k1, _mips_isr_hw3
+	beqz	k1, 1b
+	nop
+	jr	k1
+	nop
+	.set    pop
+END(__isr_hw3)
+
+LEAF(__isr_hw4)
+	.set	push
+	.set	noat
+	.set	noreorder
+.weak   _mips_isr_hw4
+1:
+	li	k0, 6
+	LA	k1, _mips_isr_hw4
+	beqz	k1, 1b
+	nop
+	jr	k1
+	nop
+	.set    pop
+END(__isr_hw4)
+
+LEAF(__isr_hw5)
+	.set	push
+	.set	noat
+	.set	noreorder
+.weak   _mips_isr_hw5
+1:
+	li	k0, 7
+	LA	k1, _mips_isr_hw5
+	beqz	k1, 1b
+	nop
+	jr	k1
+	nop
+	.set    pop
+END(__isr_hw5)
 
 #
 # FUNCTION:	__exception_save
@@ -204,11 +314,11 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 
 	# Clear EXL.  Exceptions can now nest.
 	mfc0	e_SR, C0_SR
+	sw	e_SR, CTX_STATUS + ADJ(sp)
 	lui	$9, %hi(~SR_EXL)
 	addiu	$9, $9, %lo(~SR_EXL)
 	and	e_SR, e_SR, $9
 	mtc0	e_SR, C0_SR
-	sw	e_SR, CTX_STATUS + ADJ(sp)
 
 	# Manually set up the return address to restore the context below
 	LA	ra, 1f
@@ -237,10 +347,6 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	mtlo	$10
 #endif
 
-	lw	e_SR, CTX_STATUS + ADJ(sp)
-	mtc0	e_SR, C0_SR
-	REG_L	e_EPC, CTX_EPC + ADJ(sp)
-	PTR_MTC0 e_EPC, C0_EPC
 	REG_L	$1, CTX_AT + ADJ(sp)
 	REG_L	v0, CTX_V0 + ADJ(sp)
 	REG_L	v1, CTX_V1 + ADJ(sp)
@@ -266,12 +372,18 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	REG_L	s7, CTX_S7 + ADJ(sp)
 	REG_L	t8, CTX_T8 + ADJ(sp)
 	REG_L	t9, CTX_T9 + ADJ(sp)
-	REG_L	k0, CTX_K0 + ADJ(sp)
-	REG_L	k1, CTX_K1 + ADJ(sp)
 	REG_L	gp, CTX_GP + ADJ(sp)
 	REG_L	fp, CTX_FP + ADJ(sp)
 	REG_L	ra, CTX_RA + ADJ(sp)
+	di
+	lw	k0, CTX_STATUS + ADJ(sp)
+	mtc0	k0, C0_SR
+	REG_L	k1, CTX_EPC + ADJ(sp)
+	PTR_MTC0 k1, C0_EPC
+	ehb
 	REG_L	sp, CTX_SP + ADJ(sp)
+	REG_L	k0, CTX_K0 + ADJ(sp)
+	REG_L	k1, CTX_K1 + ADJ(sp)
 	# Return from exception
 	eret
 	.set	pop

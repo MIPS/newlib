@@ -23,7 +23,7 @@ PROVIDE (__stack = 0);
 /* PROVIDE (__global = 0); */
 
 /* Size of the memory returned by get_mem_info */
-PROVIDE (__memory_size = 1M);
+PROVIDE (__memory_size = 3M);
 
 /* 
  * 0 = Do not use exception handler present in boot
@@ -49,8 +49,41 @@ SECTIONS
 {
   . = 0xFFFFFFFF80200000;
   __excpt_ebase = .;
+  __excpt_vec_space = 0x20;
   .mips_exception : {
-    * (.text.__exception_entry)
+    KEEP(* (.text.__exception_entry))
+  }
+  . = __excpt_ebase + 0x200;
+  .mips_isr_sw0 : {
+    KEEP(* (.text.__isr_sw0))
+  }
+  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 1);
+  .mips_isr_sw1 : {
+    KEEP(* (.text.__isr_sw1))
+  }
+  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 2);
+  .mips_isr_hw0 : {
+    KEEP(* (.text.__isr_hw0))
+  }
+  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 3);
+  .mips_isr_hw1 : {
+    KEEP(* (.text.__isr_hw1))
+  }
+  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 4);
+  .mips_isr_hw2 : {
+    KEEP(* (.text.__isr_hw2))
+  }
+  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 5);
+  .mips_isr_hw3 : {
+    KEEP(* (.text.__isr_hw3))
+  }
+  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 6);
+  .mips_isr_hw4 : {
+    KEEP(* (.text.__isr_hw4))
+  }
+  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 7);
+  .mips_isr_hw5 : {
+    KEEP(* (.text.__isr_hw5))
   }
 
   .text : {
@@ -165,6 +198,11 @@ SECTIONS
   . = ALIGN(4);
   PROVIDE (end = .);
   _end = .;
+  /* Now place the data that is only needed within start.S and can be
+     overwritten by the heap.  */
+  .startdata : {
+    *(.startdata)
+  }
 
   /* DWARF debug sections.
      Symbols in the DWARF debugging sections are relative to

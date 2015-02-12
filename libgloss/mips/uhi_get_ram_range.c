@@ -1,8 +1,4 @@
 /*
- * uhi_syscall.h
-*/
-
-/*
  * Copyright (c) 2014, Imagination Technologies Ltd.
  * All rights reserved.
  *
@@ -31,37 +27,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#define __MIPS_UHI_EXIT        1
-#define __MIPS_UHI_OPEN        2
-#define __MIPS_UHI_CLOSE       3
-#define __MIPS_UHI_READ        4
-#define __MIPS_UHI_WRITE       5
-#define __MIPS_UHI_LSEEK       6
-#define __MIPS_UHI_UNLINK      7
-#define __MIPS_UHI_FSTAT       8
-#define __MIPS_UHI_ARGC        9
-#define __MIPS_UHI_ARGLEN      10
-#define __MIPS_UHI_ARGN        11
-#define __MIPS_UHI_RAMINFO     12
-#define __MIPS_UHI_LOG         13
-#define __MIPS_UHI_ASSERT      14
-#define __MIPS_UHI_EXCEPTION   15
-#define __MIPS_UHI_FINDFIRST   16
-#define __MIPS_UHI_FINDNEXT    17
-#define __MIPS_UHI_FINDCLOSE   18
-#define __MIPS_UHI_PREAD       19
-#define __MIPS_UHI_PWRITE      20
-#define __MIPS_UHI_YIELD       21
-#define __MIPS_UHI_LINK        22
+#include <stdint.h>
+#include <errno.h>
+#include "uhi_syscalls.h"
+#include "regs.S"
 
-#define xstr(s) str(s)
-#define str(s) #s
-#define __MIPS_UHI_SYSCALL_NUM 1
+extern char __attribute__((weak)) __memory_size[];
 
-#ifdef __MIPS_SDBBP__
-	#define SYSCALL(NUM) "\tsdbbp " xstr (NUM)
-	#define ASM_SYSCALL(NUM) sdbbp NUM
-#else
-	#define SYSCALL(NUM) "\tsyscall " xstr (NUM)
-	#define ASM_SYSCALL(NUM) syscall NUM
-#endif
+void
+_get_ram_range (void **ram_base, void **ram_extent)
+{
+  register int32_t op asm ("$25") = __MIPS_UHI_RAMINFO;
+  register void* r_base asm ("$2") = (void*)__MIPS_UHI_SYSCALL_NUM;
+  register void* r_extent asm ("$3") = NULL;
+
+  if (__memory_size != NULL)
+    {
+      if (ram_base)
+        *ram_base = (void*)K0BASE;
+      *ram_extent = (void*)(K0BASE + (unsigned long)__memory_size);
+      return;
+    }
+
+  __asm__ __volatile__(" # %0,%1 = raminfo() op=%2\n"
+                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+                       : "=r" (r_base), "=r" (r_extent)
+		       : "r" (op)
+		       : "$4", "$5");
+
+  if (ram_base)
+    *ram_base = r_base;
+  *ram_extent = r_extent;
+}

@@ -1,8 +1,4 @@
 /*
- * uhi_get_mem_info.c
-*/
-
-/*
  * Copyright (c) 2014, Imagination Technologies Ltd.
  * All rights reserved.
  *
@@ -31,31 +27,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*
- * @Synopsis     void get_mem_info (struct s_mem *mem);
- *
- *               Parameters:
- *                 $4 - Pointer to s_mem structure
- *
- *               Return:
- *                 Update the s_mem
- *
- * @Description  Return the size of the memory
-*/
+#include <_ansi.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-struct s_mem
+#include "regs.S"
+
+void
+_get_ram_range (void **ram_base, void **ram_extent)
 {
-  unsigned int size;
-  unsigned int icsize;
-  unsigned int dcsize;
-};
+  struct s_mem
+  {
+    unsigned int size;
+    unsigned int icsize;
+    unsigned int dcsize;
+  } mem;
 
-/* Size of the memory has been defined .ld file */
-extern char __memory_size[];
+  /* The sizeof (s_mem.size) must be 4 bytes.  The compiler should be
+     able to eliminate this check */
+  if (sizeof (unsigned int) != 4)
+    {
+      *ram_extent = 0;
+      return;
+    }
 
-void get_mem_info (struct s_mem *mem)
-{
-  mem->size = (unsigned int)(unsigned long) __memory_size;
-  return;
+  get_mem_info (&mem);
+
+  /* NOTE: The value returned from the get_mem_info call is the amount
+     of memory, and not the address of the (last byte + 1) */
+
+  if (ram_base)
+    *ram_base = (void*)K0BASE;
+  *ram_extent = (void*)(K0BASE + mem.size);
 }
-

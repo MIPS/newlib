@@ -154,6 +154,12 @@ __register_excpt_handler:
 	mtc0	$0, C0_SR
 	ehb
 
+	# Set up vector spacing
+	LA	$9, __excpt_vec_space
+	mfc0	$10, C0_INTCTL
+	ins	$10, $9, 0, 10
+	mtc0	$10, C0_INTCTL
+
 	# Turn on use of the special exception vector and enable interrupts
 	lui	$9, %hi(CR_IV)
 	mtc0	$9, C0_CAUSE
