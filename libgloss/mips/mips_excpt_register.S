@@ -111,14 +111,14 @@ __register_excpt_handler:
 	REG_S	$30, start_ctx_fp($9)
 	REG_S	$4, start_ctx_ra($9)	/* $4 holds $31 */
 
+	mfc0	$12, C0_CONFIG3
 #if defined (__mips_micromips)
 	# Save Config3
-	mfc0	$10, C0_CONFIG3
-	REG_S	$10, start_ctx_conf3($9)
+	REG_S	$12, start_ctx_conf3($9)
 
 	# Set Config3.ISAOnExc for micromips
 	lui	$4, 1			/* 0x10000 */
-	or	$4, $4, $10
+	or	$4, $4, $12
 	mtc0	$4, C0_CONFIG3
 #endif
 
@@ -154,12 +154,17 @@ __register_excpt_handler:
 	mtc0	$0, C0_SR
 	ehb
 
+	# Check for vectored interrupt support
+	li	$10, CFG3_VI
+	and	$10, $12, $10
+	beqz	$10, 1f
+
 	# Set up vector spacing
 	LA	$9, __excpt_vec_space
 	mfc0	$10, C0_INTCTL
 	ins	$10, $9, 0, 10
 	mtc0	$10, C0_INTCTL
-
+1:
 	# Turn on use of the special exception vector and enable interrupts
 	lui	$9, %hi(CR_IV)
 	mtc0	$9, C0_CAUSE
