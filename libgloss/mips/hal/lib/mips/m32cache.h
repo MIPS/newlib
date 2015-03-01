@@ -29,7 +29,6 @@
 #error use -mips32 or -mips64 options with this file
 #endif
 
-#define _BOOTCODE
 #include <mips/asm.h>
 #include <mips/regdef.h>
 #include <mips/m32c0.h>

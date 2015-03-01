@@ -87,7 +87,9 @@ YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
   yamon_fstat.o yamon_exception.o
 HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb.o \
   m32tlb_ops.o mipscp0.o \
-  mips_excpt_entry.o mips_excpt_handler.o mips_excpt_register.o
+  mips_excpt_entry.o mips_excpt_handler.o mips_excpt_register.o \
+  mips_excpt_boot.o mips_excpt_isr.o \
+  reset.o init_cp0.o init_caches.o
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}

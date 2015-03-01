@@ -137,6 +137,7 @@ extern "C" {
 #define SR_IMASK	0x0000ff00
 
 #define SR_NMI		0x00080000 	/* NMI occurred */
+#define SR_NMISHIFT	17
 #define SR_SR		0x00100000	/* soft reset occurred */
 #define SR_TS		0x00200000	/* TLB shutdown */
 #define SR_BEV		0x00400000	/* boot exception vectors */
@@ -202,10 +203,13 @@ extern "C" {
 #define CFG0_ARMASK	0x00001c00
 #define CFG0_ARSHIFT	10
 #define CFG0_MTMASK	0x00000380
+#define CFG0_MTSHIFT	7
+#define CFG0_MTBITS	0x7
 #define  CFG0_MT_NONE	 (0<<7)
 #define  CFG0_MT_TLB	 (1<<7)
 #define  CFG0_MT_BAT	 (2<<7)
-#define  CFG0_MT_NONSTD	 (3<<7)
+#define  CFG0_MT_FIXED	 (3<<7)
+#define  CFG0_MT_DUAL	 (4<<7)
 #define CFG0_VI		0x00000008	/* Icache is virtual */
 #define CFG0_K0MASK	0x00000007	/* KSEG0 coherency algorithm */
 
@@ -221,6 +225,7 @@ extern "C" {
 #define CFG1_M		0x80000000	/* Config2 implemented */
 #define CFG1_MMUSMASK	0x7e000000	/* mmu size - 1 */
 #define CFG1_MMUSSHIFT	25
+#define CFG1_MMUSBITS	6
 #define CFG1_ISMASK	0x01c00000	/* icache lines 64<<n */
 #define CFG1_ISSHIFT	22
 #define CFG1_ILMASK	0x00380000	/* icache line size 2<<n */
@@ -278,6 +283,13 @@ extern "C" {
 #define CFG3_SM		0x00000002	/* SmartMIPS ASE */
 #define CFG3_TL		0x00000001	/* Trace Logic */
 
+
+/*
+ * MIPS32r2 Config3 Register (CP0 Register 16, Select 4)
+ */
+#define CFG4_M		0x80000000	/* Config5 implemented */
+#define CFG4_FTLBWMASK	0x000000f0	/* FTLB Ways mask */
+#define CFG4_FTLBSMASK	0x0000000f	/* FTLB Sets mask */
 
 /*
  * Primary cache mode

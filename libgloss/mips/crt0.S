@@ -242,8 +242,7 @@ zerobss:
 	LA (a1, __ram_extent)			# storage for the extent of ram
 	jal	_get_ram_range
 
-	/* NOTE: a0[0] contains the amount of memory available, and
-	         not the last memory address. */
+	/* NOTE: a0[0] contains the last address+1 of memory. */
 	LA (a0, __ram_extent)
 	LD	t0,0(a0)			# the extent of ram
 	lw	$0,-4(t0)			# check for valid memory

@@ -35,15 +35,15 @@
 #include "excpt.h"
 #include "uhi_syscalls.h"
 
-int __get_startup_BEV (void);
-int __chain_uhi_excpt (struct gpctx *);
+int __get_startup_BEV (void) __attribute__((weak));
+int __chain_uhi_excpt (struct gpctx *) __attribute__((weak));
 int32_t __uhi_exception (struct gpctx *);
 
 /* Defined in .ld file */
 extern char __use_excpt_boot[];
 
 /* Handle syscall exception.  */
-static int
+int
 __excpt_uhi_sdbbp (struct gpctx *ctx)
 {
   register regtype arg1 asm ("$4") = ctx->a[0];
@@ -137,8 +137,11 @@ __exception_handle (struct gpctx *ctx, int exception)
 	     is 0 at startup.
 	 2 = Always use exception handler present in boot.   */
 
-      if (((long) __use_excpt_boot == 2) ||
-          (long) __use_excpt_boot == 1 && __get_startup_BEV () == 0)
+      if (((long) __use_excpt_boot == 2
+	   || ((long) __use_excpt_boot == 1
+	       && __get_startup_BEV
+	       && __get_startup_BEV () == 0))
+	  && __chain_uhi_excpt)
         /* This will not return.  */
         __chain_uhi_excpt (ctx);
       else

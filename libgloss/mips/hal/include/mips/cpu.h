@@ -30,14 +30,6 @@ extern "C" {
 #ifndef SR_IMASK
 #if __mips == 64
 #include <mips/m64c0.h>
-#elif _MIPS_ARCH_M14K || _MIPS_ARCH_M4K
-#include <mips/mipsm14k.h>
-#elif _MIPS_ARCH_24KC || _MIPS_ARCH_24KEC || _MIPS_ARCH_24KEF || _MIPS_ARCH_24KEF1_1 || _MIPS_ARCH_24KEF2_1 || _MIPS_ARCH_24KEFX || _MIPS_ARCH_24KEX || _MIPS_ARCH_24KF || _MIPS_ARCH_24KF1_1 || _MIPS_ARCH_24KF2_1 || _MIPS_ARCH_24KFX || _MIPS_ARCH_24KX
-#include <mips/mips24k.h>
-#elif _MIPS_ARCH_34KC || _MIPS_ARCH_34KF || _MIPS_ARCH_34KF1_1 || _MIPS_ARCH_34KF2_1 || _MIPS_ARCH_34KFX || _MIPS_ARCH_34KN || _MIPS_ARCH_34KX
-#include <mips/mips34k.h>
-#elif _MIPS_ARCH_74KC || _MIPS_ARCH_74KF || _MIPS_ARCH_74KF1_1 || _MIPS_ARCH_74K2_1 || _MIPS_ARCH_74K3_2 || _MIPS_ARCH_74KFX || _MIPS_ARCH_74KX
-    #include <mips/mips74k.h>
 #elif __mips == 32
 #include <mips/m32c0.h>
 #endif

@@ -86,3 +86,13 @@ mips_excpt_entry.o: $(srcdir)/mips_excpt_entry.S $(srcdir)/excpt.h
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_register.o: $(srcdir)/mips_excpt_register.S $(srcdir)/excpt.h
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+mips_excpt_boot.o: $(srcdir)/mips_excpt_boot.S $(srcdir)/excpt.h
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+mips_excpt_isr.o: $(srcdir)/mips_excpt_isr.S
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+reset.o: $(srcdir)/reset.S $(srcdir)/init_cp0_predef.S $(srcdir)/init_caches_predef.S
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+init_cp0.o: $(srcdir)/init_cp0.S
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+init_caches.o: $(srcdir)/init_caches.S
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<

@@ -16,7 +16,6 @@
  * cache.h: switchable cache support for MIPS kit
  */
 
-#define _BOOTCODE
 #include <mips/asm.h>
 #include <mips/regdef.h>
 #include <mips/prid.h>
