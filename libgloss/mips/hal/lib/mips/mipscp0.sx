@@ -27,6 +27,7 @@
 #include <mips/cpu.h>
 
 	.set	nomips16
+	.set	nomicromips
 
 /* unsigned _mips_xxc0 (unsigned reg, unsigned clear, unsigned set)
       cp0reg[REG] = (cp0reg[REG] & ~CLEAR) | SET
