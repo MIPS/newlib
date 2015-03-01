@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,27 +32,27 @@
 */
 
 /*
- * @Synopsis     int32_t pwrite (int32_t fd, const void *buf, int32_t count, int32_t offset);
+ * @Synopsis	 int32_t pwrite (int32_t fd, const void *buf, int32_t count, int32_t offset);
  *
- *               Parameters:
- *                 $4 - File handle
- *                 $5 - Buffer to write
- *                 $6 - Length of the buffer
- *                 $7 - Offset in file at which bytes to be written
+ *		 Parameters:
+ *		   fd - File handle
+ *		   buf - Buffer to write
+ *		   count - Length of the buffer
+ *		   offset - Offset in file at which bytes to be written
  *
- *               Return:
- *                 $2 - Number of bytes written
+ *		 Return:
+ *		   Number of bytes written
  *
- *               Arguments to syscall:
- *                 $25 - Operation code for pwrite
- *                 $4 - File handle
- *                 $5 - Buffer to write
- *                 $6 - Length of the buffer
- *                 $7 - Offset in file at which bytes to be written
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for pwrite
+ *		   $4 - File handle
+ *		   $5 - Buffer to write
+ *		   $6 - Length of the buffer
+ *		   $7 - Offset in file at which bytes to be written
  *
- *               Return from syscall:
- *                 $2 - Number of bytes written
- *                 $3 - errno
+ *		 Return from syscall:
+ *		   $2 - Number of bytes written
+ *		   $3 - errno
  *
  * @Description  Write to a file at a given offset
 */
@@ -61,7 +61,8 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t pwrite (int32_t fd, const void *buf, int32_t count, int32_t offset)
+int32_t
+pwrite (int32_t fd, const void *buf, int32_t count, int32_t offset)
 {
   register int32_t arg1 asm ("$4") = fd;
   register const void *arg2 asm ("$5") = buf;
@@ -71,19 +72,19 @@ int32_t pwrite (int32_t fd, const void *buf, int32_t count, int32_t offset)
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
-  __asm__ __volatile__(" # %0,%1 = pwrite(%2, %3, %4 %5) op=%6\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
-		       : "r" (arg3), "r" (arg4), "r" (op));
+  __asm__ __volatile__ (" # %0,%1 = pwrite(%2, %3, %4 %5) op=%6\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "=r" (new_errno), "+r" (arg1),
+			  "+r" (arg2)
+			: "r" (arg3), "r" (arg4), "r" (op));
 
   if (ret == -1)
     {
       /* Do a dance to set errno, errno is a function call that can
-         clobber $3.  */
+	 clobber $3.  */
       volatile uint32_t errno_tmp = new_errno;
       errno = errno_tmp;
     }
 
   return ret;
 }
-

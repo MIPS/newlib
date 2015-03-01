@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,25 +32,25 @@
 */
 
 /*
- * @Synopsis     int32_t open (const char *file_name, int32_t flags, int32_t mode)
+ * @Synopsis	 int32_t open (const char *file_name, int32_t flags, int32_t mode)
  *
- *               Parameters:
- *                 $4 - Name of the file
- *                 $5 - Read/Write etc. flags
- *                 $6 - Privileges
+ *		 Parameters:
+ *		   file_name - Name of the file
+ *		   flags - Read/Write etc. flags
+ *		   mode - Privileges
  *
- *               Return:
- *                 $2 - File handle
+ *		 Return:
+ *		   File handle
  *
- *               Arguments to syscall:
- *                 $25 - Operation code for open
- *                 $4 - Name of the file
- *                 $5 - Read/Write etc. flags
- *                 $6 - Privileges
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for open
+ *		   $4 - Name of the file
+ *		   $5 - Read/Write etc. flags
+ *		   $6 - Privileges
  *
- *               Return from syscall:
- *                 $2 - File handle
- *                 $3 - errno
+ *		 Return from syscall:
+ *		   $2 - File handle
+ *		   $3 - errno
  *
  * @Description  File open
 */
@@ -59,7 +59,8 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t open (const char *file_name, int32_t flags, int32_t mode)
+int32_t
+open (const char *file_name, int32_t flags, int32_t mode)
 {
   register const char * arg1 asm ("$4") = file_name;
   register int32_t arg2 asm ("$5") = flags;
@@ -68,19 +69,18 @@ int32_t open (const char *file_name, int32_t flags, int32_t mode)
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
-  __asm__ __volatile__(" # %0,%1 = open(%2, %3, %4) op=%5\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
-		       : "r" (arg3), "r" (op));
+  __asm__ __volatile__ (" # %0,%1 = open(%2, %3, %4) op=%5\n"
+		        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+		        : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+		        : "r" (arg3), "r" (op));
 
   if (ret == -1)
     {
       /* Do a dance to set errno, errno is a function call that can
-         clobber $3.  */
+	 clobber $3.  */
       volatile uint32_t errno_tmp = new_errno;
       errno = errno_tmp;
     }
 
   return ret;
 }
-

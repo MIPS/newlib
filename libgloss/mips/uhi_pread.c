@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,27 +32,27 @@
 */
 
 /*
- * @Synopsis     int32_t pread (int32_t fd, void *buf, int32_t count, int32_t offset);
+ * @Synopsis	 int32_t pread (int32_t fd, void *buf, int32_t count, int32_t offset);
  *
- *               Parameters:
- *                 $4 - File handle
- *                 $5 - Destination buffer
- *                 $6 - Max number of bytes to read
- *                 $7 - Offset in file from which bytes to be read
+ *		 Parameters:
+ *		   fd - File handle
+ *		   buf - Destination buffer
+ *		   count - Max number of bytes to read
+ *		   offset - Offset in file from which bytes to be read
  *
- *               Return:
- *                 $2 - Number of bytes read or -1 in case of error
+ *		 Return:
+ *		   Number of bytes read or -1 in case of error
  *
- *               Arguments to syscall:
- *                 $25 - Operation code for pread
- *                 $4 - File handle
- *                 $5 - Destination buffer
- *                 $6 - Max number of bytes to read
- *                 $7 - Offset in file from which bytes to be read
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for pread
+ *		   $4 - File handle
+ *		   $5 - Destination buffer
+ *		   $6 - Max number of bytes to read
+ *		   $7 - Offset in file from which bytes to be read
  *
- *               Return from syscall:
- *                 $2 - Number of bytes read or -1 in case of error
- *                 $3 - errno
+ *		 Return from syscall:
+ *		   $2 - Number of bytes read or -1 in case of error
+ *		   $3 - errno
  *
  * @Description  File read from a given offset
 */
@@ -61,7 +61,8 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t pread (int32_t fd, void *buf, int32_t count, int32_t offset)
+int32_t
+pread (int32_t fd, void *buf, int32_t count, int32_t offset)
 {
   register int32_t arg1 asm ("$4") = fd;
   register void *arg2 asm ("$5") = buf;
@@ -71,19 +72,19 @@ int32_t pread (int32_t fd, void *buf, int32_t count, int32_t offset)
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
-  __asm__ __volatile__(" # %0,%1 = pread(%2, %3, %4, %5) op=%6\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
-		       : "r" (arg3), "r" (arg4), "r" (op));
+  __asm__ __volatile__ (" # %0,%1 = pread(%2, %3, %4, %5) op=%6\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "=r" (new_errno), "+r" (arg1),
+			  "+r" (arg2)
+			: "r" (arg3), "r" (arg4), "r" (op));
 
   if (ret == -1)
     {
       /* Do a dance to set errno, errno is a function call that can
-         clobber $3.  */
+	 clobber $3.  */
       volatile uint32_t errno_tmp = new_errno;
       errno = errno_tmp;
     }
 
   return ret;
 }
-

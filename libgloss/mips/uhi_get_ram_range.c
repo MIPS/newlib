@@ -44,16 +44,16 @@ _get_ram_range (void **ram_base, void **ram_extent)
   if (__memory_size != NULL)
     {
       if (ram_base)
-        *ram_base = (void*)K0BASE;
+	*ram_base = (void*)K0BASE;
       *ram_extent = (void*)(K0BASE + (unsigned long)__memory_size);
       return;
     }
 
-  __asm__ __volatile__(" # %0,%1 = raminfo() op=%2\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "=r" (r_base), "=r" (r_extent)
-		       : "r" (op)
-		       : "$4", "$5");
+  __asm__ __volatile__ (" # %0,%1 = raminfo() op=%2\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "=r" (r_base), "=r" (r_extent)
+			: "r" (op)
+			: "$4", "$5");
 
   if (ram_base)
     *ram_base = r_base;

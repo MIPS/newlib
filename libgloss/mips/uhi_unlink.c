@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,21 @@
 */
 
 /*
- * @Synopsis     int32_t unlink (const char *file);
+ * @Synopsis	 int32_t unlink (const char *file);
  *
- *               Parameters:
- *                 $4 - Name of the file
+ *		 Parameters:
+ *		   file - Name of the file
  *
- *               Return:
- *                 $2 - 0 on success else -1
+ *		 Return:
+ *		   0 on success else -1
  *
- *               Arguments to syscall:
- *                 $25 - Operation code for unlink
- *                 $4 - Name of the file
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for unlink
+ *		   $4 - Name of the file
  *
- *               Return from syscall:
- *                 $2 - 0 on success else -1
- *                 $3 - errno
+ *		 Return from syscall:
+ *		   $2 - 0 on success else -1
+ *		   $3 - errno
  *
  * @Description  Unlink a file
 */
@@ -55,27 +55,27 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t unlink (const char *file)
+int32_t
+unlink (const char *file)
 {
   register const char *arg1 asm ("$4") = file;
   register int32_t op asm ("$25") = __MIPS_UHI_UNLINK;
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
-  __asm__ __volatile__(" # %0,%1 = unlink(%2) op=%3\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1)
-		       : "r" (op)
-		       : "$5");
+  __asm__ __volatile__ (" # %0,%1 = unlink(%2) op=%3\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "=r" (new_errno), "+r" (arg1)
+			: "r" (op)
+			: "$5");
 
   if (ret != 0)
     {
       /* Do a dance to set errno, errno is a function call that can
-         clobber $3.  */
+	 clobber $3.  */
       volatile uint32_t errno_tmp = new_errno;
       errno = errno_tmp;
     }
 
   return ret;
 }
-

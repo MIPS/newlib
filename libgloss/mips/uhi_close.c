@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,21 +32,21 @@
 */
 
 /*
- * @Synopsis     int32_t close (int32_t fd);
+ * @Synopsis	 int32_t close (int32_t fd);
  *
- *               Parameters:
- *                 $4 - File handle
+ *		 Parameters:
+ *		   fd - File handle
  *
- *               Return:
- *                 $2 - 0 on success else -1
+ *		 Return:
+ *		   0 on success else -1
  *
- *               Arguments to syscall:
- *                 $25 - Operation code for close
- *                 $4 - File handle
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for close
+ *		   $4 - File handle
  *
- *               Return from syscall:
- *                 $2 - 0 on success else -1
- *                 $3 - errno
+ *		 Return from syscall:
+ *		   $2 - 0 on success else -1
+ *		   $3 - errno
  *
  * @Description  File close
 */
@@ -55,18 +55,19 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t close (int32_t fd)
+int32_t
+close (int32_t fd)
 {
   register int32_t arg1 asm ("$4") = fd;
   register int32_t op asm ("$25") = __MIPS_UHI_CLOSE;
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
-  __asm__ __volatile__(" # %0,%1 = close(%2) op=%3\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1)
-		       : "r" (op)
-		       : "$5");
+  __asm__ __volatile__ (" # %0,%1 = close(%2) op=%3\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "=r" (new_errno), "+r" (arg1)
+			: "r" (op)
+			: "$5");
 
   if (ret != 0)
     {
@@ -78,4 +79,3 @@ int32_t close (int32_t fd)
 
   return ret;
 }
-
