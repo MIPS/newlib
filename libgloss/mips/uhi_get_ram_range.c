@@ -33,6 +33,7 @@
 #include "regs.S"
 
 extern char __attribute__((weak)) __memory_size[];
+extern char __attribute__((weak)) __memory_base[];
 
 void
 _get_ram_range (void **ram_base, void **ram_extent)
@@ -44,8 +45,9 @@ _get_ram_range (void **ram_base, void **ram_extent)
   if (__memory_size != NULL)
     {
       if (ram_base)
-	*ram_base = (void*)K0BASE;
-      *ram_extent = (void*)(K0BASE + (unsigned long)__memory_size);
+	*ram_base = (void*)(unsigned long)__memory_base;
+      *ram_extent = (void*)((unsigned long)__memory_base
+			    + (unsigned long)__memory_size);
       return;
     }
 

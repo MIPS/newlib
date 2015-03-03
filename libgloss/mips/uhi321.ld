@@ -25,8 +25,11 @@ EXTERN(__getargs)
  */
 PROVIDE (__stack = 0);
 
-/* Size of the memory returned by get_mem_info */
+/* Size of the memory returned by _get_ram_range */
 PROVIDE (__memory_size = 3M);
+
+/* Base of the memory returned by _get_ram_range */
+PROVIDE (__memory_base = 0x80000000);
 
 /* 
  * 0 = Do not use exception handler present in boot for UHI
