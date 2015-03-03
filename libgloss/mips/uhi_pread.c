@@ -32,16 +32,7 @@
 */
 
 /*
- * @Synopsis	 int32_t pread (int32_t fd, void *buf, int32_t count, int32_t offset);
- *
- *		 Parameters:
- *		   fd - File handle
- *		   buf - Destination buffer
- *		   count - Max number of bytes to read
- *		   offset - Offset in file from which bytes to be read
- *
- *		 Return:
- *		   Number of bytes read or -1 in case of error
+ * @Synopsis	 pread
  *
  *		 Arguments to syscall:
  *		   $25 - Operation code for pread
@@ -57,12 +48,13 @@
  * @Description  File read from a given offset
 */
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t
-pread (int32_t fd, void *buf, int32_t count, int32_t offset)
+ssize_t
+pread (int fd, void *buf, size_t count, off_t offset)
 {
   register int32_t arg1 asm ("$4") = fd;
   register void *arg2 asm ("$5") = buf;

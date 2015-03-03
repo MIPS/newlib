@@ -36,12 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mips/asm.h>
 
     .set nomips16
-    #undef gp
-    .set gp=32
     .set push
     .set nomicromips
 LEAF(__reset_vector)
-    la    a2, __cpu_init
+    lui	  a2, %hi(__cpu_init)
+    addiu a2, %lo(__cpu_init)
     mtc0  $0, C0_COUNT		  # Clear cp0 Count (Used to measure boot time.)
     jr    a2
     .space 32			  # Just to cope with a quirk of MIPS malta boards
@@ -71,7 +70,8 @@ init_resources:
     # Since the code is executing from KSEG0 It needs to do a jump to KSEG1 change K0
     # and jump back to KSEG0
 
-    la	  a2, __change_k0_cca
+    lui	  a2, %hi(__change_k0_cca)
+    addiu a2, a2, %lo(__change_k0_cca)
     li	  a1, 0xf
     ins	  a2, a1, 29, 1		      # changed to KSEG1 address by setting bit 29
     jalr  a2
@@ -81,7 +81,8 @@ init_resources:
 
     # Allow everything else to be initialized via a hook.
     .weak __boot_init_hook
-    la	  a2, __boot_init_hook
+    lui	  a2, %hi(__boot_init_hook)
+    addiu a2, a2, %lo(__boot_init_hook)
     beqz  a0, 1f
     jalr  a2
 1:
@@ -89,8 +90,10 @@ init_resources:
     jal  copy_c2_ram
 
     # Prepare for eret to _start
-    la      ra, $Lall_done		# If main returns then go to all_done:.
-    la      v0, _start			# Load the address of the _start entry piint
+    lui     ra, %hi($Lall_done)		# If main returns then go to all_done:.
+    addiu   ra, ra, %lo($Lall_done)
+    lui     v0, %hi(_start)		# Load the address of the _start entry piint
+    addiu   v0, v0, %lo(_start)
     mtc0    v0, C0_ERRPC		# Write ErrorEPC with the address of _start
     ehb					# Clear hazards (makes sure write to ErrorPC has completed)
     li	    a0, 0			# UHI compliant null argument setup
@@ -133,11 +136,14 @@ LEAF(copy_c2_ram)
     li      s1_all_ones, 0xffffffff
 
     # Copy code and read-only/initialized data from FLASH to (uncached) RAM.
-    la      a1_temp_addr, __flash_app_start
+    lui     a1_temp_addr, %hi(__flash_app_start)
+    addiu   a1_temp_addr, a1_temp_addr, %lo(__flash_app_start)
     ins     a1_temp_addr, s1_all_ones, 29, 1
-    la      a2_temp_dest, __app_start
+    lui     a2_temp_dest, %hi(__app_start)
+    addiu   a2_temp_dest, a2_temp_dest, %lo(__app_start)
     ins     a2_temp_dest, s1_all_ones, 29, 1
-    la      a3_temp_mark, _edata
+    lui     a3_temp_mark, %hi(_edata)
+    addiu   a3_temp_mark, a3_temp_mark, %lo(_edata)
     ins     a3_temp_mark, s1_all_ones, 29, 1
     beq     a2_temp_dest, a3_temp_mark, $Lcopy_c2_ram_done
 $Lnext_ram_word:

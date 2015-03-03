@@ -55,7 +55,7 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t
+int
 unlink (const char *file)
 {
   register const char *arg1 asm ("$4") = file;

@@ -32,15 +32,7 @@
 */
 
 /*
- * @Synopsis	 int32_t lseek (int32_t fd, int32_t offset, int32_t whence);
- *
- *		 Parameters:
- *		   $4 - File handle
- *		   $5 - Offset
- *		   $6 - Direction
- *
- *		 Return:
- *		   $2 - New offset
+ * @Synopsis	 lseek
  *
  *		 Arguments to syscall:
  *		   $25 - Operation code for seek
@@ -55,12 +47,13 @@
  * @Description  File seek
 */
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t
-lseek (int32_t fd, int32_t offset, int32_t whence)
+off_t
+lseek (int fd, off_t offset, int whence)
 {
   register int32_t arg1 asm ("$4") = fd;
   register int32_t arg2 asm ("$5") = offset;

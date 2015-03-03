@@ -32,13 +32,7 @@
 */
 
 /*
- * @Synopsis	 int32_t close (int32_t fd);
- *
- *		 Parameters:
- *		   fd - File handle
- *
- *		 Return:
- *		   0 on success else -1
+ * @Synopsis	 close
  *
  *		 Arguments to syscall:
  *		   $25 - Operation code for close
@@ -55,8 +49,8 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t
-close (int32_t fd)
+int
+close (int fd)
 {
   register int32_t arg1 asm ("$4") = fd;
   register int32_t op asm ("$25") = __MIPS_UHI_CLOSE;

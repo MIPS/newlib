@@ -32,16 +32,7 @@
 */
 
 /*
- * @Synopsis	 int32_t pwrite (int32_t fd, const void *buf, int32_t count, int32_t offset);
- *
- *		 Parameters:
- *		   fd - File handle
- *		   buf - Buffer to write
- *		   count - Length of the buffer
- *		   offset - Offset in file at which bytes to be written
- *
- *		 Return:
- *		   Number of bytes written
+ * @Synopsis	 pwrite
  *
  *		 Arguments to syscall:
  *		   $25 - Operation code for pwrite
@@ -57,12 +48,13 @@
  * @Description  Write to a file at a given offset
 */
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t
-pwrite (int32_t fd, const void *buf, int32_t count, int32_t offset)
+ssize_t
+pwrite (int fd, const void *buf, size_t count, off_t offset)
 {
   register int32_t arg1 asm ("$4") = fd;
   register const void *arg2 asm ("$5") = buf;

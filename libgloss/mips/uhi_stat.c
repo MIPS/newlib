@@ -32,14 +32,7 @@
 */
 
 /*
- * @Synopsis	 int32_t stat (const char *filename, struct stat *buf);
- *
- *		 Parameters:
- *		   filename - File name
- *		   buf - Pointer to dst buffer (struct stat *)
- *
- *		 Return:
- *		   $2 - 0 on success else -1
+ * @Synopsis	 stat
  *
  * @Description  File statistics
 */

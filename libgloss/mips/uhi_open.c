@@ -32,15 +32,7 @@
 */
 
 /*
- * @Synopsis	 int32_t open (const char *file_name, int32_t flags, int32_t mode)
- *
- *		 Parameters:
- *		   file_name - Name of the file
- *		   flags - Read/Write etc. flags
- *		   mode - Privileges
- *
- *		 Return:
- *		   File handle
+ * @Synopsis	 open
  *
  *		 Arguments to syscall:
  *		   $25 - Operation code for open
@@ -55,12 +47,13 @@
  * @Description  File open
 */
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t
-open (const char *file_name, int32_t flags, int32_t mode)
+int
+open (const char *file_name, int flags, mode_t mode)
 {
   register const char * arg1 asm ("$4") = file_name;
   register int32_t arg2 asm ("$5") = flags;

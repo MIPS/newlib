@@ -58,5 +58,5 @@ _get_ram_range (void **ram_base, void **ram_extent)
 
   if (ram_base)
     *ram_base = (void*)K0BASE;
-  *ram_extent = (void*)(K0BASE + mem.size);
+  *ram_extent = (void*)(long)(K0BASE + mem.size);
 }

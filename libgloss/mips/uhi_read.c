@@ -32,15 +32,7 @@
 */
 
 /*
- * @Synopsis	 int32_t read (int32_t fd, void *buffer, int32_t len);
- *
- *		 Parameters:
- *		   fd - File handle
- *		   buffer - Destination buffer
- *		   len - Max number of bytes to read
- *
- *		 Return:
- *		   Number of bytes read
+ * @Synopsis	 read
  *
  *		 Arguments to syscall:
  *		   $25 - Operation code for read
@@ -59,8 +51,8 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t
-read (int32_t fd, void *buffer, int32_t len)
+int
+read (int fd, void *buffer, size_t len)
 {
   register int32_t arg1 asm ("$4") = fd;
   register void *arg2 asm ("$5") = buffer;

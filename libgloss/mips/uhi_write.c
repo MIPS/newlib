@@ -32,15 +32,7 @@
 */
 
 /*
- * @Synopsis	 int32_t write (int32_t fd, void *buffer, int32_t count);
- *
- *		 Parameters:
- *		   fd - File handle
- *		   buffer - Buffer to write
- *		   count - Length of the buffer
- *
- *		 Return:
- *		   $2 - Number of bytes written
+ * @Synopsis	 write
  *
  *		 Arguments to syscall:
  *		   $25 - Operation code for write
@@ -59,11 +51,11 @@
 #include <errno.h>
 #include "uhi_syscalls.h"
 
-int32_t
-write (int32_t fd, void *buffer, int32_t count)
+int
+write (int fd, const void *buf, size_t count)
 {
   register int32_t arg1 asm ("$4") = fd;
-  register void *arg2 asm ("$5") = buffer;
+  register const void *arg2 asm ("$5") = buf;
   register int32_t arg3 asm ("$6") = count;
   register int32_t op asm ("$25") = __MIPS_UHI_WRITE;
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
