@@ -63,9 +63,9 @@ open (const char *file_name, int flags, mode_t mode)
   register int32_t new_errno asm ("$3") = 0;
 
   __asm__ __volatile__ (" # %0,%1 = open(%2, %3, %4) op=%5\n"
-		        SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-		        : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
-		        : "r" (arg3), "r" (op));
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
+			: "r" (arg3), "r" (op));
 
   if (ret == -1)
     {

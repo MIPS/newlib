@@ -71,7 +71,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // to 32 means there is no postamble to mop up remaining lines.
 // The maximum number of lines per iteration is the range of the CACHE
 // displacement divided by the line_size.  We cap this at 8 as a sensible
-// bound. 
+// bound.
 
 #if __mips_isa_rev < 6
 // MicroMIPS Release 3 has a 12-bit displacement for CACHE

@@ -188,7 +188,7 @@ WEND(__return_to_boot)
 #
 # FUNCTION:	int __chain_uhi_excpt (struct gpctx *ctx);
 #
-# DESCRIPTION: Call exception handler of the boot 
+# DESCRIPTION: Call exception handler of the boot
 #
 WLEAF(__chain_uhi_excpt)
 	.set	push

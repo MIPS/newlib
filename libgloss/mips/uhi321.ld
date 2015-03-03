@@ -31,7 +31,7 @@ PROVIDE (__memory_size = 3M);
 /* Base of the memory returned by _get_ram_range */
 PROVIDE (__memory_base = 0x80000000);
 
-/* 
+/*
  * 0 = Do not use exception handler present in boot for UHI
  * 1 = Use exception handler present in boot for UHI if BEV is 0 at startup
  * 2 = Always use exception handler present in boot for UHI
