@@ -114,7 +114,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if ILINE_ENC != 0
 LEAF(__init_icache)
     // Use KSEG0 base address
-    li	  CURRENT_ADDR, %hi(ICACHE_START)
+    lui	  CURRENT_ADDR, %hi(ICACHE_START)
     addiu CURRENT_ADDR, %lo(ICACHE_START)
     // Get the address of the last batch of lines
     lui	  END_ADDR, %hi(ICACHE_END)
@@ -153,7 +153,7 @@ END(__init_icache)
 #if DLINE_ENC != 0
 LEAF(__init_dcache)
     // Use KSEG0 base address
-    li	  CURRENT_ADDR, %hi(DCACHE_START)
+    lui	  CURRENT_ADDR, %hi(DCACHE_START)
     addiu CURRENT_ADDR, %lo(DCACHE_START)
     // Get the address of the last batch of lines
     lui	  END_ADDR, %hi(DCACHE_END)
