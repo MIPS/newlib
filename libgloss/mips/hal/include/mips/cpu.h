@@ -51,7 +51,6 @@ extern int	mips_tcache_size, mips_tcache_linesize, mips_tcache_ways;
 extern int	mips_scache_split, mips_scache_discontig;
 
 /* these are now the only standard interfaces to the caches */
-extern void	mips_init_cache (void);
 extern void	mips_size_cache (void);
 extern void	mips_flush_cache (void);
 extern void	mips_flush_dcache (void);
@@ -69,16 +68,9 @@ extern void	mips_lock_scache (vaddr_t, size_t);
 /*
  * Other common utilities for all CPUs
  */
-extern void	(mips_wbflush) (void);
+extern void	mips_wbflush (void);
 extern void	mips_cycle (unsigned);
-extern void	mips_init_tlb (void);
 extern int	mips_tlb_size (void);
-
-/* Functional interface to coprocessor 0 registers */
-/* XXX Only supports 32-bit registers. */
-/* _mips_xxc0 (reg, clear, set) */
-extern reg32_t _mips_xxc0 (unsigned int, reg32_t, reg32_t);
-/*extern reg64_t _mips_dxxc0 (unsigned int, reg32_t, reg32_t);*/
 
 /*
  * Coprocessor 0 register manipulation
@@ -261,20 +253,7 @@ do { \
 #define PREF_STORE_RETAINED	PREF_STORE
 #endif
 
-#if __GNUC__ >= 3
 #define mips_prefetch __builtin_prefetch
-#else
-/* Some compatibility with GCC 3.x __builtin_prefetch() */
-#define mips_prefetch(ADDR, RW, LOCALITY) \
-    _mips_pref((RW) \
-	       ? ((LOCALITY) == 0 ? PREF_STORE_STREAMED \
-		 : (LOCALITY) == 3 ? PREF_STORE_RETAINED \
-		 : PREF_STORE) \
-	      : ((LOCALITY) == 0 ? PREF_LOAD_STREAMED \
-		 : (LOCALITY) == 3 ? PREF_LOAD_RETAINED \
-		 : PREF_LOAD), \
-	      *(ADDR))
-#endif
 
 #ifdef PREF_WRITEBACK_INVAL
 /* MIPS specific "nudge" (push to memory) operation */
@@ -295,7 +274,6 @@ do { \
 
 /*
  * Default versions of get/put for any MIPS CPU.
- * Some CPUs may have defined special versions for on-chip ram, etc.
  */
 #ifndef mips_get_byte
 #define mips_get_byte(addr, errp)	(*(volatile unsigned char *)(addr))
@@ -318,16 +296,9 @@ do { \
 	: "+d" (__count)); 				\
     } while (0)
 
-
 /* default implementation of _mips_intdisable is a function */
-extern int (_mips_intdisable) (void);
-extern void (_mips_intrestore) (int s);
-
-#ifndef _mips_wait
-/* wait for an active interrupt, possibly at reduced power
-   on most (all?) CPUs the interrupts must be enabled */
-#define _mips_wait() (void)0
-#endif
+extern int _mips_intdisable (void);
+extern void _mips_intrestore (int s);
 
 #endif /* !ASSEMBLER */
 

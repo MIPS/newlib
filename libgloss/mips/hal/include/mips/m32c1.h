@@ -25,46 +25,12 @@ extern "C" {
 
 #ifndef __ASSEMBLER__
 
-#if __mips == 64 || __mipsfp64
-typedef unsigned long long _fpreg_t;
-#else
-typedef unsigned long _fpreg_t;
-#endif
-
-struct fpactx {
-    unsigned	sr;		/* floating-point status register */
-    unsigned	dummy;		
-    _fpreg_t	regs[32];	/* floating-point registers $f0-$f31 */
-#if __mips == 64 || __mipsfp64
-    _fpreg_t	acl;		/* MDMX accumulator (low 64 bits) */
-    _fpreg_t	acm;		/* MDMX accumulator (middle 64 bits) */
-    _fpreg_t	ach;		/* MDMX accumulator (high 64 bits) */
-#endif
-};
-
-#ifdef __STDC__
-int	 fpa_enable(int);	/* enable fpa, return 1 if present (always) */
 unsigned fpa_getrid(void);	/* get fpa revision id */
 unsigned fpa_getsr(void);	/* get fpa status register */
 void	 fpa_setsr(unsigned);
 unsigned fpa_xchsr(unsigned);
 unsigned fpa_bicsr(unsigned);
 unsigned fpa_bissr(unsigned);
-void	fpa_save(struct fpactx *);
-void	fpa_restore(const struct fpactx *);
-#else
-int	 fpa_enable();
-unsigned fpa_getrid();
-unsigned fpa_getsr();
-void	 fpa_setsr();
-unsigned fpa_xchsr();
-unsigned fpa_bicsr();
-unsigned fpa_bissr();
-void	fpa_save();
-void	fpa_restore();
-#endif /* __STDC__ */
-
-
 
 /* 
  * Define macros to accessing the Coprocessor 1 control registers.
@@ -188,20 +154,6 @@ __extension__({ \
 #define FPA_FIR_REV	0x000000ff	/* Revision */
 
 #ifdef __ASSEMBLER__
-
-	.struct 0
-FPACTX_SR:	.word	0
-FPACTX_DUMMY:	.word	0
-#if __mips == 64 || __mipsfp64
-FPACTX_REGS:	.dword	0:32
-FPACTX_ACL:	.dword	0
-FPACTX_ACM:	.dword	0
-FPACTX_ACH:	.dword	0
-#define FPACTX_RSIZE	8
-#else
-FPACTX_REGS:	.word	0:32
-#define FPACTX_RSIZE	4
-#endif
 
 	.previous
 

@@ -71,35 +71,6 @@ extern "C" {
     __swap32md_v; 							\
 })
 
-#elif defined(__OPTIMIZE_SIZE__) && !defined(_POSIX_SOURCE)
-
-#define MD_SWAP
-
-/* When optimizing for size, better to call a shared worker function,
-   unless the code is small enough or there's only one use of the
-   function, in which case it will be inlined. */
-
-#include <sys/cdefs.h>
-#include <sys/swap.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern __inline__ uint16_t __swap16md (uint16_t x)
-{
-    return __swap16gen(x);
-}
-
-extern __inline__ uint32_t __swap32md (uint32_t x)
-{
-    return __swap32gen(x);
-}
-
-#ifdef __cplusplus
-}
-#endif
-
 #endif
 #endif /* __ASSEMBLER__ */
 #endif	/* BYTE_ORDER */

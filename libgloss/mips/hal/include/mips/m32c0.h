@@ -543,12 +543,7 @@ typedef signed long		sreg_t;
 #define C0_ERRPC	30
 #define C0_DESAVE	31
 
-#define _mips_nop() \
-  __asm__ __volatile ("%(ssnop%)" : :) 
-
-
 # define _mips_sync() __asm__ __volatile__ ("sync" : : : "memory")
-
 
 /* wait for unmasked interrupt */
 #define _mips_wait() \
@@ -558,8 +553,6 @@ typedef signed long		sreg_t;
  * Define macros for accessing the MIPS32 coprocessor 0 registers.
  * Most apart from "set" return the original register value.
  */
-
-
 
 #define _m32c0_mfc0(reg, sel) \
 __extension__ ({ \
@@ -595,8 +588,6 @@ __extension__ ({ \
     _m32c0_mtc0 (reg, sel, val); \
     __o; \
 })
-
-
 
 /* generic equivalents for mips/cpu.h */
 #define _mips_mfc0(r)		_m32c0_mfc0(r,0)
@@ -701,7 +692,6 @@ __extension__ ({ \
 #include <mips/mips32.h>
 
 /* CP0 intrinsics */
-#if __mips_isa_rev >= 2 
 
 /* MIPS32r2 atomic interrupt disable */
 #define _mips_intdisable() __extension__({ \
@@ -716,8 +706,6 @@ __extension__ ({ \
 
 /* MIPS32r2 set SRSCtl.PSS (previous shadow set), returning old value */
 extern unsigned int _mips32r2_xchsrspss (unsigned int);
-
-
 
 /* MIPS32r2 write previous gpr */
 #define _mips32r2_wrpgpr(regno, val) \
@@ -736,8 +724,6 @@ __extension__({ \
  		      : "JK" (regno)); \
     __val; \
 })
-
-#endif /* __mips_isa_rev >= 2  */
 
 #endif /* __ASSEMBLER__ */
 

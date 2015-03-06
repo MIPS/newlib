@@ -32,7 +32,7 @@
 #define fa1	$f14
 #endif
 
-#if __mipsfp64
+#if __mips_fpr == 64
 
 /* 64-bit f.p. registers (-mips3 and above) */
 
