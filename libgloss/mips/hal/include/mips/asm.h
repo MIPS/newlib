@@ -173,29 +173,33 @@
 
 /* Global leaf function. */
 #define LEAF(name) 			\
-  	_TEXT_SECTION_NAMED(name);	\
-  	.globl	name; 			\
-  	.ent	name; 			\
+	_TEXT_SECTION_NAMED(name);	\
+	.balign	4; 			\
+	.globl	name; 			\
+	.ent	name; 			\
 name:
 
 /* Static/Local leaf function. */
 #define SLEAF(name) 			\
-  	_TEXT_SECTION_NAMED(name);	\
-  	.ent	name; 			\
+	_TEXT_SECTION_NAMED(name);	\
+	.balign	4; 			\
+	.ent	name; 			\
 name:
 
 /* Weak leaf function. */
 #define WLEAF(name) 			\
-  	_TEXT_SECTION_NAMED(name);	\
-  	.weakext name; 			\
-  	.ent	name; 			\
+	_TEXT_SECTION_NAMED(name);	\
+	.balign	4; 			\
+	.weakext name; 			\
+	.ent	name; 			\
 name:
 
 /* Weak alias leaf function. */
 #define ALEAF(name,alias) 		\
-  	_TEXT_SECTION_NAMED(name);	\
-  	.weakext alias,name; 		\
-  	.ent	name; 			\
+	_TEXT_SECTION_NAMED(name);	\
+	.balign	4; 			\
+	.weakext alias,name; 		\
+	.ent	name; 			\
 name:
 
 /*
@@ -204,14 +208,14 @@ name:
 
 /* Global alternative entrypoint. */
 #define AENT(name) 			\
-  	.globl	name; 			\
-  	.aent	name; 			\
+	.globl	name; 			\
+	.aent	name; 			\
 name:
 #define XLEAF(name)	AENT(name)
 
 /* Local/static alternative entrypoint. */
 #define SAENT(name) 			\
-  	.aent	name; 			\
+	.aent	name; 			\
 name:
 #define SXLEAF(name)	SAENT(name)
 
@@ -222,32 +226,36 @@ name:
 
 /* Global nested function. */
 #define NESTED(name, framesz, rareg)	\
-  	_TEXT_SECTION_NAMED(name);	\
-  	.globl	name; 			\
-  	.ent	name; 			\
+	_TEXT_SECTION_NAMED(name);	\
+	.balign	4; 			\
+	.globl	name; 			\
+	.ent	name; 			\
 	.frame	sp, framesz, rareg;	\
 name:
 
 /* Static/Local nested function. */
 #define SNESTED(name, framesz, rareg)	\
-  	_TEXT_SECTION_NAMED(name);	\
-  	.ent	name; 			\
+	_TEXT_SECTION_NAMED(name);	\
+	.balign	4; 			\
+	.ent	name; 			\
 	.frame	sp, framesz, rareg;	\
 name:
 
 /* Weak nested function. */
 #define WNESTED(name, framesz, rareg)	\
-  	_TEXT_SECTION_NAMED(name);	\
-  	.weakext name; 			\
-  	.ent	name; 			\
+	_TEXT_SECTION_NAMED(name);	\
+	.balign	4; 			\
+	.weakext name; 			\
+	.ent	name; 			\
 	.frame	sp, framesz, rareg;	\
 name:
 
 /* Weak alias nested function. */
 #define ANESTED(name, alias, framesz, rareg) \
-  	_TEXT_SECTION_NAMED(name);	\
-    	.weakext alias, name;		\
-  	.ent	name; 			\
+	_TEXT_SECTION_NAMED(name);	\
+	.balign	4; 			\
+	.weakext alias, name;		\
+	.ent	name; 			\
 	.frame	sp, framesz, rareg;	\
 name:
 
@@ -255,8 +263,8 @@ name:
  * Function termination
  */
 #define END(name) 			\
-  	.size name,.-name; 		\
-  	.end	name;			\
+	.size name,.-name; 		\
+	.end	name;			\
 	.popsection
 
 #define SEND(name)	END(name)
@@ -267,26 +275,26 @@ name:
  * Global data declaration.
  */
 #define EXPORT(name) \
-  	.globl name; \
-  	.type name,@object; \
+	.globl name; \
+	.type name,@object; \
 name:
 
 /*
  * Global data declaration with size.
  */
 #define EXPORTS(name,sz) 		\
-  	.globl name; 			\
-  	.type name,@object; 		\
-  	.size name,sz; 			\
+	.globl name; 			\
+	.type name,@object; 		\
+	.size name,sz; 			\
 name:
 
 /*
  * Weak data declaration with size.
  */
 #define WEXPORT(name,sz) 		\
-  	.weakext name; 			\
-  	.type name,@object; 		\
-  	.size name,sz; 			\
+	.weakext name; 			\
+	.type name,@object; 		\
+	.size name,sz; 			\
 name:
 
 /*
@@ -299,14 +307,14 @@ name:
  * Global zeroed data.
  */
 #define BSS(name,size) 			\
-  	.type name,@object; 		\
+	.type name,@object; 		\
 	.comm	name,size
 
 /*
  * Local zeroed data.
  */
 #define LBSS(name,size) 		\
-  	.lcomm	name,size
+	.lcomm	name,size
 
 /*
  * Insert call to _mcount if profiling.
@@ -317,7 +325,7 @@ name:
 	.set noat; 			\
 	move	$1,$31; 		\
 	jal	_mcount; 		\
-  	.set pop
+	.set pop
 #else
 #define _MCOUNT
 #endif

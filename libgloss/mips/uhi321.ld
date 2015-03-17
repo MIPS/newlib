@@ -44,6 +44,10 @@ EXTERN (__register_excpt_boot);
 ASSERT (DEFINED(__register_excpt_boot) || __use_excpt_boot == 0,
 	"Registration for boot context is required for UHI chaining")
 
+/* Control if subnormal floating-point values are flushed to zero in
+   hardware.  This applies to both FPU and MSA operations.  */
+PROVIDE (__flush_to_zero = 1);
+
 /*
  * Initalize some symbols to be zero so we can reference them in the
  * crt0 without core dumping. These functions are all optional, but

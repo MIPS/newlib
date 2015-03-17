@@ -297,8 +297,6 @@ do { \
     } while (0)
 
 /* default implementation of _mips_intdisable is a function */
-extern int _mips_intdisable (void);
-extern void _mips_intrestore (int s);
 
 #endif /* !ASSEMBLER */
 

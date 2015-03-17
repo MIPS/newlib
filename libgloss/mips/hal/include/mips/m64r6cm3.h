@@ -35,22 +35,6 @@ extern "C" {
 #define GCR_TAG_STATE		0x608
 #define GCR_TAG_DATA		0x610
 
-#ifndef __ASSEMBLER__
-void m64r6_size_cache (void);
-void m64r6_init_cache (void);
-void m64r6_flush_cache (void);
-void m64r6_flush_dcache (void);
-void m64r6_flush_icache (void);
-void m64r6_sync_icache (vaddr_t va, unsigned int size);
-void m64r6_clean_cache (vaddr_t va, unsigned int size);
-void m64r6_clean_icache (vaddr_t va, unsigned int size);
-void m64r6_clean_dcache (vaddr_t va, unsigned int size);
-void m64r6_clean_dcache_nowrite (vaddr_t va, unsigned int size);
-void m64r6_lock_dcache (vaddr_t va, unsigned int size);
-void m64r6_lock_icache (vaddr_t va, unsigned int size);
-void m64r6_lock_scache (vaddr_t va, unsigned int size);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

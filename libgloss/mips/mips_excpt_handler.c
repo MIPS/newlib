@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <mips/cpu.h>
+#include <mips/fpa.h>
 #include "excpt.h"
 #include "uhi_syscalls.h"
 
@@ -41,6 +42,7 @@ int32_t __uhi_exception (struct gpctx *);
 
 /* Defined in .ld file */
 extern char __use_excpt_boot[];
+extern char __attribute__((weak)) __flush_to_zero[];
 
 /* Handle syscall exception.  */
 int
@@ -166,6 +168,19 @@ __exception_handle (struct gpctx *ctx, int exception)
       WRITE ("MSA Floating point error\n");
       break;
     case EXC_FPE:
+      /* Turn on flush to zero the first time we hit an unimplemented
+         operation.  If we hit it again then stop.  */
+      WRITE ("Floating point error\n");
+      if (__flush_to_zero
+	  && (fpa_getsr () & FPA_CSR_UNI_X)
+	  && (fpa_getsr () & FPA_CSR_FS) == 0)
+	{
+	  fpa_bissr (FPA_CSR_FS);
+
+	  if (msaen)
+	    msacr(fs)
+	  return;
+	}
       WRITE ("Floating point error\n");
       break;
     case EXC_IS1:

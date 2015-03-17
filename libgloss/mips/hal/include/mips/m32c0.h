@@ -194,106 +194,261 @@ extern "C" {
  * MIPS32 Config0 Register  (CP0 Register 16, Select 0)
  */
 #define CFG0_M		0x80000000	/* Config1 implemented */
+#define CFG0_MSHIFT	31
+#define CFG0_K23MASK	0x70000000	/* Fixed MMU kseg2/3 CCA */
+#define CFG0_K23SHIFT	28
+#define CFG0_KUMASK	0x0e000000	/* Fixed MMU kuseg CCA */
+#define CFG0_KUSHIFT	25
 #define CFG0_BE		0x00008000	/* Big Endian */
+#define CFG0_BESHIFT	15
 #define CFG0_ATMASK	0x00006000	/* Architecture type: */
-#define  CFG0_AT_M32	 (0<<13)	 /* MIPS32 */
-#define  CFG0_AT_M64_A32 (1<<13)	 /* MIPS64, 32-bit addresses */
-#define  CFG0_AT_M64_A64 (2<<13)	 /* MIPS64, 64-bit addresses */
-#define  CFG0_AT_RES	 (3<<13)
+#define CFG0_ATSHIFT	13
+#define CFG0_ATBITS	2
+#define  CFG0_AT_M32	 (0 << CFG0_ATSHIFT) /* MIPS32 */
+#define  CFG0_AT_M64_A32 (1 << CFG0_ATSHIFT) /* MIPS64, 32-bit addresses */
+#define  CFG0_AT_M64_A64 (2 << CFG0_ATSHIFT) /* MIPS64, 64-bit addresses */
+#define  CFG0_AT_RES	 (3 << CFG0_ATSHIFT)
 #define CFG0_ARMASK	0x00001c00
 #define CFG0_ARSHIFT	10
-#define CFG0_MTMASK	0x00000380
+#define CFG0_ARBITS	3
+#define  CFG0_AR_R1	 (0 << CFG0_ARSHIFT) /* Release 1 */
+#define  CFG0_AR_R2	 (1 << CFG0_ARSHIFT) /* Release 2,3,5 */
+#define  CFG0_AR_R6	 (2 << CFG0_ARSHIFT) /* Release 6 */
+#define CFG0_MTMASK	0x00000380	/* MMU Type: */
 #define CFG0_MTSHIFT	7
-#define CFG0_MTBITS	0x7
-#define  CFG0_MT_NONE	 (0<<7)
-#define  CFG0_MT_TLB	 (1<<7)
-#define  CFG0_MT_BAT	 (2<<7)
-#define  CFG0_MT_FIXED	 (3<<7)
-#define  CFG0_MT_DUAL	 (4<<7)
+#define CFG0_MTBITS	3
+#define  CFG0_MT_NONE	 (0 << CFG0_MTSHIFT) /* No MMU */
+#define  CFG0_MT_TLB	 (1 << CFG0_MTSHIFT) /* Standard TLB */
+#define  CFG0_MT_BAT	 (2 << CFG0_MTSHIFT) /* BAT */
+#define  CFG0_MT_FIXED	 (3 << CFG0_MTSHIFT) /* Fixed mapping */
+#define  CFG0_MT_DUAL	 (4 << CFG0_MTSHIFT) /* Dual VTLB and FTLB */
 #define CFG0_VI		0x00000008	/* Icache is virtual */
+#define CFG0_VISHIFT	3
 #define CFG0_K0MASK	0x00000007	/* KSEG0 coherency algorithm */
-
-/*
- * R4000 compatibility Config Register (actually processor dependent)
- */
-#define CFG_BE		CFG0_BE		/* Big Endian */
-#define CFG_K0MASK	CFG0_K0MASK	/* KSEG0 coherency algorithm */
+#define CFG0_K0SHIFT	0
 
 /*
  * MIPS32 Config1 Register (CP0 Register 16, Select 1)
  */
 #define CFG1_M		0x80000000	/* Config2 implemented */
+#define CFG1_MSHIFT	31
 #define CFG1_MMUSMASK	0x7e000000	/* mmu size - 1 */
 #define CFG1_MMUSSHIFT	25
 #define CFG1_MMUSBITS	6
 #define CFG1_ISMASK	0x01c00000	/* icache lines 64<<n */
 #define CFG1_ISSHIFT	22
+#define CFG1_ISBITS	3
 #define CFG1_ILMASK	0x00380000	/* icache line size 2<<n */
 #define CFG1_ILSHIFT	19
+#define CFG1_ILBITS	3
 #define CFG1_IAMASK	0x00070000	/* icache ways - 1 */
 #define CFG1_IASHIFT	16
+#define CFG1_IABITS	3
 #define CFG1_DSMASK	0x0000e000	/* dcache lines 64<<n */
 #define CFG1_DSSHIFT	13
+#define CFG1_DSBITS	3
 #define CFG1_DLMASK	0x00001c00	/* dcache line size 2<<n */
 #define CFG1_DLSHIFT	10
+#define CFG1_DLBITS	3
 #define CFG1_DAMASK	0x00000380	/* dcache ways - 1 */
 #define CFG1_DASHIFT	7
+#define CFG1_DABITS	3
 #define CFG1_C2		0x00000040	/* Coprocessor 2 present */
+#define CFG1_C2SHIFT	6
 #define CFG1_MD		0x00000020	/* MDMX implemented */
+#define CFG1_MDSHIFT	5
 #define CFG1_PC		0x00000010	/* performance counters implemented */
+#define CFG1_PCSHIFT	4
 #define CFG1_WR		0x00000008	/* watch registers implemented */
+#define CFG1_WRSHIFT	3
 #define CFG1_CA		0x00000004	/* compression (mips16) implemented */
+#define CFG1_CASHIFT	2
 #define CFG1_EP		0x00000002	/* ejtag implemented */
+#define CFG1_EPSHIFT	1
 #define CFG1_FP		0x00000001	/* fpu implemented */
+#define CFG1_FPSHIFT	0
 
 
 /*
  * MIPS32r2 Config2 Register (CP0 Register 16, Select 2)
  */
 #define CFG2_M		0x80000000	/* Config3 implemented */
+#define CFG1_MSHIFT	31
 #define CFG2_TUMASK	0x70000000	/* tertiary cache control */
 #define CFG2_TUSHIFT	28
+#define CFG2_TUBITS	3
 #define CFG2_TSMASK	0x0f000000	/* tcache sets per wway 64<<n */
 #define CFG2_TSSHIFT	24
+#define CFG2_TSBITS	4
 #define CFG2_TLMASK	0x00f00000	/* tcache line size 2<<n */
 #define CFG2_TLSHIFT	20
+#define CFG2_TLBITS	4
 #define CFG2_TAMASK	0x000f0000	/* tcache ways - 1 */
 #define CFG2_TASHIFT	16
+#define CFG2_TABITS	4
 #define CFG2_SUMASK	0x0000f000	/* secondary cache control */
 #define CFG2_SUSHIFT	12
+#define CFG2_SUBITS	4
 #define CFG2_SSMASK	0x00000f00	/* scache sets per wway 64<<n */
 #define CFG2_SSSHIFT	8
+#define CFG2_SSBITS	4
 #define CFG2_SLMASK	0x000000f0	/* scache line size 2<<n */
 #define CFG2_SLSHIFT	4
+#define CFG2_SLBITS	4
 #define CFG2_SAMASK	0x0000000f	/* scache ways - 1 */
 #define CFG2_SASHIFT	0
+#define CFG2_SABITS	4
 
 /*
  * MIPS32r2 Config3 Register (CP0 Register 16, Select 3)
  */
 #define CFG3_M		0x80000000	/* Config4 implemented */
-#define CFG3_BP_BIT	27		/* BadInstrP implemented */
-#define CFG3_BI_BIT	26		/* BadInstr implemented */
+#define CFG3_MSHIFT	31
+#define CFG3_BPG	0x40000000	/* Big pages implemented */
+#define CFG3_BPGSHIFT	30
+#define CFG3_CMGCR	0x20000000	/* Coherency manager implemented */
+#define CFG3_CMGCRSHIFT	29
+#define CFG3_MSAP	0x10000000	/* MSA implemented */
+#define CFG3_MSAPSHIFT	28
+#define CFG3_BP		0x08000000	/* BadInstrP implemented */
+#define CFG3_BPSHIFT	27
+#define CFG3_BI		0x04000000	/* BadInstr implemented */
+#define CFG3_BISHIFT	26
+#define CFG3_SC		0x02000000	/* Segment control implemented */
+#define CFG3_SCSHIFT	25
+#define CFG3_PW		0x01000000	/* HW page table walk implemented */
+#define CFG3_PWSHIFT	24
+#define CFG3_VZ		0x00800000	/* Virtualization module implemented */
+#define CFG3_VZSHIFT	23
+#define CFG3_IPLWMASK	0x00600000	/* IPL field width */
+#define CFG3_IPLWSHIFT	21
+#define CFG3_IPLWBITS	2
+#define  CFG3_IPLW_6BIT	(0 << CFG3_IPLWSHIFT) /* IPL/RIPL are 6-bits wide */
+#define  CFG3_IPLW_8BIT	(1 << CFG3_IPLWSHIFT) /* IPL/RIPL are 8-bits wide */
+#define CFG3_MMARMASK	0x001c0000	/* MicroMIPS64 architecture revision */
+#define CFG3_MMARSHIFT	18
+#define CFG3_MMARBITS	3
+#define  CFG3_MMAR_R3	(0 << CFG3_MMARSHIFT) /* MicroMIPS64 Release 3 */
+#define CFG3_MCU	0x00020000	/* MCU ASE is implemented */
+#define CFG3_MCUSHIFT	17
+#define CFG3_ISAONEXC	0x00010000	/* MicroMIPS exception entry points */
+#define CFG3_ISAONEXCSHIFT 16
+#define CFG3_ISAMASK	0x0000c000	/* ISA availability */
+#define CFG3_ISASHIFT	14
+#define CFG3_ISABITS	2
+#define  CFG3_ISA_MIPS	(0 << CFG3_ISASHIFT)  /* MIPS only */
+#define  CFG3_ISA_UMIPS (1 << CFG3_ISASHIFT)  /* MicroMIPS only */
+#define  CFG3_ISA_BOTH	(2 << CFG3_ISASHIFT)  /* MIPS (boot) and MicroMIPS */
+#define  CFG3_ISA_UBOTH	(3 << CFG3_ISASHIFT)  /* MIPS and MicroMIPS (boot) */
+#define CFG3_ULRI	0x00002000	/* UserLocal register is available */
+#define CFG3_ULRISHIFT	13
+#define CFG3_RXI	0x00001000	/* RIE and XIE exist in pagegrain */
+#define CFG3_RXISHIFT	12
+#define CFG3_DSP2P	0x00000800	/* DSPR2 ASE present */
+#define CFG3_DSP2PSHIFT	11
 #define CFG3_DSPP	0x00000400	/* DSP ASE present */
+#define CFG3_DSPPSHIFT	10
+#define CFG3_CTXTC	0x00000200	/* Context Config regs are present */
+#define CFG3_CTXTCSHIFT	9
+#define CFG3_ITL	0x00000100	/* IFlowtrace mechanism implemented */
+#define CFG3_ITLSHIFT	8
 #define CFG3_LPA	0x00000080	/* Large physical addresses */
+#define CFG3_LPASHIFT	7
 #define CFG3_VEIC	0x00000040	/* Vectored external i/u controller */
+#define CFG3_VEICSHIFT	6
 #define CFG3_VI		0x00000020	/* Vectored i/us */
+#define CFG3_VISHIFT	5
 #define CFG3_SP		0x00000010	/* Small page support */
+#define CFG3_SPSHIFT	4
+#define CFG3_CDMM	0x00000008	/* Common Device Memory Map support */
+#define CFG3_CDMMSHIFT	3
 #define CFG3_MT		0x00000004	/* MT ASE present */
+#define CFG3_MTSHIFT	2
 #define CFG3_SM		0x00000002	/* SmartMIPS ASE */
+#define CFG3_SMSHIFT	1
 #define CFG3_TL		0x00000001	/* Trace Logic */
-
+#define CFG3_TLSHIFT	0
 
 /*
- * MIPS32r2 Config3 Register (CP0 Register 16, Select 4)
+ * MIPS32r2 Config4 Register (CP0 Register 16, Select 4)
  */
 #define CFG4_M		0x80000000	/* Config5 implemented */
-#define CFG4_FTLBWMASK	0x000000f0	/* FTLB Ways mask */
-#define CFG4_FTLBSMASK	0x0000000f	/* FTLB Sets mask */
+#define CFG4_MSHIFT	31
+#define CFG4_IEMASK	0x60000000	/* TLB invalidate insn support */
+#define CFG4_IESHIFT	29
+#define CFG4_IEBITS	2
+#define  CFG4_IE_NONE	(0 << CFG4_IESHIFT) /* TLB invalidate not available */
+#define  CFG4_IE_INV	(2 << CFG4_IESHIFT) /* TLB invalidate per entry */
+#define  CFG4_IE_INVALL	(3 << CFG4_IESHIFT) /* TLB invalidate entire MMU */
+#define CFG4_AE		0x10000000	/* EntryHI.ASID is 10-bits */
+#define CFG4_AESHIFT	28
+#define CFG4_VTLBSEXTMASK   0x0f000000	/* VTLB size extension field */
+#define CFG4_VTLBSEXTSHIFT  24
+#define CFG4_VTLBSEXTBITS   4
+#define CFG4_KSCREXISTMASK  0x00ff0000	/* Indicates presence of KScratch */
+#define CFG4_KSCREXISTSHIFT 16
+#define CFG4_KSCREXISTBITS  8
+#define CFG4_MMUEXTDEF	    0x0000c000	/* MMU Extension definition */
+#define CFG4_MMUEXTDEFSHIFT 14
+#define CFG4_MMUEXTDEFBITS  2
+#define CFG4_MMUEXT_SIZEEXT (1 << CFG4_MMUEXTDEFSHIFT) /* MMUSizeExt */
+#define CFG4_MMUEXT_FTLB    (2 << CFG4_MMUEXTDEFSHIFT) /* FTLB fields */
+#define CFG4_MMUEXT_FTLBVEXT (3 << CFG4_MMUEXTDEFSHIFT) /* FTLB and Vext */
+#define CFG4_FTLBPSMASK	    0x00001f00	/* FTLB Page Size */
+#define CFG4_FTLBPSSHIFT    8
+#define CFG4_FTLBPSBITS	    5
+#define CFG4_FTLBWMASK	    0x000000f0	/* FTLB Ways mask */
+#define CFG4_FTLBWSHIFT	    4
+#define CFG4_FTLBWBITS	    4
+#define CFG4_FTLBSMASK	    0x0000000f	/* FTLB Sets mask */
+#define CFG4_FTLBSSHIFT	    0
+#define CFG4_FTLBSBITS	    4
+#define CFG4_MMUSEMASK	    0x000000ff	/* MMU size extension */
+#define CFG4_MMUSESHIFT	    0
+#define CFG4_MMUSEBITS	    8
+
+/*
+ * MIPS32r2 Config5 Register (CP0 Register 16, Select 5)
+ */
+#define CFG5_M		0x80000000	/* Undefined extension */
+#define CFG5_MSHIFT	31
+#define CFG5_K		0x40000000	/* Disable CCA control */
+#define CFG5_KSHIFT	30
+#define CFG5_CV		0x20000000	/* Disable CacheException in KSEG1 */
+#define CFG5_CVSHIFT	29
+#define CFG5_EVA	0x10000000	/* EVA is implemented */
+#define CFG5_EVASHIFT	28
+#define CFG5_MSAEN	0x08000000	/* Enable MSA ASE */
+#define CFG5_MSAENSHIFT	27
+#define CFG5_CES	0x00001000	/* Current endian state */
+#define CFG5_CESSHIFT	12
+#define CFG5_DEC	0x00000800	/* Dual endian control */
+#define CFG5_DECSHIFT	11
+#define CFG5_L2C	0x00000400	/* Config 2 is memory mapped */
+#define CFG5_L2CSHIFT	10
+#define CFG5_UFE	0x00000200	/* Usermode FRE control */
+#define CFG5_LUFESHIFT	9
+#define CFG5_FRE	0x00000100	/* Emulation support for FR=0 */
+#define CFG5_FRESHIFT	8
+#define CFG5_VP		0x00000080	/* Multiple virtual processors */
+#define CFG5_VPSHIFT	7
+#define CFG5_SBRI	0x00000040	/* Force RI on SDBBP */
+#define CFG5_SBRISHIFT	6
+#define CFG5_MVH	0x00000020	/* XPA instruction support */
+#define CFG5_MVHSHIFT	5
+#define CFG5_LLB	0x00000010	/* Load-Linked Bit present */
+#define CFG5_LLBSHIFT	4
+#define CFG5_MRP	0x00000008	/* MAAR and MAARI are present */
+#define CFG5_MRPSHIFT	3
+#define CFG5_UFR	0x00000004	/* Usermode FR control */
+#define CFG5_UFRSHIFT	2
+#define CFG5_NF		0x00000001	/* Nested fault support */
+#define BFG5_NFSHIFT	0
 
 /*
  * Primary cache mode
  */
+#define CFG_CBITS		3
 #define CFG_C_UNCACHED		2
 #define CFG_C_WBACK		3
 #define CFG_C_NONCOHERENT	3
@@ -383,7 +538,7 @@ extern "C" {
 #define PERFCNT_EXL		0x00000001
 
 /* MIPS32r2 PageGrain  Register (CP0 Register 5, Select 1) */
-#define PAGEGRAIN_ELPA	0x20000000	/* Enable large phusical addresses */
+#define PAGEGRAIN_ELPA	0x20000000	/* Enable large physical addresses */
 #define PAGEGRAIN_ESP	0x10000000	/* Enable small (1KB) page support */
 
 /* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */
