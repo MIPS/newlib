@@ -1,6 +1,8 @@
-/* The following TEXT start address leaves space for the monitor
-   workspace.  This linker script links ISA32r2 programs for use with
-   the simulator.  */
+/*
+ * A platform and target independent link script to produce UHI
+ * compliant binaries with varying levels of system initialization
+ * support.
+ */
 
 ENTRY(_start)
 OUTPUT_FORMAT("elf32-tradlittlemips", "elf32-tradbigmips", "elf32-tradlittlemips")
@@ -8,7 +10,13 @@ GROUP(-lc -luhi -lgcc -lhal)
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 STARTUP(crt0.o)
+/* Force the exception handler to be registered */
+EXTERN(__register_excpt_handler)
+/* Force the exception handler to be included in the link */
 EXTERN(__exception_entry)
+/* Force the interrupt handlers to tbe included in the link */
+EXTERN(__isr_vec)
+/* Require the UHI getargs support */
 EXTERN(__getargs)
 
 /*
@@ -16,17 +24,29 @@ EXTERN(__getargs)
  * grows down
  */
 PROVIDE (__stack = 0);
-/* PROVIDE (__global = 0); */
 
-/* Size of the memory returned by get_mem_info */
+/* Size of the memory returned by _get_ram_range */
 PROVIDE (__memory_size = 3M);
 
-/* 
- * 0 = Do not use exception handler present in boot
- * 1 = Use exception handler present in boot if BEV is 0 at startup
- * 2 = Always use exception handler present in boot
+/* Base of the memory returned by _get_ram_range */
+PROVIDE (__memory_base = 0x80000000);
+
+/*
+ * 0 = Do not use exception handler present in boot for UHI
+ * 1 = Use exception handler present in boot for UHI if BEV is 0 at startup
+ * 2 = Always use exception handler present in boot for UHI
 */
 PROVIDE (__use_excpt_boot = 1);
+/* Include the code to be able to return to boot context.  This is necessary
+   if __use_excpt_boot != 0. */
+EXTERN (__register_excpt_boot);
+
+ASSERT (DEFINED(__register_excpt_boot) || __use_excpt_boot == 0,
+	"Registration for boot context is required for UHI chaining")
+
+/* Control if subnormal floating-point values are flushed to zero in
+   hardware.  This applies to both FPU and MSA operations.  */
+PROVIDE (__flush_to_zero = 1);
 
 /*
  * Initalize some symbols to be zero so we can reference them in the
@@ -41,46 +61,51 @@ PROVIDE (hardware_hazard_hook = 0);
 PROVIDE (hardware_init_hook = 0);
 PROVIDE (software_init_hook = 0);
 
+/* The default base address for application code is 0x80200000 which
+   leaves 2M of space at the start of KSEG0 for a bootloader. */
+PROVIDE (__app_start = 0x80200000);
+/* Set default vector spacing to 32 bytes. */
+PROVIDE (__isr_vec_space = 32);
+/* Leave space for 9 vector entries by default. 8 entry points and one
+   fallback handler. */
+PROVIDE (__isr_vec_count = 9);
+/* Optional configuration for including boot code and a ROM. */
+PROVIDE (__flash_start = __app_start);
+
 SECTIONS
 {
-  . = 0x80200000;
-  __excpt_ebase = .;
-  __excpt_vec_space = 0x20;
-  .mips_exception : {
+  /* Start of bootrom */
+  .bootrom 0x9fc00000 : /* Runs uncached (from 0x9fc00000) until I$ is
+			   initialized. */
+  AT (__flash_start)
+  {
+    *(.reset)		/* Reset entry point. */
+    *(.boot)		/* Boot code. */
+    . = ALIGN(8);
+  } = 0
+
+  PROVIDE (__flash_app_start = SIZEOF(.bootrom) + __flash_start);
+
+  /* Start of the application */
+  .exception_vector ALIGN(__app_start, 0x1000) :
+  AT (__flash_app_start)
+  {
+    __excpt_ebase = ABSOLUTE(.);
+    __base = .;
     KEEP(* (.text.__exception_entry))
-  }
-  . = __excpt_ebase + 0x200;
-  .mips_isr_sw0 : {
-    KEEP(* (.text.__isr_sw0))
-  }
-  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 1);
-  .mips_isr_sw1 : {
-    KEEP(* (.text.__isr_sw1))
-  }
-  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 2);
-  .mips_isr_hw0 : {
-    KEEP(* (.text.__isr_hw0))
-  }
-  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 3);
-  .mips_isr_hw1 : {
-    KEEP(* (.text.__isr_hw1))
-  }
-  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 4);
-  .mips_isr_hw2 : {
-    KEEP(* (.text.__isr_hw2))
-  }
-  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 5);
-  .mips_isr_hw3 : {
-    KEEP(* (.text.__isr_hw3))
-  }
-  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 6);
-  .mips_isr_hw4 : {
-    KEEP(* (.text.__isr_hw4))
-  }
-  . = __excpt_ebase + 0x200 + (__excpt_vec_space * 7);
-  .mips_isr_hw5 : {
-    KEEP(* (.text.__isr_hw5))
-  }
+    . = __base + 0x200;
+    KEEP(* (SORT(.text.__isr_vec*)))
+    /* Leave space for all the vector entries */
+    . = __base + 0x200 + (__isr_vec_space * __isr_vec_count);
+    ASSERT(__isr_vec_space == (DEFINED(__isr_vec_sw0)
+			       ? __isr_vec_sw1 - __isr_vec_sw0
+			       : __isr_vec_space),
+	   "Actual ISR vector spacing does not match __isr_vec_space");
+    ASSERT(__base + 0x200 == (DEFINED(__isr_vec_sw0)
+			      ? __isr_vec_sw0 : __base + 0x200),
+	   "__isr_vec_sw0 is not placed at EBASE + 0x200");
+    . = ALIGN(8);
+  } = 0
 
   .text : {
      _ftext = . ;
