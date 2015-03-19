@@ -35,16 +35,18 @@
 	.globl	__cpu_timer_poll
 	.ent	__cpu_timer_poll
 __cpu_timer_poll:
+	.set	noreorder
 	# in:	a0 = (unsigned int) number of PClock ticks to wait for
 	# out:	void
 
 	# The Vr4300 counter updates at half PClock, so divide by 2 to
 	# get counter delta:
 	bnezl	a0, 1f		# continue if delta non-zero
+	srl	a0, a0, 1	# divide ticks by 2		{DELAY SLOT}
 	# perform a quick return to the caller:
 	j	ra
+	nop			#				{DELAY SLOT}
 1:
-	srl	a0, a0, 1	# divide ticks by 2		{DELAY SLOT}
 	mfc0	v0, C0_COUNT	# get current counter value
 	nop
 	nop
@@ -70,9 +72,12 @@ __cpu_timer_poll:
 	# This is an unsigned 32bit subtraction:
 	subu	v0, a0, v0	# delta = (end - now)		{DELAY SLOT}
 	bgtzl	v0, 2b		# looping back is most likely
+	nop
 	# We have now been delayed (in the foreground) for AT LEAST
 	# the required number of counter ticks.
 	j	ra		# return to caller
+	nop			#				{DELAY SLOT}
+	.set	reorder
 	.end	__cpu_timer_poll
 
 	# Flush the processor caches to memory:
@@ -80,6 +85,7 @@ __cpu_timer_poll:
 	.globl	__cpu_flush
 	.ent	__cpu_flush
 __cpu_flush:
+	.set	noreorder
 	# NOTE: The Vr4300 *CANNOT* have any secondary cache (bit 17
 	# of the CONFIG registered is hard-wired to 1). We just
 	# provide code to flush the Data and Instruction caches.
@@ -108,8 +114,10 @@ __cpu_flush:
 	li	a1, (1 << 5)	# check IB (instruction cache line size)
 	and	a1, a0, a1	# mask against the CONFIG register value
 	beqz	a1, 1f		# branch on result of delay slot operation
+	nop
 	li	a1, 32		# non-zero, then 32bytes
 	j	2f		# continue
+	nop
 1:
 	li	a1, 16		# 16bytes
 2:
@@ -117,8 +125,10 @@ __cpu_flush:
 	li	t0, (1 << 4)	# check DB (data cache line size)
 	and	a0, a0, t0	# mask against the CONFIG register value
 	beqz	a0, 3f		# branch on result of delay slot operation
+	nop
 	li	a0, 32		# non-zero, then 32bytes
 	j	4f		# continue
+	nop
 3:
 	li	a0, 16		# 16bytes
 4:
@@ -138,23 +148,23 @@ __cpu_flush:
 	and	t1, t2		# get end address
 5:
 	cache	INDEX_INVALIDATE_I,0(t3)
-	beq	t3, t1, 6f
+	bne	t3, t1, 5b
 	addu	t3, a1
-	b	5b
 	#
-6:	addu	t1, t0, a3	# end cache address
+	addu	t1, t0, a3	# end cache address
 	subu	t2, a0, 1	# line size mask
 	not	t2		# invert the mask
 	and	t3, t0, t2	# get start address
 	addu	t1, -1
 	and	t1, t2		# get end address
-7:
+6:
 	cache	INDEX_WRITEBACK_INVALIDATE_D,0(t3)
-	beq	t3, t1, 8f
+	bne	t3, t1, 6b
 	addu	t3, a0
-	b	7b
 	#
-8:	j	ra	# return to the caller
+	j	ra	# return to the caller
+	nop
+	.set	reorder
 	.end	__cpu_flush
 
 	# NOTE: This variable should *NOT* be addressed relative to
@@ -175,6 +185,7 @@ __k1_save:
         .globl __buserr
 __buserr:
         .set noat
+	.set noreorder
 	# k0 and k1 available for use:
 	mfc0	k0,C0_CAUSE
 	nop
@@ -182,9 +193,11 @@ __buserr:
 	andi	k0,k0,0x7c
 	sub	k0,k0,7 << 2
 	beq	k0,$0,__buserr_do
+	nop
 	# call the previous handler
 	la	k0,__previous
 	jr	k0
+	nop
 	#
 __buserr_do:
 	# TODO: check that the cause is indeed a bus error
@@ -210,13 +223,17 @@ __buserr_do:
 	eret
 #        j       k0
 #        rfe
+        .set reorder
         .set at
         .end __buserr
 
 __exception_code:
+	.set noreorder
 	lui	k0,%hi(__buserr)
 	daddiu	k0,k0,%lo(__buserr)
 	jr	k0
+	nop
+	.set reorder
 __exception_code_end:
 
 	.data
@@ -233,6 +250,7 @@ __previous:
 	.ent	__default_buserr_handler
 	.globl	__default_buserr_handler
 __default_buserr_handler:
+        .set noreorder
 	# attach our simple bus error handler:
 	# in:  void
 	# out: void
@@ -240,8 +258,8 @@ __default_buserr_handler:
 	nop
 	li	a1,SR_BEV
 	and	a1,a1,a0
-	lui	a0,0x8000	# delay slot
 	beq	a1,$0,baseaddr
+	lui	a0,0x8000	# delay slot
 	lui	a0,0xbfc0
 	daddiu	a0,a0,0x0200
 baseaddr:
@@ -262,14 +280,18 @@ copyloop:
 	daddiu	a3,a3,4
 	subu	a1,a1,4
 	bne	a1,$0,copyloop
+	nop
         la      a0,__buserr_cnt
 	sw	$0,0(a0)
 	j	ra
+	nop
+        .set reorder
 	.end	__default_buserr_handler
 
 	.ent	__restore_buserr_handler
 	.globl	__restore_buserr_handler
 __restore_buserr_handler:
+        .set noreorder
 	# restore original (monitor) bus error handler
 	# in:  void
 	# out: void
@@ -277,8 +299,8 @@ __restore_buserr_handler:
 	nop
 	li	a1,SR_BEV
 	and	a1,a1,a0
-	lui	a0,0x8000	# delay slot
 	beq	a1,$0,res_baseaddr
+	lui	a0,0x8000	# delay slot
 	lui	a0,0xbfc0
 	daddiu	a0,a0,0x0200
 res_baseaddr:
@@ -296,18 +318,24 @@ res_copyloop:
 	daddiu	a3,a3,4
 	subu	a1,a1,4
 	bne	a1,$0,res_copyloop
+	nop
 	j	ra
+	nop
+        .set reorder
 	.end	__restore_buserr_handler
 
 	.ent	__buserr_count
 	.globl	__buserr_count
 __buserr_count:
+        .set noreorder
 	# restore original (monitor) bus error handler
 	# in:  void
 	# out: unsigned int __buserr_cnt
         la      v0,__buserr_cnt
 	lw	v0,0(v0)
 	j	ra
+	nop
+        .set reorder
 	.end	__buserr_count
 
 /* EOF vr4300.S */
