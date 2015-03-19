@@ -157,9 +157,9 @@ LEAF(m32_sync_icache)
 
 	/* the cacheop loop */
 10: 	synci	0(addr)
-	beq     addr,maxaddr,9f
+	move	$1,addr
 	addu   	addr,a2
-	b 10b
+	bne     $1,maxaddr,10b
 
 9:	sync
 	jr.hb	ra

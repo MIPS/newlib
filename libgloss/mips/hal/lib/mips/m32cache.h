@@ -78,9 +78,9 @@ IMPORT(mips_scache_ways,4)
 	and	maxaddr,mask ;		\
 	/* the cacheop loop */		\
 10:	cache	op,0(addr) ;	 	\
-	beq	addr,maxaddr,11f ;	\
+	move	$1,addr ;		\
 	PTR_ADDU addr,linesize ;	\
-	b 10b ;				\
+	bne	$1,maxaddr,10b ;	\
 11:
 
 /* virtual cache op: no limit on size of region */

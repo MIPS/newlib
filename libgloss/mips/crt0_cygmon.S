@@ -68,8 +68,8 @@ zerobss:
 3:
 	sw		zero, 0(v0)
 	sltu		at,v0,v1
-	bnez		at,3b
 	addiu		v0,v0,4
+	bnez		at,3b
     /*
      * Setup a small stack so we can run some C code,
      * and get the usable memory size.

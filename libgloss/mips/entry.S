@@ -86,8 +86,8 @@ __entry_exit_handler:
 	.set	at			/* Now it's ok to use at again */
 
 #if 0
-	rfe
 	j	leave
+	rfe
 #endif
 
 	lhu	t0, 0(k1)		/* Fetch the offending instruction */

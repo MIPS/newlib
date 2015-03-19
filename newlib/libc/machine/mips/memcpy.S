@@ -109,12 +109,10 @@
 #endif
 #endif
 
-#ifndef PTR_BC
 #if __mips_isa_rev > 5 && defined (__mips_micromips)
 #define PTR_BC	      bc16
 #else
 #define PTR_BC	      bc
-#endif
 #endif
 
 /*
@@ -319,11 +317,10 @@ L(memcpy):
 	slti	t2,a2,(2 * NSIZE)
 #if defined(RETURN_FIRST_PREFETCH) || defined(RETURN_LAST_PREFETCH)
 	move	v0,zero
-	bne	t2,zero,L(lastb)
 #else
 	move	v0,a0
-	bne	t2,zero,L(lastb)
 #endif
+	bne	t2,zero,L(lastb)
 
 #if !defined (R6_CODE)
 
@@ -478,6 +475,9 @@ L(skip_set):
 #endif
 L(loop16w):
 	C_LD	t0,UNIT(0)(a1)
+/* We need to separate out the C_LD instruction here so that it will work
+   both when it is used by itself and when it is used with the branch
+   instruction.  */
 #if defined(USE_PREFETCH) && (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
 	sltu	v1,t9,a0		/* If a0 > t9 don't use next prefetch */
 	C_LD	t1,UNIT(1)(a1)
@@ -669,6 +669,9 @@ L(ua_loop16w):
 	C_LDHI	t0,UNIT(0)(a1)
 	C_LDHI	t1,UNIT(1)(a1)
 	C_LDHI	REG2,UNIT(2)(a1)
+/* We need to separate out the C_LDHI instruction here so that it will work
+   both when it is used by itself and when it is used with the branch
+   instruction.  */
 #if defined(USE_PREFETCH) && (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
 	sltu	v1,t9,a0
 	C_LDHI	REG3,UNIT(3)(a1)
