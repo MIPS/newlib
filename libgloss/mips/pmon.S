@@ -64,7 +64,7 @@ name:	la	$2,+(PMON_VECTOR+((index)*4));		\
 	ld	ra,0x38(sp);				\
 	ld	fp,0x30(sp);				\
 	ADDU	sp,sp,0x40;				\
-	j	ra;					\
+	jr	ra;					\
 	.end	name
 #endif
 
@@ -107,7 +107,7 @@ outbyte:
 	ld	ra,0x18(sp)	/* recover return address */
 	ld	fp,0x10(sp)	/* recover frame-pointer */
 	addu	sp,sp,0x20	/* dump the stack space {DELAY SLOT} */
-	j	ra		/* return to the caller */
+	jr	ra		/* return to the caller */
 	.end	outbyte
 
 /* The following routine is required by the "sbrk()" function: */
@@ -146,7 +146,7 @@ get_mem_info:
 	ld	ra,0x00(sp)	/* recover return address */
 	ld	fp,0x08(sp)	/* recover frame-pointer */
 	addu	sp,sp,0x18	/* restore stack pointer {DELAY SLOT} */
-	j	ra		/* return to the caller */
+	jr	ra		/* return to the caller */
 	.end	get_mem_info
 
 #ifdef LSI
@@ -158,7 +158,7 @@ get_mem_info:
 	.ent	__sizemem
 __sizemem:
 	li	v0,0x100000
-	j	ra
+	jr	ra
 	.end	__sizemem
 #else
 

@@ -605,7 +605,7 @@ L(lastbloop):
 	sb	v1,-1(a0)
 	bne	a0,a3,L(lastbloop)
 L(leave):
-	j	ra
+	jr	ra
 
 #if !defined (R6_CODE)
 /*
@@ -796,7 +796,7 @@ L(ua_smallCopy_loop):
 	sb	v1,-1(a0)
 	bne	a0,a3,L(ua_smallCopy_loop)
 
-	j	ra
+	jr	ra
 
 #else /* R6_CODE */
 

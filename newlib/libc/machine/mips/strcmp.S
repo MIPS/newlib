@@ -113,7 +113,7 @@ L(wordloop):
 
 L(returnzero):
 	move	v0, zero
-	j	ra
+	jr	ra
 
 L(worddiff):
 #ifdef USE_CLZ
@@ -137,7 +137,7 @@ L(worddiff):
 	and	v0, v0, 0xff
 	and	v1, v1, 0xff
 	subu	v0, v0, v1
-	j	ra
+	jr	ra
 #else /* USE_CLZ */
 # if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	andi	t0, v0, 0xff
@@ -187,10 +187,10 @@ L(worddiff):
 
 L(wexit89):
 	subu	v0, t8, t9
-	j	ra
+	jr	ra
 L(wexit01):
 	subu	v0, t0, t1
-	j	ra
+	jr	ra
 #endif /* USE_CLZ */
 
 /* It might seem better to do the 'beq' instruction between the two 'lbu'
@@ -225,10 +225,10 @@ L(byteloop):
 
 L(bexit01):
 	subu	v0, v0, v1
-	j	ra
+	jr	ra
 L(bexit89):
 	subu	v0, t8, t9
-	j	ra
+	jr	ra
 
 	.set	at
 

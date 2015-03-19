@@ -207,7 +207,7 @@ copyloop:
 	addiu	a3,a3,4
 	subu	a1,a1,4
 	bne	a1,$0,copyloop
-	j	ra
+	jr	ra
 	.end	__install_entry_handler
 
 
@@ -241,7 +241,7 @@ res_copyloop:
 	addiu	a3,a3,4
 	subu	a1,a1,4
 	bne	a1,$0,res_copyloop
-	j	ra
+	jr	ra
 	.end	__remove_entry_handler
 
 
@@ -260,5 +260,5 @@ software_init_hook:
 	jal	atexit				/*  de-install handler */
 	lw	ra, 4(sp)			/* get return address */
 	addu	sp, sp, 8			/* deallocate stack */
-	j	ra				/* return */
+	jr	ra				/* return */
 	.end	software_init_hook

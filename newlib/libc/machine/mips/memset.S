@@ -432,7 +432,7 @@ L(lastbloop):
 	sb	a1,-1(a0)
 	bne	a0,a3,L(lastbloop)
 L(leave):
-	j	ra
+	jr	ra
 
 	.set	at
 END(MEMSET_NAME)
