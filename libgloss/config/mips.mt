@@ -100,3 +100,7 @@ init_cp0.o: $(srcdir)/init_cp0.S
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
 init_caches.o: $(srcdir)/init_caches.S
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+init_l23caches.o: $(srcdir)/init_l23caches.S
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+size_l23caches.o: $(srcdir)/size_l23caches.S
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<

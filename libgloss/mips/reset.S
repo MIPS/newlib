@@ -63,7 +63,11 @@ init_resources:
     # Init CP0 Status, Count, Compare, Watch*, and Cause.
     jal	  __init_cp0
 
-    # Initialize the L1 instruction cache. (Executing using I$ on return.)
+    # Initialise L2/L3 cache
+    # This could be done from cached code if there is a cca override or similar
+    jal	  __init_l23cache
+
+    # Initialize the L1 instruction cache.
     jal	  __init_icache
 
     # The changing of Kernel mode cacheability must be done from KSEG1
@@ -86,7 +90,7 @@ init_resources:
     beqz  a0, 1f
     jalr  a2
 1:
-    # Copy "C" code (main.c) and data to RAM and zero bss
+    # Copy code and data to RAM
     jal  copy_c2_ram
 
     # Prepare for eret to _start

@@ -57,7 +57,8 @@
 # define ST sw
 #endif
 
-	.section .startdata, "aw", @progbits
+	.section .startdata, "aw", @nobits
+	.balign 16
 	.space	STARTUP_STACK_SIZE
 __lstack: # Points to the end of the stack
 __ram_extent:

@@ -43,11 +43,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SET_SIZE      v1
 #define ASSOC	      a0
 #define TOTAL_BYTES   a1
-#define CURRENT_ADDR  a2
-#define END_ADDR      a3
-#define CONFIG	      t0
-#define CONFIG1	      t1
-#define TEMP	      t2
+#define CURR_ADDR1    a2
+#define CURR_ADDR2    a3
+#define END_ADDR      $12
+#define CONFIG	      $13
+#define CONFIG1	      $14
+#define TEMP	      $15
 
     .set    noat                // Don't allow the assembler to use r1(at) for synthetic instr.
 
@@ -80,9 +81,13 @@ LEAF(__init_icache)
     mul	  SET_SIZE, SET_SIZE, ASSOC		  // Total number of sets
     mul	  TOTAL_BYTES, SET_SIZE, LINE_SIZE	  // Total number of bytes
 
-    lui	  CURRENT_ADDR, 0x8000			  // Get a KSeg0 address for cacheops
-    addu  END_ADDR, CURRENT_ADDR, TOTAL_BYTES
-    subu  END_ADDR, END_ADDR, LINE_SIZE		  // END_ADDR is last line to invalidate
+    lui	  CURR_ADDR2, 0x8000			  // Get a KSeg0 address for cacheops
+    subu  CURR_ADDR2, CURR_ADDR2, LINE_SIZE	  // Pre-bias the addresses as the loop
+    subu  CURR_ADDR1, CURR_ADDR2, LINE_SIZE	  // increments them first
+
+    addu  END_ADDR, CURR_ADDR1, TOTAL_BYTES	  // END_ADDR is last line to invalidate
+    sll	  LINE_SIZE, LINE_SIZE, 1		  // Double line size as we process two
+						  // per loop
 
     // Clear TagLo/TagHi registers
     mtc0  zero, C0_TAGLO
@@ -91,12 +96,11 @@ LEAF(__init_icache)
 $Lnext_icache_tag:
     // Index Store Tag Cache Op
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
-    .set push
-    .set noreorder
-    cache 0x8, 0(CURRENT_ADDR)			  // ICIndexStTag
-    bne	  CURRENT_ADDR, END_ADDR, $Lnext_icache_tag // Done yet?
-    addu  CURRENT_ADDR, LINE_SIZE		  // Get next line address
-    .set pop
+    addu  CURR_ADDR1, LINE_SIZE			  // Get next line address
+    addu  CURR_ADDR2, LINE_SIZE			  // Get next line address
+    cache 0x8, 0(CURR_ADDR1)			  // ICIndexStTag
+    cache 0x8, 0(CURR_ADDR2)			  // ICIndexStTag
+    bne	  CURR_ADDR1, END_ADDR, $Lnext_icache_tag // Done yet?
 
 $Ldone_icache:
     jr	  ra
@@ -131,9 +135,13 @@ LEAF(__init_dcache)
     mul	  SET_SIZE, SET_SIZE, ASSOC		  // Get total number of sets
     mul	  TOTAL_BYTES, SET_SIZE, LINE_SIZE	  // Total number of bytes
 
-    lui	  CURRENT_ADDR, 0x8000			  // Get a KSeg0 address for cacheops
-    addu  END_ADDR, CURRENT_ADDR, TOTAL_BYTES
-    subu  END_ADDR, END_ADDR, LINE_SIZE		  // END_ADDR is last line to invalidate
+    lui	  CURR_ADDR2, 0x8000			  // Get a KSeg0 address for cacheops
+    subu  CURR_ADDR2, CURR_ADDR2, LINE_SIZE	  // Pre-bias the addresses as the loop
+    subu  CURR_ADDR1, CURR_ADDR2, LINE_SIZE	  // increments them first
+
+    addu  END_ADDR, CURR_ADDR1, TOTAL_BYTES	  // END_ADDR is last line to invalidate
+    sll	  LINE_SIZE, LINE_SIZE, 1		  // Double line size as we process two
+						  // per loop
 
     // Clear TagLo/TagHi registers
     mtc0  zero, C0_TAGLO
@@ -144,13 +152,11 @@ LEAF(__init_dcache)
 $Lnext_dcache_tag:
     // Index Store Tag Cache Op
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
-
-    .set push
-    .set noreorder
-    cache 0x9, 0(CURRENT_ADDR)			  // DCIndexStTag
-    bne	  CURRENT_ADDR, END_ADDR, $Lnext_dcache_tag // Done yet?
-    addu  CURRENT_ADDR, LINE_SIZE		  // Get next line address
-    .set pop
+    addu  CURR_ADDR1, LINE_SIZE			  // Get next line address
+    addu  CURR_ADDR2, LINE_SIZE			  // Get next line address
+    cache 0x9, 0(CURR_ADDR1)			  // DCIndexStTag
+    cache 0x9, 0(CURR_ADDR2)			  // DCIndexStTag
+    bne	  CURR_ADDR1, END_ADDR, $Lnext_icache_tag // Done yet?
 
 $Ldone_dcache:
     jr	  ra
