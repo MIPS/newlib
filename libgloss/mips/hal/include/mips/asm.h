@@ -103,6 +103,8 @@
 #error Unknown ABI
 #endif
 
+#ifdef __ASSEMBLER__
+
 /* Concatenate two names. */
 #ifdef __STDC__
 # define _ASMCONCAT(A, B) A ## B
@@ -329,5 +331,7 @@ name:
 #else
 #define _MCOUNT
 #endif
+
+#endif /* __ASSEMBLER__ */
 
 #endif /*_MIPS_ASM_H_*/

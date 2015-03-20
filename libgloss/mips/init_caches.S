@@ -60,21 +60,21 @@ LEAF(__init_icache)
     mfc0  CONFIG1, C0_CONFIG1
 
     // Isolate I$ Line Size
-    ext	  LINE_SIZE, CONFIG1, CFG1_ILSHIFT, 3	  // Extract IL
+    ext	  LINE_SIZE, CONFIG1, CFG1_IL_SHIFT, 3	  // Extract IL
 
     // Skip ahead if No I$
     li	  TEMP, 2
     beqz  LINE_SIZE, $Ldone_icache
     sllv  LINE_SIZE, TEMP, LINE_SIZE		  // Now have true I$ line size in bytes
 
-    ext	  SET_SIZE, CONFIG1, CFG1_ISSHIFT, 3	  // Extract IS
+    ext	  SET_SIZE, CONFIG1, CFG1_IS_SHIFT, 3	  // Extract IS
     addiu SET_SIZE, SET_SIZE, 1			  // Rotate to account for 7 == 32 sets
     andi  SET_SIZE, SET_SIZE, 7			  // Mask down to 3-bit
     li	  TEMP,	32 
     sllv  SET_SIZE, TEMP, SET_SIZE		  // I$ Sets per way
 
     // Config1IA == I$ Assoc - 1
-    ext	  ASSOC, CONFIG1, CFG1_IASHIFT, 3	  // Extract IA
+    ext	  ASSOC, CONFIG1, CFG1_IA_SHIFT, 3	  // Extract IA
     addiu ASSOC, ASSOC, 1
 
     mul	  SET_SIZE, SET_SIZE, ASSOC		  // Total number of sets
@@ -110,7 +110,7 @@ LEAF(__init_dcache)
     mfc0  CONFIG1, C0_CONFIG1
 
     // Isolate D$ Line Size
-    ext	  LINE_SIZE, CONFIG1, CFG1_DLSHIFT, 3	  // extract DL
+    ext	  LINE_SIZE, CONFIG1, CFG1_DL_SHIFT, 3	  // extract DL
 
     // Skip ahead if No D$
     li	  TEMP, 2
@@ -118,14 +118,14 @@ LEAF(__init_dcache)
 
     sllv  LINE_SIZE, TEMP, LINE_SIZE		  // Now have true D$ line size in bytes
 
-    ext	  SET_SIZE, CONFIG1, CFG1_DSSHIFT, 3	  // extract DS
+    ext	  SET_SIZE, CONFIG1, CFG1_DS_SHIFT, 3	  // extract DS
     addiu SET_SIZE, SET_SIZE, 1			  // Rotate to account for 7 == 32 sets
     andi  SET_SIZE, SET_SIZE, 7			  // Mask down to 3-bit
     li	  TEMP, 32
     sllv  SET_SIZE, TEMP, SET_SIZE		  // D$ Sets per way
 
     // Config1.DA == D$ Assoc - 1
-    ext	  ASSOC, CONFIG1, CFG1_DASHIFT, 3	  // extract DA
+    ext	  ASSOC, CONFIG1, CFG1_DA_SHIFT, 3	  // extract DA
     addiu ASSOC, 1
 
     mul	  SET_SIZE, SET_SIZE, ASSOC		  // Get total number of sets

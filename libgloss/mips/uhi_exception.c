@@ -49,7 +49,7 @@
 
 #include <stdint.h>
 #include "uhi_syscalls.h"
-#include "excpt.h"
+#include <mips/hal.h>
 
 int32_t
 __uhi_exception (struct gpctx *ctx)

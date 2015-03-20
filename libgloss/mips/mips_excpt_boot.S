@@ -27,7 +27,7 @@
 
 #include <mips/asm.h>
 #include <mips/cpu.h>
-#include "excpt.h"
+#include <mips/hal.h>
 
 	# Create space to store k0, k1, ra and sp
 	.data
@@ -213,34 +213,34 @@ WLEAF(__chain_uhi_excpt)
 	ehb
 
 	# Restore the common context
-	REG_L	$1, CTX_AT($3)
-	REG_L	$2, CTX_V0($3)
-	REG_L	$4, CTX_A0($3)
-	REG_L	$5, CTX_A1($3)
-	REG_L	$6, CTX_A2($3)
-	REG_L	$7, CTX_A3($3)
-	REG_L	$8, CTX_T0($3)
-	REG_L	$9, CTX_T1($3)
-	REG_L	$10, CTX_T2($3)
-	REG_L	$11, CTX_T3($3)
-	REG_L	$12, CTX_T4($3)
-	REG_L	$13, CTX_T5($3)
-	REG_L	$14, CTX_T6($3)
-	REG_L	$15, CTX_T7($3)
-	REG_L	$16, CTX_S0($3)
-	REG_L	$17, CTX_S1($3)
-	REG_L	$18, CTX_S2($3)
-	REG_L	$19, CTX_S3($3)
-	REG_L	$20, CTX_S4($3)
-	REG_L	$21, CTX_S5($3)
-	REG_L	$22, CTX_S6($3)
-	REG_L	$23, CTX_S7($3)
-	REG_L	$24, CTX_T8($3)
-	REG_L	$25, CTX_T9($3)
-	REG_L	$28, CTX_GP($3)
-	REG_L	$29, CTX_SP($3)
-	REG_L	$30, CTX_FP($3)
-	REG_L	$31, CTX_RA($3)
+	REG_L	$1, CTX_REG(1)($3)
+	REG_L	$2, CTX_REG(2)($3)
+	REG_L	$4, CTX_REG(4)($3)
+	REG_L	$5, CTX_REG(5)($3)
+	REG_L	$6, CTX_REG(6)($3)
+	REG_L	$7, CTX_REG(7)($3)
+	REG_L	$8, CTX_REG(8)($3)
+	REG_L	$9, CTX_REG(9)($3)
+	REG_L	$10, CTX_REG(10)($3)
+	REG_L	$11, CTX_REG(11)($3)
+	REG_L	$12, CTX_REG(12)($3)
+	REG_L	$13, CTX_REG(13)($3)
+	REG_L	$14, CTX_REG(14)($3)
+	REG_L	$15, CTX_REG(15)($3)
+	REG_L	$16, CTX_REG(16)($3)
+	REG_L	$17, CTX_REG(17)($3)
+	REG_L	$18, CTX_REG(18)($3)
+	REG_L	$19, CTX_REG(19)($3)
+	REG_L	$20, CTX_REG(20)($3)
+	REG_L	$21, CTX_REG(21)($3)
+	REG_L	$22, CTX_REG(22)($3)
+	REG_L	$23, CTX_REG(23)($3)
+	REG_L	$24, CTX_REG(24)($3)
+	REG_L	$25, CTX_REG(25)($3)
+	REG_L	$28, CTX_REG(28)($3)
+	REG_L	$29, CTX_REG(29)($3)
+	REG_L	$30, CTX_REG(30)($3)
+	REG_L	$31, CTX_REG(31)($3)
 
 	# Restore chained exception handlers kernel regs
 	LA	$3, __start_ctx

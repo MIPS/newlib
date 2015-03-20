@@ -23,11 +23,7 @@
 extern "C" {
 #endif
 
-#define CMGCRBase		$15,3
 #define CMGCR_BASE_ADDR_SHIFT	11
-
-#define CFG3_CMGCRMASK		0x20000000
-#define CFG3_CMGCRSHIFT		29
 
 /* Offsets of memory-mapped registers */
 #define GCR_L2_CONFIG		0x130

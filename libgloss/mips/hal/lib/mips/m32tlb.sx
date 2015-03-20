@@ -29,12 +29,12 @@ XLEAF(mips_tlbinvalall)
 	mfc0	t0,$config,0
 	mfc0	t1,$config,1
 	
-	and	t0,CFG0_MTMASK
+	and	t0,CFG0_MT_MASK
 	beq	t0,CFG0_MT_BAT,1f	/* we can initialise a BAT */
 	bne	t0,CFG0_MT_TLB,9f	/* ...and a TLB, but nothing else */
 	
-1:	and	a1,t1,CFG1_MMUSMASK	/* get number of entries - 1 */
-	srl	a1,CFG1_MMUSSHIFT
+1:	and	a1,t1,CFG1_MMUS_MASK	/* get number of entries - 1 */
+	srl	a1,CFG1_MMUS_SHIFT
 
 	.set	noreorder
 	rmfc0	t0,$entryhi		/* save pid */

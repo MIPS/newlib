@@ -13,7 +13,7 @@
 
 
 /*
- * m32c1.h : MIPS32 coprocessor 1 (fpu) definitions
+ * m32c1.h : MIPS32 coprocessor 1 (fpu and msa) definitions
  */
 
 
@@ -31,6 +31,13 @@ void	 fpa_setsr(unsigned);
 unsigned fpa_xchsr(unsigned);
 unsigned fpa_bicsr(unsigned);
 unsigned fpa_bissr(unsigned);
+
+unsigned msa_getmir(void);	/* get msa revision id */
+unsigned msa_getsr(void);	/* get msa status register */
+void	 msa_setsr(unsigned);
+unsigned msa_xchsr(unsigned);
+unsigned msa_bicsr(unsigned);
+unsigned msa_bissr(unsigned);
 
 /* 
  * Define macros to accessing the Coprocessor 1 control registers.
@@ -68,7 +75,6 @@ __extension__({ \
     __o; \
 })
 
-
 #define fpa_bissr(val) \
 __extension__({ \
     register unsigned __o, __n; \
@@ -77,7 +83,6 @@ __extension__({ \
     __asm__ __volatile ("ctc1 %0,$31" : : "d" (__n)); \
     __o; \
 })
-
 
 #define fpa_bicsr(val) \
 __extension__({ \
@@ -89,6 +94,88 @@ __extension__({ \
 })
 
 
+#define msa_getmir() \
+__extension__({ \
+  register unsigned __r; \
+  __asm__ __volatile (".set push\n" \
+		      ".set fp=64\n" \
+		      ".set msa\n" \
+		      "cfcmsa %0,$0\n" \
+		      ".set pop": "=d" (__r)); \
+  __r; \
+})
+
+#define msa_getsr() \
+__extension__({ \
+  register unsigned __r; \
+  __asm__ __volatile (".set push\n" \
+		      ".set fp=64\n" \
+		      ".set msa\n" \
+		      "cfcmsa %0,$1\n" \
+		      ".set pop": "=d" (__r)); \
+  __r; \
+})
+
+#define msa_setsr(val) \
+__extension__({ \
+    register unsigned __r = (val); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"ctcmsa $1,%0\n" \
+			".set pop": : "d" (__r)); \
+    __r; \
+})
+
+#define msa_xchsr(val) \
+__extension__({ \
+    register unsigned __o, __n = (val); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"cfcmsa %0,$1\n" \
+			".set pop": "=d" (__o)); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"ctcmsa $1,%0\n" \
+			".set pop": : "d" (__n)); \
+    __o; \
+})
+
+#define msa_bissr(val) \
+__extension__({ \
+    register unsigned __o, __n; \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"cfcmsa %0,$1\n" \
+			".set pop": "=d" (__o)); \
+    __n = __o | (val); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"ctcmsa $1,%0\n" \
+			".set pop": : "d" (__n)); \
+    __o; \
+})
+
+#define msa_bicsr(val) \
+__extension__({ \
+    register unsigned __o, __n; \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"cfcmsa %0,$1\n" \
+			".set pop": "=d" (__o)); \
+    __n = __o &~ (val); \
+    __asm__ __volatile (".set push\n" \
+			".set fp=64\n" \
+			".set msa\n" \
+			"ctcmsa $1,%0" \
+			".set pop": : "d" (__n)); \
+    __o; \
+})
 
 #endif /* !ASSEMBLER */
 

@@ -1,9 +1,5 @@
 /*
- * yamon_exception.c
-*/
-
-/*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,29 +27,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*
- * @Synopsis     int __uhi_exception (struct gp_ctx *ctx);
- *
- *               Parameters:
- *                 $4 - GP context
- *
- *               Arguments to syscall:
- *                 $25 - Operation code for __uhi_exception
- *                 $4 - GP context
- *
- *               Return from syscall:
- *                 $2 - 
- *
- * @Description  Handle an unhandled exception
-*/
-
-#include <stdint.h>
 #include <mips/hal.h>
 
-int32_t
-__uhi_exception (struct gpctx *ctx)
+/* Forward a UHI SYSCALL operation to SDBPP interface.  */
+int
+__uhi_indirect (struct gpctx *ctx)
 {
-  __exit(2);
-  /* Never returns.  */
-  return 0;
+  register reg_t arg1 asm ("$4") = ctx->a[0];
+  register reg_t arg2 asm ("$5") = ctx->a[1];
+  register reg_t arg3 asm ("$6") = ctx->a[2];
+  register reg_t arg4 asm ("$7") = ctx->a[3];
+  register reg_t op asm ("$25") = ctx->t2[1];
+  register reg_t ret1 asm ("$2") = 1;
+  register reg_t ret2 asm ("$3");
+
+  __asm__ __volatile__(" # UHI indirect\n"
+		       "\tsdbbp 1"
+		       : "+r" (ret1), "=r" (ret2), "+r" (arg1), "+r" (arg2)
+		       : "r" (arg3), "r" (arg4), "r" (op));
+
+  ctx->v[0] = ret1;
+  ctx->v[1] = ret2;
+  ctx->a[0] = arg1;
+  ctx->a[1] = arg2;
+  /* Handled, move on.  SYSCALL is 4-bytes in all ISAs.  */
+  ctx->epc += 4;
+
+  return 1; /* exception handled */
 }

@@ -31,7 +31,7 @@
 #include <mips/asm.h>
 #include <mips/regdef.h>
 #include <mips/cpu.h>
-#include "excpt.h"
+#include <mips/hal.h>
 
 # Context size, adjusted for ABI parameter area
 #define ADJ (NARGSAVE * SZARG)
@@ -125,36 +125,37 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	PTR_ADDU sp, sp, -CTX_SIZEADJ	# This should be picked up by the backtracer
 
 	# Save context
-	REG_S	$1, CTX_AT + ADJ(sp)
-	REG_S	v0, CTX_V0 + ADJ(sp)
-	REG_S	v1, CTX_V1 + ADJ(sp)
-	REG_S	a0, CTX_A0 + ADJ(sp)
-	REG_S	a1, CTX_A1 + ADJ(sp)
-	REG_S	a2, CTX_A2 + ADJ(sp)
-	REG_S	a3, CTX_A3 + ADJ(sp)
-	REG_S	$8, CTX_T0 + ADJ(sp)	# a4 or t0
-	REG_S	$9, CTX_T1 + ADJ(sp)	# a5 or t1
-	REG_S	$10, CTX_T2 + ADJ(sp)	# a6 or t2
-	REG_S	$11, CTX_T3 + ADJ(sp)	# a7 or t3
-	REG_S	$12, CTX_T4 + ADJ(sp)	# t0 or t4
-	REG_S	$13, CTX_T5 + ADJ(sp)	# t1 or t5
-	REG_S	$14, CTX_T6 + ADJ(sp)	# t2 or t6
-	REG_S	$15, CTX_T7 + ADJ(sp)	# t3 or t7
-	REG_S	s0, CTX_S0 + ADJ(sp)
-	REG_S	s1, CTX_S1 + ADJ(sp)
-	REG_S	s2, CTX_S2 + ADJ(sp)
-	REG_S	s3, CTX_S3 + ADJ(sp)
-	REG_S	s4, CTX_S4 + ADJ(sp)
-	REG_S	s5, CTX_S5 + ADJ(sp)
-	REG_S	s6, CTX_S6 + ADJ(sp)
-	REG_S	s7, CTX_S7 + ADJ(sp)
-	REG_S	t8, CTX_T8 + ADJ(sp)
-	REG_S	t9, CTX_T9 + ADJ(sp)
-	REG_S	k0, CTX_K0 + ADJ(sp)
-	REG_S	gp, CTX_GP + ADJ(sp)
-	REG_S	k1, CTX_SP + ADJ(sp) # Use saved sp from earlier
-	REG_S	fp, CTX_FP + ADJ(sp)
-	REG_S	ra, CTX_RA + ADJ(sp)
+	REG_S	$1, CTX_REG(1) + ADJ(sp)
+	REG_S	$2, CTX_REG(2) + ADJ(sp)
+	REG_S	$3, CTX_REG(3) + ADJ(sp)
+	REG_S	$4, CTX_REG(4) + ADJ(sp)
+	REG_S	$5, CTX_REG(5) + ADJ(sp)
+	REG_S	$6, CTX_REG(6) + ADJ(sp)
+	REG_S	$7, CTX_REG(7) + ADJ(sp)
+	REG_S	$8, CTX_REG(8) + ADJ(sp)
+	REG_S	$9, CTX_REG(9) + ADJ(sp)
+	REG_S	$10, CTX_REG(10) + ADJ(sp)
+	REG_S	$11, CTX_REG(11) + ADJ(sp)
+	REG_S	$12, CTX_REG(12) + ADJ(sp)
+	REG_S	$13, CTX_REG(13) + ADJ(sp)
+	REG_S	$14, CTX_REG(14) + ADJ(sp)
+	REG_S	$15, CTX_REG(15) + ADJ(sp)
+	REG_S	$16, CTX_REG(16) + ADJ(sp)
+	REG_S	$17, CTX_REG(17) + ADJ(sp)
+	REG_S	$18, CTX_REG(18) + ADJ(sp)
+	REG_S	$19, CTX_REG(19) + ADJ(sp)
+	REG_S	$20, CTX_REG(20) + ADJ(sp)
+	REG_S	$21, CTX_REG(21) + ADJ(sp)
+	REG_S	$22, CTX_REG(22) + ADJ(sp)
+	REG_S	$23, CTX_REG(23) + ADJ(sp)
+	REG_S	$24, CTX_REG(24) + ADJ(sp)
+	REG_S	$25, CTX_REG(25) + ADJ(sp)
+	REG_S	$26, CTX_REG(26) + ADJ(sp)
+	# k1/$27 has already been saved
+	REG_S	$28, CTX_REG(28) + ADJ(sp)
+	REG_S	k1, CTX_REG(29) + ADJ(sp) # Use saved sp from earlier
+	REG_S	$30, CTX_REG(30) + ADJ(sp)
+	REG_S	$31, CTX_REG(31) + ADJ(sp)
 	PTR_S	$0, CTX_LINK + ADJ(sp) # Clear the link field
 
 #if (__mips_isa_rev < 6) 
@@ -178,11 +179,11 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	move	$11, $0
 	move	$12, $0
 	mfc0	$9, C0_CONFIG3
-	ext	$10, $9, CFG3_BP_BIT, 1
+	ext	$10, $9, CFG3_BP_SHIFT, 1
 	beqz	$10, 1f
 	mfc0	$11, C0_BADPINSTR
 1:
-	ext	$9, $9, CFG3_BI_BIT, 1
+	ext	$9, $9, CFG3_BI_SHIFT, 1
 	beqz	$9, 1f
 	mfc0	$12, C0_BADINSTR
 1:
@@ -227,43 +228,45 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	mtlo	$10
 #endif
 
-	REG_L	$1, CTX_AT + ADJ(sp)
-	REG_L	v0, CTX_V0 + ADJ(sp)
-	REG_L	v1, CTX_V1 + ADJ(sp)
-	REG_L	a0, CTX_A0 + ADJ(sp)
-	REG_L	a1, CTX_A1 + ADJ(sp)
-	REG_L	a2, CTX_A2 + ADJ(sp)
-	REG_L	a3, CTX_A3 + ADJ(sp)
-	REG_L	$8, CTX_T0 + ADJ(sp)
-	REG_L	$9, CTX_T1 + ADJ(sp)
-	REG_L	$10, CTX_T2 + ADJ(sp)
-	REG_L	$11, CTX_T3 + ADJ(sp)
-	REG_L	$12, CTX_T4 + ADJ(sp)
-	REG_L	$13, CTX_T5 + ADJ(sp)
-	REG_L	$14, CTX_T6 + ADJ(sp)
-	REG_L	$15, CTX_T7 + ADJ(sp)
-	REG_L	s0, CTX_S0 + ADJ(sp)
-	REG_L	s1, CTX_S1 + ADJ(sp)
-	REG_L	s2, CTX_S2 + ADJ(sp)
-	REG_L	s3, CTX_S3 + ADJ(sp)
-	REG_L	s4, CTX_S4 + ADJ(sp)
-	REG_L	s5, CTX_S5 + ADJ(sp)
-	REG_L	s6, CTX_S6 + ADJ(sp)
-	REG_L	s7, CTX_S7 + ADJ(sp)
-	REG_L	t8, CTX_T8 + ADJ(sp)
-	REG_L	t9, CTX_T9 + ADJ(sp)
-	REG_L	gp, CTX_GP + ADJ(sp)
-	REG_L	fp, CTX_FP + ADJ(sp)
-	REG_L	ra, CTX_RA + ADJ(sp)
+	REG_L	$1, CTX_REG(1) + ADJ(sp)
+	REG_L	$2, CTX_REG(2) + ADJ(sp)
+	REG_L	$3, CTX_REG(3) + ADJ(sp)
+	REG_L	$4, CTX_REG(4) + ADJ(sp)
+	REG_L	$5, CTX_REG(5) + ADJ(sp)
+	REG_L	$6, CTX_REG(6) + ADJ(sp)
+	REG_L	$7, CTX_REG(7) + ADJ(sp)
+	REG_L	$8, CTX_REG(8) + ADJ(sp)
+	REG_L	$9, CTX_REG(9) + ADJ(sp)
+	REG_L	$10, CTX_REG(10) + ADJ(sp)
+	REG_L	$11, CTX_REG(11) + ADJ(sp)
+	REG_L	$12, CTX_REG(12) + ADJ(sp)
+	REG_L	$13, CTX_REG(13) + ADJ(sp)
+	REG_L	$14, CTX_REG(14) + ADJ(sp)
+	REG_L	$15, CTX_REG(15) + ADJ(sp)
+	REG_L	$16, CTX_REG(16) + ADJ(sp)
+	REG_L	$17, CTX_REG(17) + ADJ(sp)
+	REG_L	$18, CTX_REG(18) + ADJ(sp)
+	REG_L	$19, CTX_REG(19) + ADJ(sp)
+	REG_L	$20, CTX_REG(20) + ADJ(sp)
+	REG_L	$21, CTX_REG(21) + ADJ(sp)
+	REG_L	$22, CTX_REG(22) + ADJ(sp)
+	REG_L	$23, CTX_REG(23) + ADJ(sp)
+	REG_L	$24, CTX_REG(24) + ADJ(sp)
+	REG_L	$25, CTX_REG(25) + ADJ(sp)
+	# $26/K0 and $27/K1 are restored with interrupts disabled
+	REG_L	$28, CTX_REG(28) + ADJ(sp)
+	# $29/SP is restored last
+	REG_L	$30, CTX_REG(30) + ADJ(sp)
+	REG_L	$31, CTX_REG(31) + ADJ(sp)
 	di
 	lw	k0, CTX_STATUS + ADJ(sp)
-	mtc0	k0, C0_SR
 	REG_L	k1, CTX_EPC + ADJ(sp)
+	mtc0	k0, C0_SR
 	PTR_MTC0 k1, C0_EPC
 	ehb
-	REG_L	sp, CTX_SP + ADJ(sp)
 	REG_L	k0, CTX_K0 + ADJ(sp)
 	REG_L	k1, CTX_K1 + ADJ(sp)
+	REG_L	sp, CTX_SP + ADJ(sp)
 	# Return from exception
 	eret
 	.set	pop

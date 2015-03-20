@@ -24,15 +24,7 @@
  */
 LEAF(mips_tlbwi2)
 	.set	noreorder
-#if __mips64 && _MIPS_SIM==_ABIO32
-	/* old algorithmics 64-bit extended o32+ */
-	lw	t4,16(sp)	# mask
-	lw	ta0,20(sp)	# index
-	rmtc0	a0,$entryhi
-	mtc0	a2,$entrylo0
-	mtc0	a3,$entrylo1
-	mtc0	t4,$pagemask
-#elif _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64
+#if _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64
 	rmtc0	a0,$entryhi
 	mtc0	a1,$entrylo0
 	mtc0	a2,$entrylo1
@@ -64,20 +56,10 @@ END(mips_tlbwi2)
  */
 LEAF(mips_tlbwr2)
 	.set	noreorder
-#if __mips64 && _MIPS_SIM==_ABIO32
-	/* old algorithmics 64-bit extended o32+ */
-	lw	t0,16(sp)	# mask
-	rmtc0	a0,$entryhi
-	mtc0	a2,$entrylo0
-	mtc0	a3,$entrylo1
-	mtc0	t0,$pagemask
-#else
-	/* not 64-bit, or modern abi */
 	rmtc0	a0,$entryhi
 	mtc0	a1,$entrylo0
 	mtc0	a2,$entrylo1
 	mtc0	a3,$pagemask
-#endif
 	ssnop
 	ehb
 	tlbwr
@@ -103,20 +85,10 @@ LEAF(mips_tlbrwr2)
 	ssnop
 	ehb
 
-#if __mips64 && _MIPS_SIM==_ABIO32
-	/* old algorithmics 64-bit extended o32+ */
-	lw	t0,16(sp)
-	mfc0	v0,$index
-	mtc0	a2,$entrylo0
-	mtc0	a3,$entrylo1
-	mtc0	t0,$pagemask
-#else
-	/* not 64-bit, or modern abi */
 	mfc0	v0,$index
 	mtc0	a1,$entrylo0
 	mtc0	a2,$entrylo1
 	mtc0	a3,$pagemask
-#endif
 	ssnop
 	bltz	v0,1f		/* doesnt exist */
 	ehb
@@ -189,18 +161,9 @@ LEAF(mips_tlbprobe2)
 	rmtc0	t0,$entryhi	/* restore entry hi */
 	.set	reorder
 
-#if __mips64 && _MIPS_SIM==_ABIO32
-	/* old algorithmics 64-bit extended o32+ */
-	lw	t3,16($sp)	# &mask
-	sw	v1,0(a2)
-	sw	t1,0(a3)
-	sw	t2,0(t3)
-#else
-	/* not 64-bit, or modern abi */
 	sw	v1,0(a1)
 	sw	t1,0(a2)
 	sw	t2,0(a3)
-#endif
 	jr.hb	ra
 
 1:	rmtc0	t0,$entryhi	/* restore entry hi */
@@ -252,11 +215,11 @@ LEAF(mips_tlb_size)
 	mfc0	t1,$config,1
 	move	v0,zero
 
-	and	t0,CFG0_MTMASK
+	and	t0,CFG0_MT_MASK
 	bne	t0,CFG0_MT_TLB,9f	/* this code doesn't support BAT */
 
-	and	v0,t1,CFG1_MMUSMASK	/* get number of entries */
-	srl	v0,CFG1_MMUSSHIFT
+	and	v0,t1,CFG1_MMUS_MASK	/* get number of entries */
+	srl	v0,CFG1_MMUS_SHIFT
 	addu	v0,1
 
 9:	j	ra

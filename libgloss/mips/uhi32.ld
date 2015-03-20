@@ -14,6 +14,8 @@ STARTUP(crt0.o)
 EXTERN(__register_excpt_handler)
 /* Force the exception handler to be included in the link */
 EXTERN(__exception_entry)
+/* Require verbose exceptions */
+EXTERN(__exception_handle_verbose)
 /* Force the interrupt handlers to tbe included in the link */
 EXTERN(__isr_vec)
 /* Require the UHI getargs support */
@@ -47,6 +49,13 @@ ASSERT (DEFINED(__register_excpt_boot) || __use_excpt_boot == 0,
 /* Control if subnormal floating-point values are flushed to zero in
    hardware.  This applies to both FPU and MSA operations.  */
 PROVIDE (__flush_to_zero = 1);
+
+/* Set up the public symbols depending on whether the user has chosen
+   quiet or verbose exception handling above */
+PROVIDE(__exception_handle = (DEFINED(__exception_handle_quiet)
+				      ? __exception_handle_quiet
+				      : __exception_handle_verbose));
+PROVIDE(_mips_handle_exception = __exception_handle);
 
 /*
  * Initalize some symbols to be zero so we can reference them in the

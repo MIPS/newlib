@@ -49,8 +49,8 @@ extern "C" {
 #define EXC_IS1		16	/* implementation-specific 1 */
 #define EXC_IS2		17	/* implementation-specific 2 */
 #define EXC_C2E		18	/* coprocessor 2 exception */
-#define EXC_RES19	19
-#define EXC_RES20	20
+#define EXC_TLBRI	19	/* TLB read inhibit */
+#define EXC_TLBXI	20	/* TLB execute inhibit */
 #define EXC_MSAU	21	/* MSA unusable exception */
 #define EXC_MDMX	22	/* mdmx unusable */
 #define EXC_WATCH	23	/* watchpoint */
@@ -68,382 +68,434 @@ extern "C" {
  * MIPS32 Cause Register (CP0 Register 13, Select 0)
  */
 #define CR_BD		0x80000000	/* branch delay */
+#define  CR_BD_SHIFT		31
 #define CR_TI		0x40000000	/* timer interrupt (r2) */
+#define  CR_TI_SHIFT		30
 #define CR_CEMASK	0x30000000      /* coprocessor used */
-#define CR_CESHIFT	28
+#define  CR_CESHIFT		28
+#define  CR_CE_SHIFT		28
+#define  CR_CE_BITS		 2
 #define CR_DC		0x08000000	/* disable count (r2) */
+#define  CR_DC_SHIFT		27
 #define CR_PCI		0x04000000	/* performance counter i/u (r2) */
+#define  CR_PCI_SHIFT		26
 #define CR_IV		0x00800000	/* use special i/u vec */
+#define  CR_IV_SHIFT		23
 #define CR_WP		0x00400000	/* deferred watchpoint */
-
-/* interrupt pending bits */
-#define CR_SINT0	0x00000100 	/* s/w interrupt 0 */
-#define CR_SINT1	0x00000200	/* s/w interrupt 1 */
-#define CR_HINT0	0x00000400	/* h/w interrupt 0 */
-#define CR_HINT1	0x00000800	/* h/w interrupt 1 */
-#define CR_HINT2	0x00001000	/* h/w interrupt 2 */
-#define CR_HINT3	0x00002000	/* h/w interrupt 3 */
-#define CR_HINT4	0x00004000	/* h/w interrupt 4 */
-#define CR_HINT5	0x00008000	/* h/w interrupt 5 */
-
-/* alternative interrupt pending bit naming */
-#define CR_IP0		0x00000100
-#define CR_IP1		0x00000200
-#define CR_IP2		0x00000400
-#define CR_IP3		0x00000800
-#define CR_IP4		0x00001000
-#define CR_IP5		0x00002000
-#define CR_IP6		0x00004000
-#define CR_IP7		0x00008000
+#define  CR_WP_SHIFT		22
+#define CR_FDCI		0x00200000	/* fast debug channned i/u (r2) */
+#define  CR_FDCI_SHIFT		21
 
 #define CR_IMASK	0x0000ff00 	/* interrupt pending mask */
+#define CR_IP_MASK	0x0000ff00
+#define  CR_IP_SHIFT		10
+#define  CR_IP_BITS		 8
+#define CR_RIPL		0x0000ff00
+#define  CR_RIPL_SHIFT		10
+#define  CR_RIPL_BITS		6
+
+/* interrupt pending bits */
+#define CR_HINT5	0x00008000	/* h/w interrupt 5 */
+#define CR_HINT4	0x00004000	/* h/w interrupt 4 */
+#define CR_HINT3	0x00002000	/* h/w interrupt 3 */
+#define CR_HINT2	0x00001000	/* h/w interrupt 2 */
+#define CR_HINT1	0x00000800	/* h/w interrupt 1 */
+#define CR_HINT0	0x00000400	/* h/w interrupt 0 */
+#define CR_SINT1	0x00000200	/* s/w interrupt 1 */
+#define CR_SINT0	0x00000100 	/* s/w interrupt 0 */
+
+/* alternative interrupt pending bit naming */
+#define CR_IP7		0x00008000
+#define CR_IP6		0x00004000
+#define CR_IP5		0x00002000
+#define CR_IP4		0x00001000
+#define CR_IP3		0x00000800
+#define CR_IP2		0x00000400
+#define CR_IP1		0x00000200
+#define CR_IP0		0x00000100
+
 #define CR_XMASK	0x0000007c 	/* exception code mask */
 #define CR_XCPT(x)	((x)<<2)
-
 
 /*
  * MIPS32 Status Register  (CP0 Register 12, Select 0)
  */
-#define SR_IE		0x00000001 	/* interrupt enable */
-#define SR_EXL		0x00000002	/* exception level */
-#define SR_ERL		0x00000004	/* error level */
+#define SR_CU3		0x80000000	/* coprocessor 3 enable */
+#define  SR_CU3_SHIFT		31
+#define SR_CU2		0x40000000	/* coprocessor 2 enable */
+#define  SR_CU2_SHIFT		30
+#define SR_CU1		0x20000000	/* coprocessor 1 enable */
+#define  SR_CU1_SHIFT		29
+#define SR_CU0		0x10000000	/* coprocessor 0 enable */
+
+#define SR_RP		0x08000000	/* reduce power */
+#define  SR_RP_SHIFT		27
+#define SR_FR		0x04000000	/* 64-bit fpu registers */
+#define  SR_FR_SHIFT		26
+#define SR_RE		0x02000000	/* reverse endian (user mode) */
+#define  SR_RE_SHIFT		25
+#define SR_MX		0x01000000	/* enable MDMX/DSP ASE */
+#define  SR_MX_SHIFT		24
+#define SR_PX		0x00800000	/* user 64-bit reg / 32-bit addr */
+#define  SR_PX_SHIFT		23
+#define SR_BEV		0x00400000	/* boot exception vectors */
+#define  SR_BEV_SHIFT		22
+#define SR_TS		0x00200000	/* TLB shutdown */
+#define  SR_TS_SHIFT		21
+#define SR_SR		0x00100000	/* soft reset occurred */
+#define  SR_SR_SHIFT		20
+#define SR_NMI		0x00080000 	/* NMI occurred */
+#define  SR_NMI_SHIFT		19
+#define SR_MCU		0x00040000 	/* MCU ASE implemented */
+#define  SR_MCU_SHIFT		18
+
+#define SR_RIPL_MASK	0x0000fc00
+#define  SR_RIPL_SHIFT		10
+#define  SR_RIPL_BITS		 6
+#define SR_IMASK	0x0000ff00
+
+/* interrupt mask bits */
+#define SR_HINT5	0x00008000	/* enable h/w interrupt 6 */
+#define SR_HINT4	0x00004000	/* enable h/w interrupt 5 */
+#define SR_HINT3	0x00002000	/* enable h/w interrupt 4 */
+#define SR_HINT2	0x00001000	/* enable h/w interrupt 3 */
+#define SR_HINT1	0x00000800	/* enable h/w interrupt 2 */
+#define SR_HINT0	0x00000400	/* enable h/w interrupt 1 */
+#define SR_SINT1	0x00000200	/* enable s/w interrupt 1 */
+#define SR_SINT0	0x00000100	/* enable s/w interrupt 0 */
+
+/* alternative interrupt mask naming */
+#define SR_IM7		0x00008000
+#define SR_IM6		0x00004000
+#define SR_IM5		0x00002000
+#define SR_IM4		0x00001000
+#define SR_IM3		0x00000800
+#define SR_IM2		0x00000400
+#define SR_IM1		0x00000200
+#define SR_IM0		0x00000100
+
+#define SR_KX		0x00000080	/* 64-bit kernel mode */
+#define SR_KX_SHIFT		 7
+#define SR_SX		0x00000040	/* 64-bit supervisor mode */
+#define SR_SX_SHIFT		 6
+#define SR_UX		0x00000020	/* 64-bit user mode */
+#define SR_UX_SHIFT		 5
 
 #define SR_UM		0x00000010	/* user mode */
 #define SR_KSU_MASK	0x00000018	/* ksu mode mask */
+#define SR_KSU_SHIFT		 3
+#define SR_KSU_BITS		 2
 #define SR_KSU_USER	0x00000010	/* user mode */
 #define SR_KSU_SPVS	0x00000008	/* supervisor mode */
 #define SR_KSU_KERN	0x00000000	/* kernel mode */
 
-/* interrupt mask bits */
-#define SR_SINT0	0x00000100	/* enable s/w interrupt 0 */
-#define SR_SINT1	0x00000200	/* enable s/w interrupt 1 */
-#define SR_HINT0	0x00000400	/* enable h/w interrupt 1 */
-#define SR_HINT1	0x00000800	/* enable h/w interrupt 2 */
-#define SR_HINT2	0x00001000	/* enable h/w interrupt 3 */
-#define SR_HINT3	0x00002000	/* enable h/w interrupt 4 */
-#define SR_HINT4	0x00004000	/* enable h/w interrupt 5 */
-#define SR_HINT5	0x00008000	/* enable h/w interrupt 6 */
-
-/* alternative interrupt mask naming */
-#define SR_IM0		0x00000100
-#define SR_IM1		0x00000200
-#define SR_IM2		0x00000400
-#define SR_IM3		0x00000800
-#define SR_IM4		0x00001000
-#define SR_IM5		0x00002000
-#define SR_IM6		0x00004000
-#define SR_IM7		0x00008000
-
-#define SR_IMASK	0x0000ff00
-
-#define SR_NMI		0x00080000 	/* NMI occurred */
-#define SR_NMISHIFT	17
-#define SR_SR		0x00100000	/* soft reset occurred */
-#define SR_TS		0x00200000	/* TLB shutdown */
-#define SR_BEV		0x00400000	/* boot exception vectors */
-#define SR_PX		0x00800000	/* user 64-bit reg / 32-bit addr */
-#define SR_MX		0x01000000	/* enable MDMX/DSP ASE */
-#define SR_RE		0x02000000	/* reverse endian (user mode) */
-#define SR_FR		0x04000000	/* 64-bit fpu registers */
-#define SR_RP		0x08000000	/* reduce power */
-
-#define SR_CU0		0x10000000	/* coprocessor 0 enable */
-#define SR_CU1		0x20000000	/* coprocessor 1 enable */
-#define SR_CU2		0x40000000	/* coprocessor 2 enable */
-#define SR_CU3		0x80000000	/* coprocessor 3 enable */
-
+#define SR_ERL		0x00000004	/* error level */
+#define  SR_ERL_SHIFT		 2
+#define SR_EXL		0x00000002	/* exception level */
+#define  SR_EXL_SHIFT		 1
+#define SR_IE		0x00000001 	/* interrupt enable */
+#define  SR_IE_SHIFT		 0
 
 /*
  * MIPS32r2 HWREna Register  (CP0 Register 7, Select 0)
  */
-#define HWRENA_CPUNUM	0x00000001
-#define HWRENA_SYNCSTEP	0x00000002
-#define HWRENA_CC	0x00000004
+#define HWRENA_ULR	0x20000000
 #define HWRENA_CCRES	0x00000008
+#define HWRENA_CC	0x00000004
+#define HWRENA_SYNCSTEP	0x00000002
+#define HWRENA_CPUNUM	0x00000001
 
 /*
  * MIPS32r2 IntCtl Register  (CP0 Register 12, Select 1)
  */
 #define INTCTL_IPTI	0xe0000000	/* timer i/u pending bit */
 #define  INTCTL_IPTI_SHIFT	29
+#define  INTCTL_IPTI_BITS	 3
 #define INTCTL_IPPCI	0x1c000000	/* perfctr i/u pending bit */
 #define  INTCTL_IPPCI_SHIFT	26
+#define  INTCTL_IPPCI_BITS	 3
+#define INTCTL_IPFDC	0x03800000	/* fast debug chan i/u pending bit */
+#define  INTCTL_IPFDC_SHIFT	23
+#define  INTCTL_IPFDC_BITS	 3
 #define INTCTL_VS	0x000003e0	/* vector spacing */
-#define  INTCTL_VS_0		(0x00<<5)
-#define  INTCTL_VS_32		(0x01<<5)
-#define  INTCTL_VS_64		(0x02<<5)
-#define  INTCTL_VS_128		(0x04<<5)
-#define  INTCTL_VS_256		(0x08<<5)
-#define  INTCTL_VS_512		(0x10<<5)
+#define  INTCTL_VS_SHIFT	 5
+#define  INTCTL_VS_BITS		 5
+#define  INTCTL_VS_0	(0x00 << INTCTL_VS_SHIFT)
+#define  INTCTL_VS_32	(0x01 << INTCTL_VS_SHIFT)
+#define  INTCTL_VS_64	(0x02 << INTCTL_VS_SHIFT)
+#define  INTCTL_VS_128	(0x04 << INTCTL_VS_SHIFT)
+#define  INTCTL_VS_256	(0x08 << INTCTL_VS_SHIFT)
+#define  INTCTL_VS_512	(0x10 << INTCTL_VS_SHIFT)
 
 /*
  * MIPS32r2 SRSCtl Register  (CP0 Register 12, Select 2)
  */
 #define SRSCTL_HSS	0x3c000000	/* highest shadow set */
-#define  SRSCTL_HSS_SHIFT	26
+#define SRSCTL_HSS_SHIFT	26
 #define SRSCTL_EICSS	0x003c0000	/* EIC shadow set */
-#define  SRSCTL_EICSS_SHIFT	18
+#define SRSCTL_EICSS_SHIFT	18
 #define SRSCTL_ESS	0x0000f000	/* exception shadow set */
-#define  SRSCTL_ESS_SHIFT	12
+#define SRSCTL_ESS_SHIFT	12
 #define SRSCTL_PSS	0x000003c0	/* previous shadow set */
-#define  SRSCTL_PSS_SHIFT	 6
+#define SRSCTL_PSS_SHIFT	 6
 #define SRSCTL_CSS	0x0000000f	/* current shadow set */
-#define  SRSCTL_CSS_SHIFT	 0
+#define SRSCTL_CSS_SHIFT	 0
 
 /*
  * MIPS32 Config0 Register  (CP0 Register 16, Select 0)
  */
 #define CFG0_M		0x80000000	/* Config1 implemented */
-#define CFG0_MSHIFT	31
-#define CFG0_K23MASK	0x70000000	/* Fixed MMU kseg2/3 CCA */
-#define CFG0_K23SHIFT	28
-#define CFG0_KUMASK	0x0e000000	/* Fixed MMU kuseg CCA */
-#define CFG0_KUSHIFT	25
+#define  CFG0_M_SHIFT		31
+#define CFG0_K23_MASK	0x70000000	/* Fixed MMU kseg2/3 CCA */
+#define  CFG0_K23_SHIFT		28
+#define CFG0_KU_MASK	0x0e000000	/* Fixed MMU kuseg CCA */
+#define  CFG0_KU_SHIFT		25
 #define CFG0_BE		0x00008000	/* Big Endian */
-#define CFG0_BESHIFT	15
-#define CFG0_ATMASK	0x00006000	/* Architecture type: */
-#define CFG0_ATSHIFT	13
-#define CFG0_ATBITS	2
-#define  CFG0_AT_M32	 (0 << CFG0_ATSHIFT) /* MIPS32 */
-#define  CFG0_AT_M64_A32 (1 << CFG0_ATSHIFT) /* MIPS64, 32-bit addresses */
-#define  CFG0_AT_M64_A64 (2 << CFG0_ATSHIFT) /* MIPS64, 64-bit addresses */
-#define  CFG0_AT_RES	 (3 << CFG0_ATSHIFT)
-#define CFG0_ARMASK	0x00001c00
-#define CFG0_ARSHIFT	10
-#define CFG0_ARBITS	3
-#define  CFG0_AR_R1	 (0 << CFG0_ARSHIFT) /* Release 1 */
-#define  CFG0_AR_R2	 (1 << CFG0_ARSHIFT) /* Release 2,3,5 */
-#define  CFG0_AR_R6	 (2 << CFG0_ARSHIFT) /* Release 6 */
-#define CFG0_MTMASK	0x00000380	/* MMU Type: */
-#define CFG0_MTSHIFT	7
-#define CFG0_MTBITS	3
-#define  CFG0_MT_NONE	 (0 << CFG0_MTSHIFT) /* No MMU */
-#define  CFG0_MT_TLB	 (1 << CFG0_MTSHIFT) /* Standard TLB */
-#define  CFG0_MT_BAT	 (2 << CFG0_MTSHIFT) /* BAT */
-#define  CFG0_MT_FIXED	 (3 << CFG0_MTSHIFT) /* Fixed mapping */
-#define  CFG0_MT_DUAL	 (4 << CFG0_MTSHIFT) /* Dual VTLB and FTLB */
+#define  CFG0_BE_SHIFT		15
+#define CFG0_AT_MASK	0x00006000	/* Architecture type: */
+#define  CFG0_AT_SHIFT		13
+#define  CFG0_AT_BITS		 2
+#define  CFG0_AT_M32	 (0 << CFG0_AT_SHIFT) /* MIPS32 */
+#define  CFG0_AT_M64_A32 (1 << CFG0_AT_SHIFT) /* MIPS64, 32-bit addresses */
+#define  CFG0_AT_M64_A64 (2 << CFG0_AT_SHIFT) /* MIPS64, 64-bit addresses */
+#define  CFG0_AT_RES	 (3 << CFG0_AT_SHIFT)
+#define CFG0_AR_MASK	0x00001c00
+#define  CFG0_AR_SHIFT		10
+#define  CFG0_AR_BITS		 3
+#define  CFG0_AR_R1	 (0 << CFG0_AR_SHIFT) /* Release 1 */
+#define  CFG0_AR_R2	 (1 << CFG0_AR_SHIFT) /* Release 2,3,5 */
+#define  CFG0_AR_R6	 (2 << CFG0_AR_SHIFT) /* Release 6 */
+#define CFG0_MT_MASK	0x00000380	/* MMU Type: */
+#define  CFG0_MT_SHIFT		 7
+#define  CFG0_MT_BITS		 3
+#define  CFG0_MT_NONE	 (0 << CFG0_MT_SHIFT) /* No MMU */
+#define  CFG0_MT_TLB	 (1 << CFG0_MT_SHIFT) /* Standard TLB */
+#define  CFG0_MT_BAT	 (2 << CFG0_MT_SHIFT) /* BAT */
+#define  CFG0_MT_FIXED	 (3 << CFG0_MT_SHIFT) /* Fixed mapping */
+#define  CFG0_MT_DUAL	 (4 << CFG0_MT_SHIFT) /* Dual VTLB and FTLB */
 #define CFG0_VI		0x00000008	/* Icache is virtual */
-#define CFG0_VISHIFT	3
-#define CFG0_K0MASK	0x00000007	/* KSEG0 coherency algorithm */
-#define CFG0_K0SHIFT	0
+#define  CFG0_VI_SHIFT		 3
+#define CFG0_K0_MASK	0x00000007	/* KSEG0 coherency algorithm */
+#define  CFG0_K0_SHIFT		 0
+#define  CFG0_K0_BITS		 3
 
 /*
  * MIPS32 Config1 Register (CP0 Register 16, Select 1)
  */
 #define CFG1_M		0x80000000	/* Config2 implemented */
-#define CFG1_MSHIFT	31
-#define CFG1_MMUSMASK	0x7e000000	/* mmu size - 1 */
-#define CFG1_MMUSSHIFT	25
-#define CFG1_MMUSBITS	6
-#define CFG1_ISMASK	0x01c00000	/* icache lines 64<<n */
-#define CFG1_ISSHIFT	22
-#define CFG1_ISBITS	3
-#define CFG1_ILMASK	0x00380000	/* icache line size 2<<n */
-#define CFG1_ILSHIFT	19
-#define CFG1_ILBITS	3
-#define CFG1_IAMASK	0x00070000	/* icache ways - 1 */
-#define CFG1_IASHIFT	16
-#define CFG1_IABITS	3
-#define CFG1_DSMASK	0x0000e000	/* dcache lines 64<<n */
-#define CFG1_DSSHIFT	13
-#define CFG1_DSBITS	3
-#define CFG1_DLMASK	0x00001c00	/* dcache line size 2<<n */
-#define CFG1_DLSHIFT	10
-#define CFG1_DLBITS	3
-#define CFG1_DAMASK	0x00000380	/* dcache ways - 1 */
-#define CFG1_DASHIFT	7
-#define CFG1_DABITS	3
+#define CFG1_M_SHIFT		31
+#define CFG1_MMUS_MASK	0x7e000000	/* mmu size - 1 */
+#define  CFG1_MMUS_SHIFT	25
+#define  CFG1_MMUS_BITS		 6
+#define CFG1_IS_MASK	0x01c00000	/* icache lines 64<<n */
+#define  CFG1_IS_SHIFT		22
+#define  CFG1_IS_BITS		 3
+#define CFG1_IL_MASK	0x00380000	/* icache line size 2<<n */
+#define  CFG1_IL_SHIFT		19
+#define  CFG1_IL_BITS		 3
+#define CFG1_IA_MASK	0x00070000	/* icache ways - 1 */
+#define  CFG1_IA_SHIFT		16
+#define  CFG1_IA_BITS		 3
+#define CFG1_DS_MASK	0x0000e000	/* dcache lines 64<<n */
+#define  CFG1_DS_SHIFT		13
+#define  CFG1_DS_BITS		 3
+#define CFG1_DL_MASK	0x00001c00	/* dcache line size 2<<n */
+#define  CFG1_DL_SHIFT		10
+#define  CFG1_DL_BITS		 3
+#define CFG1_DA_MASK	0x00000380	/* dcache ways - 1 */
+#define  CFG1_DA_SHIFT		 7
+#define  CFG1_DA_BITS		 3
 #define CFG1_C2		0x00000040	/* Coprocessor 2 present */
-#define CFG1_C2SHIFT	6
+#define  CFG1_C2_SHIFT		 6
 #define CFG1_MD		0x00000020	/* MDMX implemented */
-#define CFG1_MDSHIFT	5
+#define  CFG1_MD_SHIFT		 5
 #define CFG1_PC		0x00000010	/* performance counters implemented */
-#define CFG1_PCSHIFT	4
+#define  CFG1_PC_SHIFT		 4
 #define CFG1_WR		0x00000008	/* watch registers implemented */
-#define CFG1_WRSHIFT	3
+#define  CFG1_WR_SHIFT		 3
 #define CFG1_CA		0x00000004	/* compression (mips16) implemented */
-#define CFG1_CASHIFT	2
+#define  CFG1_CA_SHIFT		 2
 #define CFG1_EP		0x00000002	/* ejtag implemented */
-#define CFG1_EPSHIFT	1
+#define  CFG1_EP_SHIFT		 1
 #define CFG1_FP		0x00000001	/* fpu implemented */
-#define CFG1_FPSHIFT	0
+#define  CFG1_FP_SHIFT		 0
 
 
 /*
  * MIPS32r2 Config2 Register (CP0 Register 16, Select 2)
  */
 #define CFG2_M		0x80000000	/* Config3 implemented */
-#define CFG1_MSHIFT	31
-#define CFG2_TUMASK	0x70000000	/* tertiary cache control */
-#define CFG2_TUSHIFT	28
-#define CFG2_TUBITS	3
-#define CFG2_TSMASK	0x0f000000	/* tcache sets per wway 64<<n */
-#define CFG2_TSSHIFT	24
-#define CFG2_TSBITS	4
-#define CFG2_TLMASK	0x00f00000	/* tcache line size 2<<n */
-#define CFG2_TLSHIFT	20
-#define CFG2_TLBITS	4
-#define CFG2_TAMASK	0x000f0000	/* tcache ways - 1 */
-#define CFG2_TASHIFT	16
-#define CFG2_TABITS	4
-#define CFG2_SUMASK	0x0000f000	/* secondary cache control */
-#define CFG2_SUSHIFT	12
-#define CFG2_SUBITS	4
-#define CFG2_SSMASK	0x00000f00	/* scache sets per wway 64<<n */
-#define CFG2_SSSHIFT	8
-#define CFG2_SSBITS	4
-#define CFG2_SLMASK	0x000000f0	/* scache line size 2<<n */
-#define CFG2_SLSHIFT	4
-#define CFG2_SLBITS	4
-#define CFG2_SAMASK	0x0000000f	/* scache ways - 1 */
-#define CFG2_SASHIFT	0
-#define CFG2_SABITS	4
+#define  CFG1_M_SHIFT		31
+#define CFG2_TU_MASK	0x70000000	/* tertiary cache control */
+#define  CFG2_TU_SHIFT		28
+#define  CFG2_TU_BITS		 3
+#define CFG2_TS_MASK	0x0f000000	/* tcache sets per wway 64<<n */
+#define  CFG2_TS_SHIFT		24
+#define  CFG2_TS_BITS		 4
+#define CFG2_TL_MASK	0x00f00000	/* tcache line size 2<<n */
+#define  CFG2_TL_SHIFT		20
+#define  CFG2_TL_BITS		 4
+#define CFG2_TA_MASK	0x000f0000	/* tcache ways - 1 */
+#define  CFG2_TA_SHIFT		16
+#define  CFG2_TA_BITS		 4
+#define CFG2_SU_MASK	0x0000f000	/* secondary cache control */
+#define  CFG2_SU_SHIFT		12
+#define  CFG2_SU_BITS		 4
+#define CFG2_SS_MASK	0x00000f00	/* scache sets per wway 64<<n */
+#define  CFG2_SS_SHIFT		 8
+#define  CFG2_SS_BITS		 4
+#define CFG2_SL_MASK	0x000000f0	/* scache line size 2<<n */
+#define  CFG2_SL_SHIFT		 4
+#define  CFG2_SL_BITS		 4
+#define CFG2_SA_MASK	0x0000000f	/* scache ways - 1 */
+#define  CFG2_SA_SHIFT		 0
+#define  CFG2_SA_BITS		 4
 
 /*
  * MIPS32r2 Config3 Register (CP0 Register 16, Select 3)
  */
 #define CFG3_M		0x80000000	/* Config4 implemented */
-#define CFG3_MSHIFT	31
+#define  CFG3_M_SHIFT		31
 #define CFG3_BPG	0x40000000	/* Big pages implemented */
-#define CFG3_BPGSHIFT	30
+#define  CFG3_BPG_SHIFT		30
 #define CFG3_CMGCR	0x20000000	/* Coherency manager implemented */
-#define CFG3_CMGCRSHIFT	29
+#define  CFG3_CMGCR_SHIFT	29
 #define CFG3_MSAP	0x10000000	/* MSA implemented */
-#define CFG3_MSAPSHIFT	28
+#define  CFG3_MSAP_SHIFT	28
 #define CFG3_BP		0x08000000	/* BadInstrP implemented */
-#define CFG3_BPSHIFT	27
+#define  CFG3_BP_SHIFT		27
 #define CFG3_BI		0x04000000	/* BadInstr implemented */
-#define CFG3_BISHIFT	26
+#define  CFG3_BI_SHIFT		26
 #define CFG3_SC		0x02000000	/* Segment control implemented */
-#define CFG3_SCSHIFT	25
+#define  CFG3_SC_SHIFT		25
 #define CFG3_PW		0x01000000	/* HW page table walk implemented */
-#define CFG3_PWSHIFT	24
+#define  CFG3_PW_SHIFT		24
 #define CFG3_VZ		0x00800000	/* Virtualization module implemented */
-#define CFG3_VZSHIFT	23
-#define CFG3_IPLWMASK	0x00600000	/* IPL field width */
-#define CFG3_IPLWSHIFT	21
-#define CFG3_IPLWBITS	2
-#define  CFG3_IPLW_6BIT	(0 << CFG3_IPLWSHIFT) /* IPL/RIPL are 6-bits wide */
-#define  CFG3_IPLW_8BIT	(1 << CFG3_IPLWSHIFT) /* IPL/RIPL are 8-bits wide */
-#define CFG3_MMARMASK	0x001c0000	/* MicroMIPS64 architecture revision */
-#define CFG3_MMARSHIFT	18
-#define CFG3_MMARBITS	3
-#define  CFG3_MMAR_R3	(0 << CFG3_MMARSHIFT) /* MicroMIPS64 Release 3 */
+#define  CFG3_VZ_SHIFT		23
+#define CFG3_IPLW_MASK	0x00600000	/* IPL field width */
+#define  CFG3_IPLW_SHIFT	21
+#define  CFG3_IPLW_BITS		 2
+#define  CFG3_IPLW_6BIT	(0 << CFG3_IPLW_SHIFT) /* IPL/RIPL are 6-bits wide */
+#define  CFG3_IPLW_8BIT	(1 << CFG3_IPLW_SHIFT) /* IPL/RIPL are 8-bits wide */
+#define CFG3_MMAR_MASK	0x001c0000	/* MicroMIPS64 architecture revision */
+#define  CFG3_MMAR_SHIFT	18
+#define  CFG3_MMAR_BITS		 3
+#define  CFG3_MMAR_R3	(0 << CFG3_MMAR_SHIFT) /* MicroMIPS64 Release 3 */
 #define CFG3_MCU	0x00020000	/* MCU ASE is implemented */
-#define CFG3_MCUSHIFT	17
-#define CFG3_ISAONEXC	0x00010000	/* MicroMIPS exception entry points */
-#define CFG3_ISAONEXCSHIFT 16
-#define CFG3_ISAMASK	0x0000c000	/* ISA availability */
-#define CFG3_ISASHIFT	14
-#define CFG3_ISABITS	2
-#define  CFG3_ISA_MIPS	(0 << CFG3_ISASHIFT)  /* MIPS only */
-#define  CFG3_ISA_UMIPS (1 << CFG3_ISASHIFT)  /* MicroMIPS only */
-#define  CFG3_ISA_BOTH	(2 << CFG3_ISASHIFT)  /* MIPS (boot) and MicroMIPS */
-#define  CFG3_ISA_UBOTH	(3 << CFG3_ISASHIFT)  /* MIPS and MicroMIPS (boot) */
+#define  CFG3_MCU_SHIFT		17
+#define CFG3_IOE	0x00010000	/* MicroMIPS exception entry points */
+#define  CFG3_IOE_SHIFT		16
+#define CFG3_ISA_MASK	0x0000c000	/* ISA availability */
+#define  CFG3_ISA_SHIFT		14
+#define  CFG3_ISA_BITS		 2
+#define  CFG3_ISA_MIPS	(0 << CFG3_ISA_SHIFT)  /* MIPS only */
+#define  CFG3_ISA_UMIPS (1 << CFG3_ISA_SHIFT)  /* MicroMIPS only */
+#define  CFG3_ISA_BOTH	(2 << CFG3_ISA_SHIFT)  /* MIPS (boot) and MicroMIPS */
+#define  CFG3_ISA_UBOTH	(3 << CFG3_ISA_SHIFT)  /* MIPS and MicroMIPS (boot) */
 #define CFG3_ULRI	0x00002000	/* UserLocal register is available */
-#define CFG3_ULRISHIFT	13
+#define  CFG3_ULRI_SHIFT	13
 #define CFG3_RXI	0x00001000	/* RIE and XIE exist in pagegrain */
-#define CFG3_RXISHIFT	12
+#define  CFG3_RXI_SHIFT		12
 #define CFG3_DSP2P	0x00000800	/* DSPR2 ASE present */
-#define CFG3_DSP2PSHIFT	11
+#define  CFG3_DSP2P_SHIFT	11
 #define CFG3_DSPP	0x00000400	/* DSP ASE present */
-#define CFG3_DSPPSHIFT	10
+#define  CFG3_DSPP_SHIFT	10
 #define CFG3_CTXTC	0x00000200	/* Context Config regs are present */
-#define CFG3_CTXTCSHIFT	9
+#define  CFG3_CTXTC_SHIFT	 9
 #define CFG3_ITL	0x00000100	/* IFlowtrace mechanism implemented */
-#define CFG3_ITLSHIFT	8
+#define  CFG3_ITL_SHIFT		 8
 #define CFG3_LPA	0x00000080	/* Large physical addresses */
-#define CFG3_LPASHIFT	7
+#define  CFG3_LPA_SHIFT		 7
 #define CFG3_VEIC	0x00000040	/* Vectored external i/u controller */
-#define CFG3_VEICSHIFT	6
+#define  CFG3_VEIC_SHIFT      	 6
 #define CFG3_VI		0x00000020	/* Vectored i/us */
-#define CFG3_VISHIFT	5
+#define  CFG3_VI_SHIFT		 5
 #define CFG3_SP		0x00000010	/* Small page support */
-#define CFG3_SPSHIFT	4
+#define  CFG3_SP_SHIFT		 4
 #define CFG3_CDMM	0x00000008	/* Common Device Memory Map support */
-#define CFG3_CDMMSHIFT	3
+#define  CFG3_CDMM_SHIFT	 3
 #define CFG3_MT		0x00000004	/* MT ASE present */
-#define CFG3_MTSHIFT	2
+#define  CFG3_MT_SHIFT		 2
 #define CFG3_SM		0x00000002	/* SmartMIPS ASE */
-#define CFG3_SMSHIFT	1
+#define  CFG3_SM_SHIFT		 1
 #define CFG3_TL		0x00000001	/* Trace Logic */
-#define CFG3_TLSHIFT	0
+#define  CFG3_TL_SHIFT		 0
 
 /*
  * MIPS32r2 Config4 Register (CP0 Register 16, Select 4)
  */
 #define CFG4_M		0x80000000	/* Config5 implemented */
-#define CFG4_MSHIFT	31
-#define CFG4_IEMASK	0x60000000	/* TLB invalidate insn support */
-#define CFG4_IESHIFT	29
-#define CFG4_IEBITS	2
-#define  CFG4_IE_NONE	(0 << CFG4_IESHIFT) /* TLB invalidate not available */
-#define  CFG4_IE_INV	(2 << CFG4_IESHIFT) /* TLB invalidate per entry */
-#define  CFG4_IE_INVALL	(3 << CFG4_IESHIFT) /* TLB invalidate entire MMU */
+#define  CFG4_M_SHIFT		31
+#define CFG4_IE_MASK	0x60000000	/* TLB invalidate insn support */
+#define  CFG4_IE_SHIFT		29
+#define  CFG4_IE_BITS		 2
+#define  CFG4_IE_NONE	(0 << CFG4_IE_SHIFT) /* TLB invalidate not available */
+#define  CFG4_IE_INV	(2 << CFG4_IE_SHIFT) /* TLB invalidate per entry */
+#define  CFG4_IE_INVALL	(3 << CFG4_IE_SHIFT) /* TLB invalidate entire MMU */
 #define CFG4_AE		0x10000000	/* EntryHI.ASID is 10-bits */
-#define CFG4_AESHIFT	28
-#define CFG4_VTLBSEXTMASK   0x0f000000	/* VTLB size extension field */
-#define CFG4_VTLBSEXTSHIFT  24
-#define CFG4_VTLBSEXTBITS   4
-#define CFG4_KSCREXISTMASK  0x00ff0000	/* Indicates presence of KScratch */
-#define CFG4_KSCREXISTSHIFT 16
-#define CFG4_KSCREXISTBITS  8
-#define CFG4_MMUEXTDEF	    0x0000c000	/* MMU Extension definition */
-#define CFG4_MMUEXTDEFSHIFT 14
-#define CFG4_MMUEXTDEFBITS  2
-#define CFG4_MMUEXT_SIZEEXT (1 << CFG4_MMUEXTDEFSHIFT) /* MMUSizeExt */
-#define CFG4_MMUEXT_FTLB    (2 << CFG4_MMUEXTDEFSHIFT) /* FTLB fields */
-#define CFG4_MMUEXT_FTLBVEXT (3 << CFG4_MMUEXTDEFSHIFT) /* FTLB and Vext */
-#define CFG4_FTLBPSMASK	    0x00001f00	/* FTLB Page Size */
-#define CFG4_FTLBPSSHIFT    8
-#define CFG4_FTLBPSBITS	    5
-#define CFG4_FTLBWMASK	    0x000000f0	/* FTLB Ways mask */
-#define CFG4_FTLBWSHIFT	    4
-#define CFG4_FTLBWBITS	    4
-#define CFG4_FTLBSMASK	    0x0000000f	/* FTLB Sets mask */
-#define CFG4_FTLBSSHIFT	    0
-#define CFG4_FTLBSBITS	    4
-#define CFG4_MMUSEMASK	    0x000000ff	/* MMU size extension */
-#define CFG4_MMUSESHIFT	    0
-#define CFG4_MMUSEBITS	    8
+#define  CFG4_AE_SHIFT		28
+#define CFG4_VTLBSEXT_MASK   0x0f000000	/* VTLB size extension field */
+#define  CFG4_VTLBSEXT_SHIFT	     24
+#define  CFG4_VTLBSEXT_BITS	      4
+#define CFG4_KSCREXIST_MASK  0x00ff0000	/* Indicates presence of KScratch */
+#define  CFG4_KSCREXIST_SHIFT	     16
+#define  CFG4_KSCREXIST_BITS	      8
+#define CFG4_MMUED	     0x0000c000	/* MMU Extension definition */
+#define  CFG4_MMUED_SHIFT	     14
+#define  CFG4_MMUED_BITS	      2
+#define  CFG4_MMUED_SIZEEXT  (1 << CFG4_MMUED_SHIFT) /* MMUSizeExt */
+#define  CFG4_MMUED_FTLB     (2 << CFG4_MMUED_SHIFT) /* FTLB fields */
+#define  CFG4_MMUED_FTLBVEXT (3 << CFG4_MMUED_SHIFT) /* FTLB and Vext */
+#define CFG4_FTLBPS_MASK     0x00001f00	/* FTLB Page Size */
+#define  CFG4_FTLBPS_SHIFT	      8
+#define  CFG4_FTLBPS_BITS	      5
+#define CFG4_FTLBW_MASK	     0x000000f0	/* FTLB Ways mask */
+#define  CFG4_FTLBW_SHIFT	      4
+#define  CFG4_FTLBW_BITS	      4
+#define CFG4_FTLBS_MASK	     0x0000000f	/* FTLB Sets mask */
+#define  CFG4_FTLBS_SHIFT	      0
+#define  CFG4_FTLBS_BITS	      4
+#define CFG4_MMUSE_MASK	     0x000000ff	/* MMU size extension */
+#define  CFG4_MMUSE_SHIFT	      0
+#define  CFG4_MMUSE_BITS	      8
 
 /*
  * MIPS32r2 Config5 Register (CP0 Register 16, Select 5)
  */
 #define CFG5_M		0x80000000	/* Undefined extension */
-#define CFG5_MSHIFT	31
+#define  CFG5_M_SHIFT		31
 #define CFG5_K		0x40000000	/* Disable CCA control */
-#define CFG5_KSHIFT	30
+#define  CFG5_K_SHIFT		30
 #define CFG5_CV		0x20000000	/* Disable CacheException in KSEG1 */
-#define CFG5_CVSHIFT	29
+#define  CFG5_CV_SHIFT		29
 #define CFG5_EVA	0x10000000	/* EVA is implemented */
-#define CFG5_EVASHIFT	28
+#define  CFG5_EVA_SHIFT		28
 #define CFG5_MSAEN	0x08000000	/* Enable MSA ASE */
-#define CFG5_MSAENSHIFT	27
+#define  CFG5_MSAEN_SHIFT	27
 #define CFG5_CES	0x00001000	/* Current endian state */
-#define CFG5_CESSHIFT	12
+#define  CFG5_CES_SHIFT		12
 #define CFG5_DEC	0x00000800	/* Dual endian control */
-#define CFG5_DECSHIFT	11
+#define  CFG5_DEC_SHIFT		11
 #define CFG5_L2C	0x00000400	/* Config 2 is memory mapped */
-#define CFG5_L2CSHIFT	10
+#define  CFG5_L2C_SHIFT		10
 #define CFG5_UFE	0x00000200	/* Usermode FRE control */
-#define CFG5_LUFESHIFT	9
+#define  CFG5_LUFE_SHIFT	 9
 #define CFG5_FRE	0x00000100	/* Emulation support for FR=0 */
-#define CFG5_FRESHIFT	8
+#define  CFG5_FRE_SHIFT		 8
 #define CFG5_VP		0x00000080	/* Multiple virtual processors */
-#define CFG5_VPSHIFT	7
+#define  CFG5_VP_SHIFT		 7
 #define CFG5_SBRI	0x00000040	/* Force RI on SDBBP */
-#define CFG5_SBRISHIFT	6
+#define  CFG5_SBRI_SHIFT	 6
 #define CFG5_MVH	0x00000020	/* XPA instruction support */
-#define CFG5_MVHSHIFT	5
+#define  CFG5_MVH_SHIFT		 5
 #define CFG5_LLB	0x00000010	/* Load-Linked Bit present */
-#define CFG5_LLBSHIFT	4
+#define  CFG5_LLB_SHIFT		 4
 #define CFG5_MRP	0x00000008	/* MAAR and MAARI are present */
-#define CFG5_MRPSHIFT	3
+#define  CFG5_MRP_SHIFT		 3
 #define CFG5_UFR	0x00000004	/* Usermode FR control */
-#define CFG5_UFRSHIFT	2
+#define  CFG5_UFR_SHIFT		 2
 #define CFG5_NF		0x00000001	/* Nested fault support */
-#define BFG5_NFSHIFT	0
+#define  CFG5_NF_SHIFT		 0
 
 /*
  * Primary cache mode
@@ -519,9 +571,12 @@ extern "C" {
 
 /* MIPS32 WatchHi Register (CP0 Register 19) */
 #define WATCHHI_M		0x80000000
+#define  WATCHHI_M_SHIFT		31
 #define WATCHHI_G		0x40000000
-#define WATCHHI_ASIDMASK	0x00ff0000
-#define WATCHHI_ASIDSHIFT	16
+#define  WATCHHI_G_SHIFT		30
+#define WATCHHI_ASID_MASK	0x00ff0000
+#define  WATCHHI_ASID_SHIFT		16
+#define  WATCHHI_ASID_BITS		 8
 #define WATCHHI_MASK		0x00000ffc
 #define WATCHHI_I		0x00000004
 #define WATCHHI_R		0x00000002
@@ -529,8 +584,9 @@ extern "C" {
 
 /* MIPS32 PerfCnt Register (CP0 Register 25) */
 #define PERFCNT_M		0x80000000
-#define PERFCNT_EVENTMASK	0x000007e0
-#define PERFCNT_EVENTSHFT	5
+#define PERFCNT_EVENT_MASK	0x000007e0
+#define PERFCNT_EVENT_SHIFT		 5
+#define PERFCNT_EVENT_BITS		 6
 #define PERFCNT_IE		0x00000010
 #define PERFCNT_U		0x00000008
 #define PERFCNT_S		0x00000004
@@ -543,8 +599,11 @@ extern "C" {
 
 /* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */
 #define EBASE_BASE	0xfffff000	/* Exception base */
-#define EBASE_CPU	0x000003ff	/* CPU number */
 #define EBASE_WG	0x00000800	/* Write Gate */
+#define  EBASE_WG_SHIFT		11
+#define EBASE_CPU	0x000003ff	/* CPU number */
+#define  EBASE_CPU_SHIFT	 0
+#define  EBASE_CPU_BITS		10
 
 #ifdef __ASSEMBLER__
 
@@ -559,11 +618,22 @@ extern "C" {
 #define C0_TLBLO0	$2
 #define C0_ENTRYLO1	$3
 #define C0_TLBLO1	$3
+#define C0_GLOBAL	$3,1
 #define C0_CONTEXT	$4
 #define C0_CTXT		$4
+#define C0_CONTEXTCONF	$4,1
+#define C0_USERLOCAL	$4,2
+#define C0_XCONTEXTCONF	$4,3
 #define C0_PAGEMASK	$5
 #define C0_PAGEGRAIN	$5,1
+#define C0_SEGCTL0	$5,2
+#define C0_SEGCTL1	$5,3
+#define C0_SEGCTL2	$5,4
+#define C0_PWBASE	$5,5
+#define C0_PWFIELD	$5,6
+#define C0_PWSIZE	$5,7
 #define C0_WIRED	$6
+#define C0_PWCTL	$6,6
 #define C0_HWRENA	$7
 #define C0_BADVADDR 	$8
 #define C0_VADDR 	$8
@@ -580,18 +650,28 @@ extern "C" {
 #define C0_SRSMAP	$12,3
 #define C0_CAUSE	$13
 #define C0_CR		$13
+#define C0_NESTEDEXC	$13,5
 #define C0_EPC 		$14
+#define C0_NEPC		$14,2
 #define C0_PRID		$15
 #define C0_EBASE	$15,1
+#define C0_CDMMBASE	$15,2
+#define C0_CMGCRBASE	$15,3
 #define C0_CONFIG	$16
 #define C0_CONFIG0	$16,0
 #define C0_CONFIG1	$16,1
 #define C0_CONFIG2	$16,2
 #define C0_CONFIG3	$16,3
+#define C0_CONFIG4	$16,4
+#define C0_CONFIG5	$16,5
 #define C0_LLADDR	$17
+#define C0_MAAR		$17,1
+#define C0_MAARI	$17,2
 #define C0_WATCHLO	$18
 #define C0_WATCHHI	$19
+#define C0_XCONTEXT	$20
 #define C0_DEBUG	$23
+#define C0_DEBUG2	$23,6
 #define C0_DEPC		$24
 #define C0_PERFCNT	$25
 #define C0_ERRCTL	$26
@@ -605,9 +685,19 @@ extern "C" {
 #define C0_DDATALO	$28,3
 #define C0_DATALO2	$28,5
 #define C0_TAGHI	$29
+#define C0_ITAGHI	$29
+#define C0_DTAGHI	$29,2
 #define C0_DATAHI	$29,1
+#define C0_IDATAHI	$29,1
+#define C0_DDATAHI	$29,3
 #define C0_ERRPC	$30
 #define C0_DESAVE	$31
+#define C0_KSCRATCH1	$31,2
+#define C0_KSCRATCH2	$31,3
+#define C0_KSCRATCH3	$31,4
+#define C0_KSCRATCH4	$31,5
+#define C0_KSCRATCH5	$31,6
+#define C0_KSCRATCH6	$31,7
 
 $index		=	$0
 $random		=	$1
@@ -646,14 +736,14 @@ $desave		=	$31
 /*
  * Standard types
  */
-typedef unsigned long		reg32_t;	/* a 32-bit register */
+typedef unsigned int		reg32_t;	/* a 32-bit register */
 typedef unsigned long long	reg64_t;	/* a 64-bit register */
-#if __mips == 64 || __mips64
+#if _MIPS_SIM==_ABIO32
+typedef unsigned int		reg_t;
+typedef signed int		sreg_t;
+#else
 typedef unsigned long long	reg_t;
 typedef signed long long	sreg_t;
-#else
-typedef unsigned long		reg_t;
-typedef signed long		sreg_t;
 #endif
 
 /* 
@@ -667,36 +757,86 @@ typedef signed long		sreg_t;
 #define C0_TLBLO0	2
 #define C0_ENTRYLO1	3
 #define C0_TLBLO1	3
+#define C0_GLOBAL	3,1
 #define C0_CONTEXT	4
 #define C0_CTXT		4
+#define C0_CONTEXTCONF	4,1
+#define C0_USERLOCAL	4,2
+#define C0_XCONTEXTCONF	4,3
 #define C0_PAGEMASK	5
+#define C0_PAGEGRAIN	5,1
+#define C0_SEGCTL0	5,2
+#define C0_SEGCTL1	5,3
+#define C0_SEGCTL2	5,4
+#define C0_PWBASE	5,5
+#define C0_PWFIELD	5,6
+#define C0_PWSIZE	5,7
 #define C0_WIRED	6
+#define C0_PWCTL	6,6
 #define C0_HWRENA	7
 #define C0_BADVADDR 	8
 #define C0_VADDR 	8
+#define C0_BADINSTR 	8,1
+#define C0_BADINSTRP 	8,2
 #define C0_COUNT 	9
 #define C0_ENTRYHI	10
 #define C0_TLBHI	10
 #define C0_COMPARE	11
 #define C0_STATUS	12
 #define C0_SR		12
+#define C0_INTCTL	12,1
+#define C0_SRSCTL	12,2
+#define C0_SRSMAP	12,3
 #define C0_CAUSE	13
 #define C0_CR		13
+#define C0_NESTEDEXC	13,5
 #define C0_EPC 		14
+#define C0_NEPC		14,2
 #define C0_PRID		15
+#define C0_EBASE	15,1
+#define C0_CDMMBASE	15,2
+#define C0_CMGCRBASE	15,3
 #define C0_CONFIG	16
+#define C0_CONFIG0	16
+#define C0_CONFIG1	16,1
+#define C0_CONFIG2	16,2
+#define C0_CONFIG3	16,3
+#define C0_CONFIG4	16,4
+#define C0_CONFIG5	16,5
 #define C0_LLADDR	17
+#define C0_MAAR		17,1
+#define C0_MAARI      	17,2
 #define C0_WATCHLO	18
 #define C0_WATCHHI	19
+#define C0_XCONTEXT	20
 #define C0_DEBUG	23
+#define C0_DEBUG2	23,6
 #define C0_DEPC		24
 #define C0_PERFCNT	25
 #define C0_ERRCTL	26
 #define C0_CACHEERR	27
 #define C0_TAGLO	28
+#define C0_ITAGLO	28
+#define C0_DTAGLO	28,2
+#define C0_TAGLO2	28,4
+#define C0_DATALO	28,1
+#define C0_IDATALO	28,1
+#define C0_DDATALO	28,3
+#define C0_DATALO2	28,5
 #define C0_TAGHI	29
+#define C0_ITAGHI	29
+#define C0_DTAGHI	29,2
+#define C0_DATAHI	29,1
+#define C0_IDATAHI	29,1
+#define C0_DDATAHI	29,3
 #define C0_ERRPC	30
 #define C0_DESAVE	31
+#define C0_KSCRATCH1	31,2
+#define C0_KSCRATCH2	31,3
+#define C0_KSCRATCH3	31,4
+#define C0_KSCRATCH4	31,5
+#define C0_KSCRATCH5	31,6
+#define C0_KSCRATCH6	31,7
 
 # define _mips_sync() __asm__ __volatile__ ("sync" : : : "memory")
 
@@ -756,10 +896,12 @@ __extension__ ({ \
 #define mips32_bisconfig0(set)	_mips_bsc0(C0_CONFIG,set)
 #define mips32_bcsconfig0(c,s)	_mips_bcsc0(C0_CONFIG,c,s)
 
-/* MIPS32 Config1, 2 & 3 register */
+/* MIPS32 Config1, 2, 3, 4, 5 register */
 #define mips32_getconfig1()	_m32c0_mfc0(C0_CONFIG,1)
 #define mips32_getconfig2()	_m32c0_mfc0(C0_CONFIG,2)
 #define mips32_getconfig3()	_m32c0_mfc0(C0_CONFIG,3)
+#define mips32_getconfig4()	_m32c0_mfc0(C0_CONFIG,4)
+#define mips32_getconfig5()	_m32c0_mfc0(C0_CONFIG,5)
 
 /* MIPS32 WatchLo register */
 #define mips32_getwatchlo(sel)	 _mips_xxc0(C0_WATCHLO + (sel)*32, 0, 0)

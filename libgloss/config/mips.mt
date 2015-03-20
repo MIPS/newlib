@@ -63,8 +63,10 @@ uhi_write.o: $(srcdir)/uhi_write.c
 uhi_get_ram_range.o: $(srcdir)/uhi_get_ram_range.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_exception.o: $(srcdir)/uhi_exception.c
-	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_getargs.o: $(srcdir)/uhi_getargs.S
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+uhi_indirect.o: $(srcdir)/uhi_indirect.c
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
 yamon_read.o: $(srcdir)/yamon_read.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
@@ -77,16 +79,18 @@ yamon_close.o: $(srcdir)/yamon_close.c
 yamon_fstat.o: $(srcdir)/yamon_fstat.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 yamon_exception.o: $(srcdir)/yamon_exception.c
-	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
 link.o: $(srcdir)/link.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
-mips_excpt_handler.o: $(srcdir)/mips_excpt_handler.c $(srcdir)/excpt.h
+mips_excpt_handler.o: $(srcdir)/mips_excpt_handler.c
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -DVERBOSE_EXCEPTIONS=1 -O2 $(INCLUDES) -c $(CFLAGS) $<
+mips_excpt_handler_quiet.o: $(srcdir)/mips_excpt_handler.c
+	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
+mips_excpt_entry.o: $(srcdir)/mips_excpt_entry.S
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
-mips_excpt_entry.o: $(srcdir)/mips_excpt_entry.S $(srcdir)/excpt.h
+mips_excpt_register.o: $(srcdir)/mips_excpt_register.S
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
-mips_excpt_register.o: $(srcdir)/mips_excpt_register.S $(srcdir)/excpt.h
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
-mips_excpt_boot.o: $(srcdir)/mips_excpt_boot.S $(srcdir)/excpt.h
+mips_excpt_boot.o: $(srcdir)/mips_excpt_boot.S
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_isr.o: $(srcdir)/mips_excpt_isr.S
 	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<

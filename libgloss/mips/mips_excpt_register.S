@@ -28,7 +28,7 @@
 #include <mips/regdef.h>
 #include <mips/asm.h>
 #include <mips/cpu.h>
-#include "excpt.h"
+#include <mips/hal.h>
 
 # Used to support an alternate entry point that overlays the TLB refill
 # exception entry point.  This flag must be cleared before exceptions

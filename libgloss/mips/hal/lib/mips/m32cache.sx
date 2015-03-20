@@ -64,13 +64,13 @@ SLEAF(_size_cache)
 	mfc0	cfg,$config,1
 
 	# Get I-cache line size
-	and	tmp,cfg,CFG1_ILMASK
-	srl	tmp,CFG1_ILSHIFT
+	and	tmp,cfg,CFG1_IL_MASK
+	srl	tmp,CFG1_IL_SHIFT
 	beqz	tmp,8f		# No I-cache
 
 	# Get number of I-cache ways
-	and	iways,cfg,CFG1_IAMASK
-	srl	iways,CFG1_IASHIFT
+	and	iways,cfg,CFG1_IA_MASK
+	srl	iways,CFG1_IA_SHIFT
 	addu	iways,1
 	move	icachesize,iways
 
@@ -81,19 +81,19 @@ SLEAF(_size_cache)
 	sll	icachesize,tmp
 
 	# Get I-cache lines per way
-	and	tmp,cfg,CFG1_ISMASK
-	srl	tmp,CFG1_ISSHIFT
+	and	tmp,cfg,CFG1_IS_MASK
+	srl	tmp,CFG1_IS_SHIFT
 	addu	tmp,6
 	sll	icachesize,tmp
 
 8:	# No I-cache, check for D-cache
-	and	tmp,cfg,CFG1_DLMASK
-	srl	tmp,CFG1_DLSHIFT
+	and	tmp,cfg,CFG1_DL_MASK
+	srl	tmp,CFG1_DL_SHIFT
 	beqz	tmp,8f		# No D-cache
 
 	# Get number of dcache ways
-	and	dways,cfg,CFG1_DAMASK
-	srl	dways,CFG1_DASHIFT
+	and	dways,cfg,CFG1_DA_MASK
+	srl	dways,CFG1_DA_SHIFT
 	addu	dways,1
 	move	dcachesize,dways
 
@@ -104,8 +104,8 @@ SLEAF(_size_cache)
 	sll	dcachesize,tmp
 
 	# Get dcache lines per way
-	and	tmp,cfg,CFG1_DSMASK
-	srl	tmp,CFG1_DSSHIFT
+	and	tmp,cfg,CFG1_DS_MASK
+	srl	tmp,CFG1_DS_SHIFT
 	addu	tmp,6
 	sll	dcachesize,tmp
 
@@ -118,14 +118,14 @@ SLEAF(_size_cache)
 	mfc0	cfg,$config,2
 
 	/* get scache line size (log2) */
-	and	tmp,cfg,CFG2_SLMASK
-	srl	tmp,CFG2_SLSHIFT
+	and	tmp,cfg,CFG2_SL_MASK
+	srl	tmp,CFG2_SL_SHIFT
 	beqz	tmp,1f		# no s-cache
 	addu	tmp,1
 
 	/* get number of scache ways */
-	and	sways,cfg,CFG2_SAMASK
-	srl	sways,CFG2_SASHIFT
+	and	sways,cfg,CFG2_SA_MASK
+	srl	sways,CFG2_SA_SHIFT
 	addu	sways,1
 	move	scachesize,sways
 
@@ -135,8 +135,8 @@ SLEAF(_size_cache)
 	sll	scachesize,tmp
 
 	/* get scache lines per way */
-	and	tmp,cfg,CFG2_SSMASK
-	srl	tmp,CFG2_SSSHIFT
+	and	tmp,cfg,CFG2_SS_MASK
+	srl	tmp,CFG2_SS_SHIFT
 	addu	tmp,6
 	sll	scachesize,tmp
 
@@ -148,12 +148,11 @@ SLEAF(_size_cache)
 	# Check if Coherency Manager memory-mapped 
 	# Global Configuration Register Space is implemented.
 	mfc0	tmp,$config,3
-	and	tmp,CFG3_CMGCRMASK
-	srl	tmp,CFG3_CMGCRSHIFT
+	ext	tmp,tmp,CFG3_CMGCR_SHIFT,1
 	beqz	tmp,9f		# Return if not implemented
 
 	# Read CMGCRBase to find CMGCR_BASE_ADDR
-	PTR_MFC0 tmp,CMGCRBase
+	PTR_MFC0 tmp,C0_CMGCRBASE
 	sll	tmp,4
 	lui	tmp2,0xb000	# Make it virtual
 	or	tmp,tmp2

@@ -33,7 +33,7 @@
 #include <string.h>
 #include <mips/cpu.h>
 #include <mips/fpa.h>
-#include "excpt.h"
+#include <mips/hal.h>
 #include "uhi_syscalls.h"
 
 int __get_startup_BEV (void) __attribute__((weak));
@@ -44,40 +44,12 @@ int32_t __uhi_exception (struct gpctx *);
 extern char __use_excpt_boot[];
 extern char __attribute__((weak)) __flush_to_zero[];
 
-/* Handle syscall exception.  */
-int
-__excpt_uhi_sdbbp (struct gpctx *ctx)
-{
-  register regtype arg1 asm ("$4") = ctx->a[0];
-  register regtype arg2 asm ("$5") = ctx->a[1];
-  register regtype arg3 asm ("$6") = ctx->a[2];
-  register regtype arg4 asm ("$7") = ctx->a[3];
-  register regtype op asm ("$25") = ctx->t2[1];
-  register regtype ret1 asm ("$2") = 1;
-  register regtype ret2 asm ("$3");
-
-  __asm__ __volatile__(" # UHI indirect\n"
-		       "\tsdbbp 1"
-		       : "+r" (ret1), "=r" (ret2), "+r" (arg1), "+r" (arg2)
-		       : "r" (arg3), "r" (arg4), "r" (op));
-
-  ctx->v[0] = ret1;
-  ctx->v[1] = ret2;
-  ctx->a[0] = arg1;
-  ctx->a[1] = arg2;
-  /* Handled, move on.  SYSCALL is 4-bytes in all ISAs.  */
-  ctx->epc += 4;
-
-  return 1; /* exception handled */
-}
-
-#define WRITE(MSG) write (1, (MSG), strlen (MSG))
-
+#ifdef VERBOSE_EXCEPTIONS
 /*
  * Write a string, a formatted number, then a string.
  */
 static void
-putsnds (const char *pre, regtype value, int digits, const char *post)
+putsnds (const char *pre, reg_t value, int digits, const char *post)
 {
   char buf[digits];
   int shift;
@@ -95,14 +67,33 @@ putsnds (const char *pre, regtype value, int digits, const char *post)
 }
 
 static void
-putsns (const char *pre, regtype value, const char *post)
+putsns (const char *pre, reg_t value, const char *post)
 {
-  putsnds (pre, value, sizeof (regtype) * 2, post);
+  putsnds (pre, value, sizeof (reg_t) * 2, post);
 }
 
+# define WRITE(MSG) write (1, (MSG), strlen (MSG))
+# define PUTSNDS(PRE, VALUE, DIGITS, POST) \
+    putsnds ((PRE), (VALUE), (DIGITS), (POST))
+# define PUTSNS(PRE, VALUE, POST) \
+    putsns ((PRE), (VALUE), (POST))
+
+#else
+
+# define WRITE(MSG)
+# define PUTSNDS(PRE, VALUE, DIGITS, POST)
+# define PUTSNS(PRE, VALUE, POST)
+
+#endif // !VERBOSE_EXCEPTIONS
+
 /* Handle an exception */
+#ifdef VERBOSE_EXCEPTIONS
 void
-__exception_handle (struct gpctx *ctx, int exception)
+__exception_handle_verbose (struct gpctx *ctx, int exception)
+#else
+void
+__exception_handle_quiet (struct gpctx *ctx, int exception)
+#endif
 {
   switch (exception)
     {
@@ -110,20 +101,20 @@ __exception_handle (struct gpctx *ctx, int exception)
       WRITE ("TLB modification exception\n");
       break;
     case EXC_TLBL:
-      putsns ("TLB error on load from 0x", ctx->badvaddr, NULL);
-      putsns (" @0x", ctx->epc, "\n");
+      PUTSNS ("TLB error on load from 0x", ctx->badvaddr, NULL);
+      PUTSNS (" @0x", ctx->epc, "\n");
       break;
     case EXC_TLBS:
-      putsns ("TLB error on store to 0x", ctx->badvaddr, NULL);
-      putsns (" @0x", ctx->epc, "\n");
+      PUTSNS ("TLB error on store to 0x", ctx->badvaddr, NULL);
+      PUTSNS (" @0x", ctx->epc, "\n");
       break;
     case EXC_ADEL:
-      putsns ("Address error on load from 0x", ctx->badvaddr, NULL);
-      putsns (" @0x", ctx->epc, "\n");
+      PUTSNS ("Address error on load from 0x", ctx->badvaddr, NULL);
+      PUTSNS (" @0x", ctx->epc, "\n");
       break;
     case EXC_ADES:
-      putsns ("Address error on store to 0x", ctx->badvaddr, NULL);
-      putsns (" @0x", ctx->epc, "\n");
+      PUTSNS ("Address error on store to 0x", ctx->badvaddr, NULL);
+      PUTSNS (" @0x", ctx->epc, "\n");
       break;
     case EXC_IBE:
       WRITE ("Instruction bus error\n");
@@ -133,7 +124,7 @@ __exception_handle (struct gpctx *ctx, int exception)
       break;
     case EXC_SYS:
       /* Process a UHI SYSCALL, all other SYSCALLs should have been processed
-         by our caller.  __use_excpt_boot has following values:
+	 by our caller.  __use_excpt_boot has following values:
 	 0 = Do not use exception handler present in boot.
 	 1 = Use exception handler present in boot if BEV
 	     is 0 at startup.
@@ -144,19 +135,19 @@ __exception_handle (struct gpctx *ctx, int exception)
 	       && __get_startup_BEV
 	       && __get_startup_BEV () == 0))
 	  && __chain_uhi_excpt)
-        /* This will not return.  */
-        __chain_uhi_excpt (ctx);
+	/* This will not return.  */
+	__chain_uhi_excpt (ctx);
       else
-        __excpt_uhi_sdbbp (ctx);
+	__uhi_indirect (ctx);
       return;
     case EXC_BP:
-      putsns ("Breakpoint @0x", ctx->epc, "\n");
+      PUTSNS ("Breakpoint @0x", ctx->epc, "\n");
       break;
     case EXC_RI:
-      putsns ("Illegal instruction @0x", ctx->epc, "\n");
+      PUTSNS ("Illegal instruction @0x", ctx->epc, "\n");
       break;
     case EXC_CPU:
-      putsns ("Coprocessor unusable @0x", ctx->epc, "\n");
+      PUTSNS ("Coprocessor unusable @0x", ctx->epc, "\n");
       break;
     case EXC_OVF:
       WRITE ("Overflow\n");
@@ -165,20 +156,30 @@ __exception_handle (struct gpctx *ctx, int exception)
       WRITE ("Trap\n");
       break;
     case EXC_MSAFPE:
+      if (__flush_to_zero
+	  && (msa_getsr () & FPA_CSR_UNI_X)
+	  && (msa_getsr () & FPA_CSR_FS) == 0)
+	{
+	  unsigned int sr = msa_getsr ();
+	  sr &= ~FPA_CSR_UNI_X;
+	  sr |= FPA_CSR_FS;
+	  msa_setsr (sr);
+	  return;
+	}
       WRITE ("MSA Floating point error\n");
       break;
     case EXC_FPE:
       /* Turn on flush to zero the first time we hit an unimplemented
-         operation.  If we hit it again then stop.  */
-      WRITE ("Floating point error\n");
+	 operation.  If we hit it again then stop.  */
       if (__flush_to_zero
 	  && (fpa_getsr () & FPA_CSR_UNI_X)
 	  && (fpa_getsr () & FPA_CSR_FS) == 0)
 	{
-	  fpa_bissr (FPA_CSR_FS);
+	  unsigned int sr = fpa_getsr ();
+	  sr &= ~FPA_CSR_UNI_X;
+	  sr |= FPA_CSR_FS;
+	  fpa_setsr (sr);
 
-	  if (msaen)
-	    msacr(fs)
 	  return;
 	}
       WRITE ("Floating point error\n");
@@ -192,20 +193,20 @@ __exception_handle (struct gpctx *ctx, int exception)
     case EXC_C2E:
       WRITE ("Precise Coprocessor 2 exception\n");
       break;
-    case EXC_RES19:
+    case EXC_TLBRI:
       WRITE ("TLB read inhibit exception\n");
       break;
-    case EXC_RES20:
+    case EXC_TLBXI:
       WRITE ("TLB execute inhibit exception\n");
       break;
     case EXC_MSAU:
-      putsns ("MSA unusable @0x", ctx->epc, "\n");
+      PUTSNS ("MSA unusable @0x", ctx->epc, "\n");
       break;
     case EXC_MDMX:
-      putsns ("MDMX exception @0x", ctx->epc, "\n");
+      PUTSNS ("MDMX exception @0x", ctx->epc, "\n");
       break;
     case EXC_WATCH:
-      putsns ("Watchpoint @0x", ctx->epc, "\n");
+      PUTSNS ("Watchpoint @0x", ctx->epc, "\n");
       break;
     case EXC_MCHECK:
       WRITE ("Machine check error\n");
@@ -220,73 +221,63 @@ __exception_handle (struct gpctx *ctx, int exception)
       WRITE ("Cache error\n");
       break;
     default:
-      putsns ("Unhandled exception ", exception, "\n");
+      PUTSNS ("Unhandled exception ", exception, "\n");
     }
 
   /* Dump registers */
-  putsns (" 0:\t", 0, "\t");
-  putsns ("at:\t", ctx->at, "\t");
-  putsns ("v0:\t", ctx->v[0], "\t");
-  putsns ("v1:\t", ctx->v[1], "\n");
+  PUTSNS (" 0:\t", 0, "\t");
+  PUTSNS ("at:\t", ctx->at, "\t");
+  PUTSNS ("v0:\t", ctx->v[0], "\t");
+  PUTSNS ("v1:\t", ctx->v[1], "\n");
 
-  putsns ("a0:\t", ctx->a[0], "\t");
-  putsns ("a1:\t", ctx->a[1], "\t");
-  putsns ("a2:\t", ctx->a[2], "\t");
-  putsns ("a3:\t", ctx->a[3], "\n");
+  PUTSNS ("a0:\t", ctx->a[0], "\t");
+  PUTSNS ("a1:\t", ctx->a[1], "\t");
+  PUTSNS ("a2:\t", ctx->a[2], "\t");
+  PUTSNS ("a3:\t", ctx->a[3], "\n");
 
-  putsns ("t0:\t", ctx->t[0], "\t");
-  putsns ("t1:\t", ctx->t[1], "\t");
-  putsns ("t2:\t", ctx->t[2], "\t");
-  putsns ("t3:\t", ctx->t[3], "\n");
+  PUTSNS ("t0:\t", ctx->t[0], "\t");
+  PUTSNS ("t1:\t", ctx->t[1], "\t");
+  PUTSNS ("t2:\t", ctx->t[2], "\t");
+  PUTSNS ("t3:\t", ctx->t[3], "\n");
 
-  putsns ("t4:\t", ctx->t[4], "\t");
-  putsns ("t5:\t", ctx->t[5], "\t");
-  putsns ("t6:\t", ctx->t[6], "\t");
-  putsns ("t7:\t", ctx->t[7], "\n");
+  PUTSNS ("t4:\t", ctx->t[4], "\t");
+  PUTSNS ("t5:\t", ctx->t[5], "\t");
+  PUTSNS ("t6:\t", ctx->t[6], "\t");
+  PUTSNS ("t7:\t", ctx->t[7], "\n");
 
-  putsns ("s0:\t", ctx->s[0], "\t");
-  putsns ("s1:\t", ctx->s[1], "\t");
-  putsns ("s2:\t", ctx->s[2], "\t");
-  putsns ("s3:\t", ctx->s[3], "\n");
+  PUTSNS ("s0:\t", ctx->s[0], "\t");
+  PUTSNS ("s1:\t", ctx->s[1], "\t");
+  PUTSNS ("s2:\t", ctx->s[2], "\t");
+  PUTSNS ("s3:\t", ctx->s[3], "\n");
 
-  putsns ("s4:\t", ctx->s[4], "\t");
-  putsns ("s5:\t", ctx->s[5], "\t");
-  putsns ("s6:\t", ctx->s[6], "\t");
-  putsns ("s7:\t", ctx->s[7], "\n");
+  PUTSNS ("s4:\t", ctx->s[4], "\t");
+  PUTSNS ("s5:\t", ctx->s[5], "\t");
+  PUTSNS ("s6:\t", ctx->s[6], "\t");
+  PUTSNS ("s7:\t", ctx->s[7], "\n");
 
-  putsns ("t8:\t", ctx->t2[0], "\t");
-  putsns ("t9:\t", ctx->t2[1], "\t");
-  putsns ("k0:\t", ctx->k[0], "\t");
-  putsns ("k1:\t", ctx->k[1], "\n");
+  PUTSNS ("t8:\t", ctx->t2[0], "\t");
+  PUTSNS ("t9:\t", ctx->t2[1], "\t");
+  PUTSNS ("k0:\t", ctx->k[0], "\t");
+  PUTSNS ("k1:\t", ctx->k[1], "\n");
 
-  putsns ("gp:\t", ctx->gp, "\t");
-  putsns ("sp:\t", ctx->sp, "\t");
-  putsns ("fp:\t", ctx->fp, "\t");
-  putsns ("ra:\t", ctx->ra, "\n");
+  PUTSNS ("gp:\t", ctx->gp, "\t");
+  PUTSNS ("sp:\t", ctx->sp, "\t");
+  PUTSNS ("fp:\t", ctx->fp, "\t");
+  PUTSNS ("ra:\t", ctx->ra, "\n");
 
 #if __mips_isa_rev < 6
-  putsns ("hi:\t", ctx->hi, "\t");
-  putsns ("lo:\t", ctx->lo, "\n");
+  PUTSNS ("hi:\t", ctx->hi, "\t");
+  PUTSNS ("lo:\t", ctx->lo, "\n");
 #endif
 
-  putsns ("epc:     \t", ctx->epc, "\n");
-  putsns ("BadVAddr:\t", ctx->badvaddr, "\n");
+  PUTSNS ("epc:     \t", ctx->epc, "\n");
+  PUTSNS ("BadVAddr:\t", ctx->badvaddr, "\n");
 
-  putsnds ("Status:   \t", ctx->status, 8, "\n");
-  putsnds ("Cause:    \t", ctx->cause, 8, "\n");
-  putsnds ("BadInstr: \t", ctx->badinstr, 8, "\n");
-  putsnds ("BadPInstr:\t", ctx->badpinstr, 8, "\n");
+  PUTSNDS ("Status:   \t", ctx->status, 8, "\n");
+  PUTSNDS ("Cause:    \t", ctx->cause, 8, "\n");
+  PUTSNDS ("BadInstr: \t", ctx->badinstr, 8, "\n");
+  PUTSNDS ("BadPInstr:\t", ctx->badpinstr, 8, "\n");
 
   /* Raise UHI exception which may or may not return.  */
   __uhi_exception (ctx);
-
-  /* Temporary until __uhi_exception is handled correctly in all
-     environments.  */
-  _exit (2);
 }
-
-/* Provide _mips_handle_exception allowing a user to intercept and then fall
-   back to __exception_handle.  */
-
-int _mips_handle_exception (struct gpctx *, int)
-    __attribute__ ((weak, alias ("__exception_handle")));
