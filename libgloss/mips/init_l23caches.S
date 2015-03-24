@@ -119,7 +119,7 @@ l3_config2:
     // Isolate L3$ Associativity
     // L3$ Assoc (-1)
     ext	    v1, v0, CFG2_TA_SHIFT, CFG2_TA_BITS
-    add	    v1, 1			// Decode L3 associativity (number of sets)
+    addiu   v1, 1			// Decode L3 associativity (number of sets)
     mul	    a0, a0, v1			// Compute total number of sets
 
 l3cache_init:
@@ -132,7 +132,7 @@ l3cache_init:
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
 next_L3cache_tag:
     cache   0xA, 0(a2)			// TCIndexStTag
-    add	    a0, -1			// Decrement set counter
+    addiu   a0, -1			// Decrement set counter
     add	    a2, a1			// Get next line address
     bne	    a0, zero, next_L3cache_tag
 
