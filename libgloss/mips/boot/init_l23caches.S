@@ -92,7 +92,7 @@ l2cache_init:
     // L2$ Index Store Tag Cache Op
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
 next_L2cache_tag:
-    cache   0xB, 0(a2)			// Write Tag using index store tag
+    cache   Index_Store_Tag_S, 0(a2)	// Write Tag using index store tag
     addiu   a0, -1			// Decrement set counter
     addu    a2, a1			// Get next line address
     bne	    a0, zero, next_L2cache_tag 	// Done yet?
@@ -128,7 +128,7 @@ l3cache_init:
     // L3$ Index Store Tag Cache Op
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
 next_L3cache_tag:
-    cache   0xA, 0(a2)			// TCIndexStTag
+    cache   Index_Store_Tag_T, 0(a2)	// TCIndexStTag
     addiu   a0, -1			// Decrement set counter
     add	    a2, a1			// Get next line address
     bne	    a0, zero, next_L3cache_tag

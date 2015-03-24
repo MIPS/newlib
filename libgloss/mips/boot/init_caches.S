@@ -98,8 +98,8 @@ $Lnext_icache_tag:
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
     addu  CURR_ADDR1, LINE_SIZE			  // Get next line address
     addu  CURR_ADDR2, LINE_SIZE			  // Get next line address
-    cache 0x8, 0(CURR_ADDR1)			  // ICIndexStTag
-    cache 0x8, 0(CURR_ADDR2)			  // ICIndexStTag
+    cache Index_Store_Tag_I, 0(CURR_ADDR1)	  // ICIndexStTag
+    cache Index_Store_Tag_I, 0(CURR_ADDR2)	  // ICIndexStTag
     bne	  CURR_ADDR1, END_ADDR, $Lnext_icache_tag // Done yet?
 
 $Ldone_icache:
@@ -154,8 +154,8 @@ $Lnext_dcache_tag:
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
     addu  CURR_ADDR1, LINE_SIZE			  // Get next line address
     addu  CURR_ADDR2, LINE_SIZE			  // Get next line address
-    cache Index_Store_Tag_D, 0(CURR_ADDR1)			  // DCIndexStTag
-    cache Index_Store_Tag_D, 0(CURR_ADDR2)			  // DCIndexStTag
+    cache Index_Store_Tag_D, 0(CURR_ADDR1)	  // DCIndexStTag
+    cache Index_Store_Tag_D, 0(CURR_ADDR2)	  // DCIndexStTag
     bne	  CURR_ADDR1, END_ADDR, $Lnext_dcache_tag // Done yet?
 
 $Ldone_dcache:
