@@ -258,7 +258,7 @@ LEAF(m32_init_cache)
 	#
 
 	# Read CMGCRBase to find CMGCR_BASE_ADDR
-	PTR_MFC0 tmp,CMGCRBase
+	PTR_MFC0 tmp,C0_CMGCRBASE
 	sll	tmp,4
 	lui	tmp1,0xb000	# Make it virtual
 	or	tmp,tmp1
