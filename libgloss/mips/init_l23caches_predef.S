@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mips/cpu.h>
 #include <mips/asm.h>
 
-#ifndef C0_CONFIG1_VALUE
+#ifndef C0_CONFIG2_VALUE
 #error "Static cache initialisation decisions require C0_CONFIG2_VALUE"
 #endif
 
@@ -105,7 +105,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /**************************************************************************************
-* init_scache invalidates all secondary data cache entries
+* init_l23cache invalidates all secondary/tertiary data cache entries
 **************************************************************************************/
 
 #if SLINE_ENC != 0
