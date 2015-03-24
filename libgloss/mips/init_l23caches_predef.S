@@ -39,14 +39,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mips/cpu.h>
 #include <mips/asm.h>
 
+<<<<<<< HEAD
 #ifndef C0_CONFIG2_VALUE
+=======
+#ifndef C0_CONFIG2_VALUE
+>>>>>>> Fix for non-compiling init_l23caches.S, predefined version
 #error "Static cache initialisation decisions require C0_CONFIG2_VALUE"
 #endif
 
 #define TLINE_ENC     ((C0_CONFIG2_VALUE >> CFG2_TL_SHIFT) & CFG2_TL_BITS)
 #define TLINE_SIZE    (2 << TLINE_ENC)
 #define TSET_ENC      ((C0_CONFIG2_VALUE >> CFG2_TS_SHIFT) & CFG2_TS_BITS)
+<<<<<<< HEAD
 #define TSET_SIZE     (64 << TSET_ENC)
+=======
+#define TSET_SIZE     (64 << TSET_ENC)
+>>>>>>> Fix for non-compiling init_l23caches.S, predefined version
 #define TASSOC_ENC    ((C0_CONFIG2_VALUE >> CFG2_TA_SHIFT) & CFG2_TA_BITS)
 #define TASSOC	      (TASSOC_ENC + 1)
 #define TTOTAL_BYTES  (TLINE_SIZE * TSET_SIZE * TASSOC)
@@ -54,7 +62,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SLINE_ENC     ((C0_CONFIG2_VALUE >> CFG2_SL_SHIFT) & CFG2_SL_BITS)
 #define SLINE_SIZE    (2 << SLINE_ENC)
 #define SSET_ENC      ((C0_CONFIG2_VALUE >> CFG2_SS_SHIFT) & CFG2_SS_BITS)
+<<<<<<< HEAD
 #define SSET_SIZE     (64 << SSET_ENC)
+=======
+#define SSET_SIZE     (64 << SSET_ENC)
+>>>>>>> Fix for non-compiling init_l23caches.S, predefined version
 #define SASSOC_ENC    ((C0_CONFIG2_VALUE >> CFG2_SA_SHIFT) & CFG2_SA_BITS)
 #define SASSOC	      (SASSOC_ENC + 1)
 #define STOTAL_BYTES  (SLINE_SIZE * SSET_SIZE * SASSOC)
@@ -105,7 +117,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /**************************************************************************************
+<<<<<<< HEAD
 * __init_l23cache invalidates all secondary/tertiary data cache entries
+=======
+* __init_l23cache invalidates all secondary/tertiary data cache entries
+>>>>>>> Fix for non-compiling init_l23caches.S, predefined version
 **************************************************************************************/
 
 #if SLINE_ENC != 0
@@ -137,6 +153,9 @@ $Lnext_scache_tag:
     bne	  CURRENT_ADDR, END_ADDR, $Lnext_scache_tag	// Done yet?
 
 $Ldone_scache:
+<<<<<<< HEAD
+=======
+>>>>>>> Fix for non-compiling init_l23caches.S, predefined version
 
 #if TLINE_ENC != 0
 
@@ -149,7 +168,9 @@ $Ldone_scache:
 
     // Clear TagLo/TagHi registers
     mtc0    zero, C0_TAGLO, 4
-
+<<<<<<< HEAD
+=======
+>>>>>>> Fix for non-compiling init_l23caches.S, predefined version
     // Index Store Tag Cache Op
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
 $Lnext_tcache_tag:
@@ -167,9 +188,18 @@ $Lnext_tcache_tag:
     bne	  CURRENT_ADDR, END_ADDR, $Lnext_tcache_tag	// Done yet?
 
 $Ldone_tcache:
+<<<<<<< HEAD
 
 #endif // TLINE_ENC != 0
     jr	  ra
 END(__init_l23cache)
 
 #endif // SLINE_ENC != 0
+=======
+
+#endif // TLINE_ENC != 0
+    jr	  ra
+END(__init_l23cache)
+
+#endif // SLINE_ENC != 0
+>>>>>>> Fix for non-compiling init_l23caches.S, predefined version
