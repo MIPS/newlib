@@ -97,9 +97,9 @@ $Lnot_nmi:
     .weak __boot_init_hook
     lui	  a2, %hi(__boot_init_hook)
     addiu a2, a2, %lo(__boot_init_hook)
-    beqz  a0, $Lboot_hook_done
+    beqz  a2, 1f
     jalr  a2
-$Lboot_hook_done:
+1:
     # Copy code and data to RAM
     li    s1_all_ones, 0xffffffff
 

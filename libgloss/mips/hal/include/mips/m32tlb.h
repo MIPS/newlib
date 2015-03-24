@@ -14,9 +14,6 @@
 
 /*
  * m32tlb.h: MIPS32 TLB support functions
-
-
-	.set	nomips16
 */
 #if __mips != 32 && __mips != 64
 #error use -mips32 or -mips64 option with this file
