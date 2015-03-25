@@ -13,8 +13,13 @@
 
 
 /*
+<<<<<<< HEAD
  * m32tlb.h: MIPS32 TLB support functions
 
+=======
+ * m32tlb.h: MIPS32 TLB support functions 
+ 
+>>>>>>> Local updates to build mti (moved file from hal/lib
 
 	.set	nomips16
 */
