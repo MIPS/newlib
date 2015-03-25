@@ -39,63 +39,54 @@ LEAF(__isr_vec)
 	.set	noat
 AENT(__isr_vec_sw0)
 .weak   _mips_isr_sw0
-	li	k0, 0
 	LA	k1, _mips_isr_sw0
 	beqz	k1, 1f
 	jr	k1
 .org	VEC_SPACE
 AENT(__isr_vec_sw1)
 .weak   _mips_isr_sw1
-	li	k0, 1
 	LA	k1, _mips_isr_sw1
 	beqz	k1, 1f
 	jr	k1
 .org	2 * VEC_SPACE
 AENT(__isr_vec_hw0)
 .weak   _mips_isr_hw0
-	li	k0, 2
 	LA	k1, _mips_isr_hw0
 	beqz	k1, 1f
 	jr	k1
 .org	3 * VEC_SPACE
 AENT(__isr_vec_hw1)
 .weak   _mips_isr_hw1
-	li	k0, 3
 	LA	k1, _mips_isr_hw1
 	beqz	k1, 1f
 	jr	k1
 .org	4 * VEC_SPACE
 AENT(__isr_vec_hw2)
 .weak   _mips_isr_hw2
-	li	k0, 4
 	LA	k1, _mips_isr_hw2
 	beqz	k1, 1f
 	jr	k1
 .org	5 * VEC_SPACE
 AENT(__isr_vec_hw3)
 .weak   _mips_isr_hw3
-	li	k0, 5
 	LA	k1, _mips_isr_hw3
 	beqz	k1, 1f
 	jr	k1
 .org	6 * VEC_SPACE
 AENT(__isr_vec_hw4)
 .weak   _mips_isr_hw4
-	li	k0, 6
 	LA	k1, _mips_isr_hw4
 	beqz	k1, 1f
 	jr	k1
 .org	7 * VEC_SPACE
 AENT(__isr_vec_hw5)
 .weak   _mips_isr_hw5
-	li	k0, 7
 	LA	k1, _mips_isr_hw5
 	beqz	k1, 1f
 	jr	k1
 .org	8 * VEC_SPACE
 AENT(__isr_vec_fallback)
 .weak   _mips_interrupt
-	li      k0, -1
 1:
 	LA      k1, _mips_interrupt
 	beqz    k1, 1b
