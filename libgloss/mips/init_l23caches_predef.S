@@ -173,5 +173,3 @@ $Ldone_tcache:
 END(__init_l23cache)
 
 #endif // SLINE_ENC != 0
-
-
