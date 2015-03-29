@@ -91,15 +91,16 @@ WLEAF(__register_excpt_handler)
 	ehb
 
 	# Set up new empty status value
-	move $2, $0
+	move	$2, $0
 
 	# Set up vector spacing
 	LA	$9, __isr_vec_space
 
 	# Check for vectored interrupt support
-	li	$10, CFG3_VI
-	and	$10, $12, $10
-	# Skip vector spacing setup if not present
+	ext	$10, $12, CFG3_VI_SHIFT, 1
+	ext     $11, $12, CFG3_VEIC_SHIFT, 1
+	or	$10, $10, $11
+	# Skip vector spacing setup if neither VINT nor VEIC is present
 	beqz	$10, 1f
 
 	# Set vector spacing
@@ -116,6 +117,10 @@ WLEAF(__register_excpt_handler)
 	lui	$9, %hi(CR_IV)
 	mtc0	$9, C0_CAUSE
 	ehb
+
+	# Check for VEIC and do not enable interrupts if EIC is active
+	ext     $10, $12, CFG3_VEIC_SHIFT, 1
+	bnez	$10, 3f
 
 	# Enable interrupts in the new status value
 	ori	$2, $2, SR_IE

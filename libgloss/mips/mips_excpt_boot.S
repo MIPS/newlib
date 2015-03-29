@@ -34,7 +34,7 @@
 	.global	__start_ctx
 	.balign	SZREG
 __start_ctx:
-	.space	SZREG * 17
+	.space	SZREG * 18
 #define	start_ctx_sr	(SZREG * 0)
 #define	start_ctx_s0	(SZREG * 1)
 #define	start_ctx_s1	(SZREG * 2)
@@ -50,12 +50,13 @@ __start_ctx:
 #define	start_ctx_sp	(SZREG * 12)
 #define	start_ctx_fp	(SZREG * 13)
 #define	start_ctx_ra	(SZREG * 14)
-#define	start_ctx_ebase	(SZREG * 15)	/* saved EBASE */
-#define	chain_ebase	(SZREG * 16)	/* chained EBASE */
+#define	start_ctx_ictl	(SZREG * 15)
+#define	start_ctx_ebase	(SZREG * 16)	/* saved EBASE */
+#define	chain_ebase	(SZREG * 17)	/* chained EBASE */
 
 #if defined (__mips_micromips)
 	.space	SZREG
-#define	start_ctx_conf3	(SZREG * 17)	/* saved Config3 $16,3 for micromips */
+#define	start_ctx_conf3	(SZREG * 18)	/* saved Config3 $16,3 for micromips */
 #endif
 
 #
@@ -94,6 +95,8 @@ WLEAF(__register_excpt_boot)
 	# Save Config3
 	REG_S	$12, start_ctx_conf3($9)
 #endif
+	mfc0	$12, C0_INTCTL
+	REG_S	$12, start_ctx_ictl($9)
 
 	# Save C0_EBASE
 	PTR_MFC0 $10, C0_EBASE
@@ -128,7 +131,9 @@ WEND(__register_excpt_boot)
 WLEAF(__return_to_boot)
 	.set	push
 	.set	noat
-
+	# Disable interrupts for safety
+	di
+	ehb
 	# Set BEV=1 to allow changing EBASE
 	mfc0	$9, C0_SR
 	lui	$10, %hi(SR_BEV)
@@ -172,6 +177,9 @@ WLEAF(__return_to_boot)
 	REG_L	$2, start_ctx_conf3($9)
 	mtc0	$2, C0_CONFIG3
 #endif
+	# Restore IntCtl
+	REG_L	$2, start_ctx_ictl($9)
+	mtc0	$2, C0_INTCTL
 
 	REG_L	$9, start_ctx_sr($9)
 
