@@ -14,7 +14,11 @@ STARTUP(crt0.o)
 EXTERN(__register_excpt_handler)
 /* Force the exception handler to be included in the link */
 EXTERN(__exception_entry)
-/* Require verbose exceptions */
+/*
+ * Require verbose exceptions. This can be changed to pull in
+ * __exception_handle_quiet to reduce code size but be less
+ * informative
+ */
 EXTERN(__exception_handle_verbose)
 /* Force the interrupt handlers to tbe included in the link */
 EXTERN(__isr_vec)
@@ -22,8 +26,9 @@ EXTERN(__isr_vec)
 EXTERN(__getargs)
 
 /*
- * Allocate the stack to be at the top of memory, since the stack
- * grows down
+ * Set the location of the top of the stack.  A value of 0 means
+ * that it will be automatically placed at the highest address
+ * available as described by the __memory_* setttings
  */
 PROVIDE (__stack = 0);
 
@@ -35,12 +40,15 @@ PROVIDE (__memory_base = 0x80000000);
 
 /*
  * 0 = Do not use exception handler present in boot for UHI
- * 1 = Use exception handler present in boot for UHI if BEV is 0 at startup
+ * 1 = Use exception handler present in boot for UHI if BEV is 0 at
+ *     startup
  * 2 = Always use exception handler present in boot for UHI
-*/
+ */
 PROVIDE (__use_excpt_boot = 1);
-/* Include the code to be able to return to boot context.  This is necessary
-   if __use_excpt_boot != 0. */
+/*
+ * Include the code to be able to return to boot context.  This is
+ * necessary if __use_excpt_boot != 0.
+ */
 EXTERN (__register_excpt_boot);
 
 ASSERT (DEFINED(__register_excpt_boot) || __use_excpt_boot == 0,
@@ -78,7 +86,11 @@ PROVIDE (__isr_vec_space = 32);
 /* Leave space for 9 vector entries by default. 8 entry points and one
    fallback handler. */
 PROVIDE (__isr_vec_count = 9);
-/* Optional configuration for including boot code and a ROM. */
+/*
+ * The start of flash must be set if including boot code.  By default
+ * the use of boot code will mean that application code is copied
+ * from flash to RAM at runtime before being executed.
+ */
 PROVIDE (__flash_start = __app_start);
 
 SECTIONS
