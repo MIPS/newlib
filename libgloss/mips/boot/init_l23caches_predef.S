@@ -38,27 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>
-
-#ifndef C0_CONFIG2_VALUE
-#error "Static cache initialisation decisions require C0_CONFIG2_VALUE"
-#endif
-
-#define TLINE_ENC     ((C0_CONFIG2_VALUE >> CFG2_TL_SHIFT) & CFG2_TL_BITS)
-#define TLINE_SIZE    (2 << TLINE_ENC)
-#define TSET_ENC      ((C0_CONFIG2_VALUE >> CFG2_TS_SHIFT) & CFG2_TS_BITS)
-#define TSET_SIZE     (64 << (TSET_ENC & 0x7))
-#define TASSOC_ENC    ((C0_CONFIG2_VALUE >> CFG2_TA_SHIFT) & CFG2_TA_BITS)
-#define TASSOC	      (TASSOC_ENC + 1)
-#define TTOTAL_BYTES  (TLINE_SIZE * TSET_SIZE * TASSOC)
-
-#define SLINE_ENC     ((C0_CONFIG2_VALUE >> CFG2_SL_SHIFT) & CFG2_SL_BITS)
-#define SLINE_SIZE    (2 << SLINE_ENC)
-#define SSET_ENC      ((C0_CONFIG2_VALUE >> CFG2_SS_SHIFT) & CFG2_SS_BITS)
-#define SSET_SIZE     (64 << (SSET_ENC & 0x7))
-#define SASSOC_ENC    ((C0_CONFIG2_VALUE >> CFG2_SA_SHIFT) & CFG2_SA_BITS)
-#define SASSOC	      (SASSOC_ENC + 1)
-#define STOTAL_BYTES  (SLINE_SIZE * SSET_SIZE * SASSOC)
-
+#include "predef.h"
 
 // Depending on the range of the displacement field of the CACHE instruction
 // we can do multiple cacheops per interation.  With a cache present there
@@ -70,19 +50,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if __mips_isa_rev < 6
 // MicroMIPS Release 3 has a 12-bit displacement for CACHE
-# define TLINES_PER_ITER 8
 # define SLINES_PER_ITER 8
+# define TLINES_PER_ITER 8
 #else
 // MIPS Release 6 has a 9-bit signed displacement for CACHE
-#if TLINE_SIZE == 128
-# define TLINES_PER_ITER 4 // Requires use of both positive and negative disp
-#else
-# define TLINES_PER_ITER 8
-#endif
 #if SLINE_SIZE == 128
 # define SLINES_PER_ITER 4 // Requires use of both positive and negative disp
 #else
 # define SLINES_PER_ITER 8
+#endif
+#if TLINE_SIZE == 128
+# define TLINES_PER_ITER 4 // Requires use of both positive and negative disp
+#else
+# define TLINES_PER_ITER 8
 #endif
 #endif
 
@@ -91,10 +71,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // address for each set of cache lines so that the positive and negative
 // displacements from the CACHE ops can be used.
 
-#define TCACHE_START (0x80000000 - (TLINE_SIZE * TLINES_PER_ITER / 2))
-#define TCACHE_END (0x80000000 + TTOTAL_BYTES - (TLINE_SIZE * TLINES_PER_ITER / 2))
 #define SCACHE_START (0x80000000 - (SLINE_SIZE * SLINES_PER_ITER / 2))
 #define SCACHE_END (0x80000000 + STOTAL_BYTES - (SLINE_SIZE * SLINES_PER_ITER / 2))
+#define TCACHE_START (0x80000000 - (TLINE_SIZE * TLINES_PER_ITER / 2))
+#define TCACHE_END (0x80000000 + TTOTAL_BYTES - (TLINE_SIZE * TLINES_PER_ITER / 2))
 
 #define CURRENT_ADDR  a0
 #define END_ADDR      a1
@@ -103,12 +83,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
     .set    noat  // Don't allow the assembler to use r1(at) for synthetic instr.
 
-
 /**************************************************************************************
 * init_l23cache invalidates all secondary/tertiary data cache entries
 **************************************************************************************/
 
-#if SLINE_ENC != 0
+#if defined(SLINE_ENC) && SLINE_ENC != 0
 LEAF(__init_l23cache)
     // Use KSEG0 base address
     lui	  CURRENT_ADDR, %hi(SCACHE_START)
@@ -138,7 +117,7 @@ $Lnext_scache_tag:
 
 $Ldone_scache:
 
-#if TLINE_ENC != 0
+#if defined(TLINE_ENC) && TLINE_ENC != 0
 
     // Use KSEG0 base address
     lui	  CURRENT_ADDR, %hi(TCACHE_START)

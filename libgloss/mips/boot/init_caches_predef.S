@@ -38,25 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>
-
-#ifndef C0_CONFIG1_VALUE
-#error "Static cache initialisation decisions require C0_CONFIG1_VALUE"
-#endif
-
-#define ILINE_ENC     ((C0_CONFIG1_VALUE >> CFG1_ILSHIFT) & CFG1_IL_BITS)
-#define ILINE_SIZE    (2 << ILINE_ENC)
-#define ISET_ENC      ((C0_CONFIG1_VALUE >> CFG1_ISSHIFT) & CFG1_IS_BITS)
-#define ISET_SIZE     (32 << ((ISET_ENC + 1) & 0x7))
-#define IASSOC_ENC    ((C0_CONFIG1_VALUE >> CFG1_IASHIFT) & CFG1_IA_BITS)
-#define IASSOC	      (IASSOC_ENC + 1)
-#define ITOTAL_BYTES  (ILINE_SIZE * ISET_SIZE * IASSOC)
-#define DLINE_ENC     ((C0_CONFIG1_VALUE >> CFG1_DLSHIFT) & CFG1_DL_BITS)
-#define DLINE_SIZE    (2 << DLINE_ENC)
-#define DSET_ENC      ((C0_CONFIG1_VALUE >> CFG1_DSSHIFT) & CFG1_DS_BITS)
-#define DSET_SIZE     (32 << ((DSET_ENC + 1) & 0x7))
-#define DASSOC_ENC    ((C0_CONFIG1_VALUE >> CFG1_DASHIFT) & CFG1_DA_BITS)
-#define DASSOC	      (DASSOC_ENC + 1)
-#define DTOTAL_BYTES  (DLINE_SIZE * DSET_SIZE * DASSOC)
+#include "predef.h"
 
 // Depending on the range of the displacement field of the CACHE instruction
 // we can do multiple cacheops per interation.  With a cache present there
@@ -104,7 +86,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /**************************************************************************************
 * init_icache invalidates all data cache entries
 **************************************************************************************/
-#if ILINE_ENC != 0
+#if defined(ILINE_ENC) && ILINE_ENC != 0
 LEAF(__init_icache)
     // Use KSEG0 base address
     lui	  CURRENT_ADDR, %hi(ICACHE_START)
@@ -143,7 +125,7 @@ END(__init_icache)
 * init_dcache invalidates all data cache entries
 **************************************************************************************/
 
-#if DLINE_ENC != 0
+#if defined(DLINE_ENC) && DLINE_ENC != 0
 LEAF(__init_dcache)
     // Use KSEG0 base address
     lui	  CURRENT_ADDR, %hi(DCACHE_START)
