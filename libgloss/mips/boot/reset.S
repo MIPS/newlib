@@ -91,32 +91,48 @@ init_resources:
     jalr  a2
 1:
     # Copy code and data to RAM
-    jal  copy_c2_ram
+    li    s1_all_ones, 0xffffffff
+
+    # Copy code and read-only/initialized data from FLASH to (uncached) RAM.
+    lui   a1, %hi(__flash_app_start)
+    addiu a1, a1, %lo(__flash_app_start)
+    ins   a1, s1, 29, 1			# Make it uncached (kseg1)
+    lui   a2, %hi(__app_start)
+    addiu a2, a2, %lo(__app_start)
+    ins   a2, s1, 29, 1			# Make it uncached (kseg1)
+    lui   a3, %hi(_edata)
+    addiu a3, a3, %lo(_edata)
+    ins   a3, s1, 29, 1			# Make it uncached (kseg1)
+    beq   a2, a3, $Lcopy_to_ram_done
+$Lnext_ram_word:
+    lw    a0, 0(a1)
+    sw    a0, 0(a2)
+    addiu a2, 4
+    addiu a1, 4
+    bne   a3, a2, $Lnext_ram_word
+$Lcopy_to_ram_done:
 
     # Prepare for eret to _start
-    lui     ra, %hi($Lall_done)		# If main returns then go to all_done:.
-    addiu   ra, ra, %lo($Lall_done)
-    lui     v0, %hi(_start)		# Load the address of the _start entry piint
-    addiu   v0, v0, %lo(_start)
-    mtc0    v0, C0_ERRPC		# Write ErrorEPC with the address of _start
-    ehb					# Clear hazards (makes sure write to ErrorPC has completed)
-    li	    a0, 0			# UHI compliant null argument setup
+    lui   ra, %hi($Lall_done)		# If main returns then go to all_done.
+    addiu ra, ra, %lo($Lall_done)
+    lui   v0, %hi(_start)		# Load the address of _start
+    addiu v0, v0, %lo(_start)
+    mtc0  v0, C0_ERRPC			# Set ErrorEPC to _start
+    ehb					# Clear hazards (makes sure write to
+					# ErrorPC has completed)
+    li	  a0, 0				# UHI compliant null argument setup
 
     # Return from exception will now execute the application startup code
     eret
 
 $Lall_done:
-    # If main returns it will return to this point.  Just spin here.
+    # If _start returns it will return to this point.
+    # Just spin here reporting the exit.
+    move    $25, 1			# UHI exit operation
+    move    $4, v0			# Collect exit code for UHI exit
+    sdbbp   1				# Invoke UHI operation
     b       $Lall_done
-
 END(__cpu_init)
-
-# Inline the code fill the rest of
-# space between here and the next exception vector address.
-
-#ifdef C0_CONFIG1_VALUE
-#include "init_caches_predef.S"
-#endif
 
 /**************************************************************************************
     B O O T   E X C E P T I O N   H A N D L E R S (CP0 Status[BEV] = 1)
@@ -124,63 +140,46 @@ END(__cpu_init)
 /* NOTE: the linker script must insure that this code starts at start + 0x200 so the exception */
 /* vectors will be addressed properly. All .org assume this! */
 /* TLB refill, 32 bit task. */
+LEAF(__boot_tlb_refill)
 .org 0x200				# TLB refill, 32 bit task.
-    sdbbp				# This has the effect of starting the debugger
-    nop
+    move  k0, t9			# Preserve t9
+    move  k1, a0			# Preserve a0
+    li	  $25, 15			# UHI exception operation
+    li	  $4, 0				# Use hard register context
+    sdbbp 1				# Invoke UHI operation
+END(__boot_tlb_refill)
 
-#ifdef COPY_TO_RAM
-# define s1_all_ones     s1   /* at Will hold 0xffffffff to simplify bit insertion of 1's. */
-# define a0_temp_data    a0   /* a0 data to be moved */
-# define a1_temp_addr    a1   /* from address */
-# define a2_temp_dest    a2   /* to address */
-# define a3_temp_mark    a3   /* ending address */
+LEAF(__boot_xtlb_refill)
+.org 0x280				# XTLB refill, 64 bit task. BEV + 0x280
+    move  k0, t9			# Preserve t9
+    move  k1, a0			# Preserve a0
+    li	  $25, 15			# UHI exception operation
+    li	  $4, 0				# Use hard register context
+    sdbbp 1				# Invoke UHI operation
+END(__boot_xtlb_refill)
 
-LEAF(copy_c2_ram)
+LEAF(__boot_cache_error)
+.org 0x300				# Cache error exception. BEV + 0x300
+    move  k0, t9			# Preserve t9
+    move  k1, a0			# Preserve a0
+    li	  $25, 15			# UHI exception operation
+    li	  $4, 0				# Use hard register context
+    sdbbp 1				# Invoke UHI operation
+END(__boot_cache_error)
 
-    li      s1_all_ones, 0xffffffff
-
-    # Copy code and read-only/initialized data from FLASH to (uncached) RAM.
-    lui     a1_temp_addr, %hi(__flash_app_start)
-    addiu   a1_temp_addr, a1_temp_addr, %lo(__flash_app_start)
-    ins     a1_temp_addr, s1_all_ones, 29, 1
-    lui     a2_temp_dest, %hi(__app_start)
-    addiu   a2_temp_dest, a2_temp_dest, %lo(__app_start)
-    ins     a2_temp_dest, s1_all_ones, 29, 1
-    lui     a3_temp_mark, %hi(_edata)
-    addiu   a3_temp_mark, a3_temp_mark, %lo(_edata)
-    ins     a3_temp_mark, s1_all_ones, 29, 1
-    beq     a2_temp_dest, a3_temp_mark, $Lcopy_c2_ram_done
-$Lnext_ram_word:
-    lw      a0_temp_data, 0(a1_temp_addr)
-    sw      a0_temp_data, 0(a2_temp_dest)
-    addiu   a2_temp_dest, 4
-    addiu   a1_temp_addr, 4
-    bne     a3_temp_mark, a2_temp_dest, $Lnext_ram_word
-
-$Lcopy_c2_ram_done:
-    jr	  ra
-
-END(copy_c2_ram)
-#endif
-
-.org 0x280				# XTLB refill, 64 bit task. start + 0x280
-    sdbbp				# This has the effect of starting the debugger
-    nop
-
-#ifdef C0_CONFIG1_VALUE
-#include "init_cp0_predef.S"
-#endif
-
-.org 0x300				# Cache error exception. start + 0x300
-    sdbbp				# This has the effect of starting the debugger
-    nop
-
-.org 0x380
-1:
-    b	1b
+LEAF(__boot_general_exception)
+.org 0x380				# General exception. BEV + 0x380
+    move  k0, t9			# Preserve t9
+    move  k1, a0			# Preserve a0
+    li	  $25, 15			# UHI exception operation
+    li	  $4, 0				# Use hard register context
+    sdbbp 1				# Invoke UHI operation
+END(__boot_general_exception)
 
 # If you want the above code to fit into 1k flash you will need to leave out the
 # code below. This is the code that covers the debug exception which you normally will not get.
 
+LEAF(__boot_debug_exception)
 .org 0x480 				# EJTAG Debug (with ProbEn = 0 in the EJTAG Control Register)
 1:  b   1b  /* Stay here */
+END(__boot_debug_exception)

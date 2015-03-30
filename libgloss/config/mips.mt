@@ -31,7 +31,10 @@ write.o: ${srcdir}/../write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 get_ram_range.o: ${srcdir}/get_ram_range.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+link.o: $(srcdir)/link.c
+	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 
+# These are the UHI implementations of semi-hosting functions
 uhi_assert.o: $(srcdir)/uhi_assert.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_close.o: $(srcdir)/uhi_close.c
@@ -63,11 +66,14 @@ uhi_write.o: $(srcdir)/uhi_write.c
 uhi_get_ram_range.o: $(srcdir)/uhi_get_ram_range.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_exception.o: $(srcdir)/uhi_exception.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_getargs.o: $(srcdir)/uhi_getargs.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $?
 uhi_indirect.o: $(srcdir)/uhi_indirect.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $?
+
+# These are the YAMON specific versions of semi-hosting which fall
+# back to UHI for operations not supported natively on YAMON
 yamon_read.o: $(srcdir)/yamon_read.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 yamon_write.o: $(srcdir)/yamon_write.c
@@ -79,28 +85,30 @@ yamon_close.o: $(srcdir)/yamon_close.c
 yamon_fstat.o: $(srcdir)/yamon_fstat.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 yamon_exception.o: $(srcdir)/yamon_exception.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $?
-link.o: $(srcdir)/link.c
-	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $?
+
+# Exception and interrupt handling support
 mips_excpt_handler.o: $(srcdir)/mips_excpt_handler.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -DVERBOSE_EXCEPTIONS=1 -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -DVERBOSE_EXCEPTIONS=1 -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_handler_quiet.o: $(srcdir)/mips_excpt_handler.c
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
 mips_excpt_entry.o: $(srcdir)/mips_excpt_entry.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_register.o: $(srcdir)/mips_excpt_register.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_boot.o: $(srcdir)/mips_excpt_boot.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_isr.o: $(srcdir)/mips_excpt_isr.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
-reset.o: $(srcdir)/reset.S $(srcdir)/init_cp0_predef.S $(srcdir)/init_caches_predef.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
-init_cp0.o: $(srcdir)/init_cp0.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
-init_caches.o: $(srcdir)/init_caches.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
-init_l23caches.o: $(srcdir)/init_l23caches.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
-size_l23caches.o: $(srcdir)/size_l23caches.S
-	$(CC) $(CFLAGS_FOR_TARGET) -I ${srcdir}/hal/include -O2 $(INCLUDES) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
+
+# Boot code
+reset.o: $(srcdir)/boot/reset.S
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
+init_cp0.o: $(srcdir)/boot/init_cp0.S
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
+init_caches.o: $(srcdir)/boot/init_caches.S
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
+init_l23caches.o: $(srcdir)/boot/init_l23caches.S
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
+size_l23caches.o: $(srcdir)/boot/size_l23caches.S
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<

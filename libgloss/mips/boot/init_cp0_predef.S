@@ -38,10 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>
-
-#ifndef C0_CONFIG1_VALUE
-#error "Static cp0 initialisation decisions require C0_CONFIG1_VALUE"
-#endif
+#include "predef.h"
 
     .set  noat		// Don't allow the assembler to use r1(at) for synthetic instr.
 
