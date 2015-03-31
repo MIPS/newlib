@@ -94,6 +94,7 @@ WLEAF(__register_excpt_handler)
 	move	$2, $0
 
 	# Set up vector spacing
+.weak   __isr_vec_space
 	LA	$9, __isr_vec_space
 
 	# Check for vectored interrupt support

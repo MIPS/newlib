@@ -214,6 +214,7 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 
 	# Call the handler, indirect through t9 albeit not for any specific
 	# reason
+.weak   _mips_handle_exception
 	LA	t9, _mips_handle_exception
 	jr	t9
 	nop

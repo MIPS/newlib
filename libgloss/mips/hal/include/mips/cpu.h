@@ -35,6 +35,8 @@ extern "C" {
 #endif
 #endif /* SR_IMASK */
 
+#include <mips/notlb.h>
+
 #if defined(__STDC__) && !defined(__ASSEMBLER__)
 /*
  * Generic MIPS cache handling
