@@ -903,14 +903,6 @@ __extension__ ({ \
 #define mips32_getconfig4()	_m32c0_mfc0(C0_CONFIG,4)
 #define mips32_getconfig5()	_m32c0_mfc0(C0_CONFIG,5)
 
-/* MIPS32 WatchLo register */
-#define mips32_getwatchlo(sel)	 _mips_xxc0(C0_WATCHLO + (sel)*32, 0, 0)
-#define mips32_setwatchlo(sel,v) _mips_xxc0(C0_WATCHLO + (sel)*32, ~0, v)
-
-/* MIPS32 WatchHi register */
-#define mips32_getwatchhi(sel)	 _mips_xxc0(C0_WATCHHI + (sel)*32, 0, 0)
-#define mips32_setwatchhi(sel,v) _mips_xxc0(C0_WATCHHI + (sel)*32, ~0, v)
-
 /* MIPS32 Debug register */
 #define mips32_getdebug()	_mips_mfc0(C0_DEBUG)
 #define mips32_setdebug(v)	_mips_mtc0(C0_DEBUG,v)

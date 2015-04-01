@@ -4,7 +4,7 @@
 
 extern char _end[];
 
-/* FIXME: This is not ideal, since we do a get_mem_info() call for
+/* FIXME: This is not ideal, since we do a get_ram_range() call for
    every sbrk() call. */
 char *
 sbrk (int nbytes)

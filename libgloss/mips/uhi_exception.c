@@ -48,7 +48,7 @@
 */
 
 #include <stdint.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 #include <mips/hal.h>
 
 int32_t

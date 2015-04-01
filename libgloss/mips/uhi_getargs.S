@@ -33,7 +33,7 @@
 
 #include <mips/asm.h>
 #include <mips/regdef.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 	.text
 	.align  2

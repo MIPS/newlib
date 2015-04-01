@@ -53,7 +53,7 @@
 
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 int32_t close (int32_t fd)
 {

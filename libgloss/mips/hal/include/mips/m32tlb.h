@@ -22,6 +22,7 @@
 #include <mips/asm.h>
 #include <mips/regdef.h>
 #include <mips/m32c0.h>
+#include <mips/notlb.h>
 
 /*
  * Although this not an R4000 cpu, the TLB follows exactly the

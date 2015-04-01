@@ -46,7 +46,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include "yamon_syscalls.h"
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 __attribute__ ((weak)) void __exit (int32_t exit_code)
 {

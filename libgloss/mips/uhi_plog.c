@@ -55,7 +55,7 @@
 
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 int32_t
 __plog (int8_t *fmt, int32_t num)

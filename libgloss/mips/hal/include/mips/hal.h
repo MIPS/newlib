@@ -144,5 +144,8 @@ extern void __exception_handle (struct gpctx *ctx, int exception);
 /* Invoke a UHI operation via SDBBP using the provided context */
 int __uhi_indirect (struct gpctx *);
 
+/* Emergency exit, use it when unrecoverable errors occur */
+int __exit (int);
+
 #endif
 #endif

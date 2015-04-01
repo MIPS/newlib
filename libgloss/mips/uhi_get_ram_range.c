@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 #include "regs.S"
 
 extern char __attribute__((weak)) __memory_size[];
@@ -38,7 +38,7 @@ extern char __attribute__((weak)) __memory_base[];
 void
 _get_ram_range (void **ram_base, void **ram_extent)
 {
-  register int32_t op asm ("$25") = __MIPS_UHI_RAMINFO;
+  register int32_t op asm ("$25") = __MIPS_UHI_RAMRANGE;
   register void* r_base asm ("$2") = (void*)__MIPS_UHI_SYSCALL_NUM;
   register void* r_extent asm ("$3") = NULL;
 
@@ -51,9 +51,9 @@ _get_ram_range (void **ram_base, void **ram_extent)
       return;
     }
 
-  __asm__ __volatile__ (" # %0,%1 = raminfo() op=%2\n"
+  __asm__ __volatile__ (" # %0,%1 = ramrange() op=%2\n"
 			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-			: "=r" (r_base), "=r" (r_extent)
+			: "+r" (r_base), "=r" (r_extent)
 			: "r" (op)
 			: "$4", "$5");
 

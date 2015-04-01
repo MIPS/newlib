@@ -16,7 +16,7 @@
  * m32tlb_ops.sx: MIPS32 TLB support functions
  */
 
-#include "m32tlb.h"
+#include <mips/m32tlb.h>
 
 /*
  * void mips_tlbwi2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask,

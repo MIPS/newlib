@@ -58,7 +58,7 @@
 */
 
 #include <stdint.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 void
 __assert_func (const char *filename, int32_t line_num, const char *func,

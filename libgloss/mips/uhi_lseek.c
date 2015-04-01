@@ -50,7 +50,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 off_t
 lseek (int fd, off_t offset, int whence)
