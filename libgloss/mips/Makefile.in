@@ -86,12 +86,11 @@ UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
 
 YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
   yamon_fstat.o yamon_exception.o
-HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb.o \
-  m32tlb_ops.o mipscp0.o \
+HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb_ops.o \
   mips_excpt_entry.o mips_excpt_handler.o mips_excpt_handler_quiet.o \
   mips_excpt_register.o mips_excpt_boot.o mips_excpt_isr.o
-HALINCLUDE = $(srcdir)/hal/include
-BOOTOBJ = reset.o init_cp0.o init_caches.o init_l23caches.o size_l23caches.o
+HALINCLUDE = -I $(srcdir)/hal/include
+BOOTOBJ = reset.o init_cp0.o init_caches.o init_l23caches.o
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
@@ -183,21 +182,6 @@ libnullmon.a: $(NULLMONOBJS)
 test: $(OBJS) ${BSP} pmon-test idt-test cfe-test
 	@echo Done...
 
-cache.o: $(srcdir)/hal/lib/mips/cache.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) $(INCLUDES) -o $@ -c $<
-cache_ops.o: $(srcdir)/hal/lib/mips/cache_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) $(INCLUDES) -o $@ -c $<
-m32cache.o: $(srcdir)/hal/lib/mips/m32cache.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) $(INCLUDES) -o $@ -c $<
-m32cache_ops.o: $(srcdir)/hal/lib/mips/m32cache_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) $(INCLUDES) -o $@ -c $<
-m32tlb.o: $(srcdir)/hal/lib/mips/m32tlb.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) $(INCLUDES) -o $@ -c $<
-m32tlb_ops.o: $(srcdir)/hal/lib/mips/m32tlb_ops.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) $(INCLUDES) -o $@ -c $<
-mipscp0.o: $(srcdir)/hal/lib/mips/mipscp0.sx
-	$(CC) $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) $(INCLUDES) -o $@ -c $<
-
 dtor.o:  $(srcdir)/dtor.C
 	$(CC) $(CFLAGS_FOR_TARGET) $(INCLUDES) -o $@ -c $<
 dtor.x: dtor.o ${CRT0} ${srcdir}/pmon.ld Makefile libpmon.a
@@ -255,9 +239,13 @@ install:
 	@for header in ${srcdir}/hal/include/mips/*.h; do\
 	  $(INSTALL_DATA) $${header} $(DESTDIR)$(tooldir)/include/mips; \
 	done
-	mkdir -p $(DESTDIR)$(exec_prefix)/share/boot
-	@for header in ${srcdir}/boot/*.[hS] ; do\
-	  $(INSTALL_DATA) $${header} $(DESTDIR)$(exec_prefix)/share/boot/; \
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/boot
+	@for file in ${srcdir}/boot/*.[hS] ; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/boot/; \
+	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/hal
+	@for file in ${srcdir}/hal/lib/mips/*.[hSc] ${srcdir}/crt0.S; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/hal/; \
 	done
 
 info:

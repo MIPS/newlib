@@ -48,10 +48,15 @@ LEAF(__init_l23cache)
     mfc0    a3, C0_CONFIG5
     ext     a3, v0, CFG5_L2C_SHIFT, 1
     beqz    a3, l2_config2
-    // Must return total sets in a0 and line size in a1
-    jal	    _size_l2cache
-    beqz    a0, done_l2cache
-    b	    l2cache_init
+    // Report a failure as this code cannot cope with memory mapped L2 config
+    // UHI Boot Failure operation
+    li	    t9, 23
+    // Reason - L2 cache config
+    li	    a0, 1
+    // Trigger the UHI operation
+    sdbbp   1
+    // Return if the debugger corrects the failure
+    jr	    ra
 
 l2_config2:
     // Check L2 cache size
@@ -93,14 +98,6 @@ next_L2cache_tag:
     bne	    a0, zero, next_L2cache_tag 	// Done yet?
 
 done_l2cache:
-
-    beqz    a3, l3_config2
-    // Must return total sets in a0 and line size in a1
-    jal	    _size_l3cache
-    beqz    a0, done_l3cache
-    b	    l3cache_init
-
-l3_config2:
 
     // Isolate L3$ Line Size
     ext	    v1, v0, CFG2_TL_SHIFT, CFG2_TL_BITS

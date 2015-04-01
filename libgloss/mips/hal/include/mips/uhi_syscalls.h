@@ -42,7 +42,7 @@
 #define __MIPS_UHI_ARGC        9
 #define __MIPS_UHI_ARGLEN      10
 #define __MIPS_UHI_ARGN        11
-#define __MIPS_UHI_RAMINFO     12
+#define __MIPS_UHI_RAMRANGE    12
 #define __MIPS_UHI_LOG         13
 #define __MIPS_UHI_ASSERT      14
 #define __MIPS_UHI_EXCEPTION   15

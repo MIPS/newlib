@@ -54,9 +54,13 @@ LEAF(__cpu_init)
     # a debugger breakpoint using a sdbp instruction.
 
     mfc0  s1, C0_STATUS		  # Read CP0 Status
-    ext	  s1, s1, SR_NMI_SHIFT, 1  # extract NMI
+    ext	  s1, s1, SR_NMI_SHIFT, 1 # extract NMI
     beqz  s1, init_resources	  # Branch if this is NOT an NMI exception.
-    sdbbp			  # Failed assertion: NMI.
+    move  k0, t9		  # Preserve t9
+    move  k1, a0		  # Preserve a0
+    li	  $25, 15		  # UHI exception operation
+    li	  $4, 0			  # Use hard register context
+    sdbbp 1			  # Invoke UHI operation
 
 init_resources:
 

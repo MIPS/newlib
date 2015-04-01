@@ -57,13 +57,17 @@ LEAF(__cpu_init)
     mfc0  k1, C0_STATUS		  # Read CP0 Status
     ext	  k1, k1, SR_NMI_SHIFT, 1 # extract NMI
     beqz  k1, $Lnot_nmi		  # Branch if this is NOT an NMI exception.
-    sdbbp			  # Failed assertion: NMI.
+    move  k0, t9			# Preserve t9
+    move  k1, a0			# Preserve a0
+    li	  $25, 15			# UHI exception operation
+    li	  $4, 0				# Use hard register context
+    sdbbp 1				# Invoke UHI operation
 
 $Lnot_nmi:
     # Init CP0 Status, Count, Compare, Watch*, and Cause.
     jal	  __init_cp0
 
-#if defined(SLINE_ENC) && SLINE_ENC != 0
+#if (defined(SLINE_ENC) && SLINE_ENC != 0) || defined(MEM_MAPPED_L2C)
     # Initialise L2/L3 cache
     # This could be done from cached code if there is a cca override or similar
     jal	  __init_l23cache

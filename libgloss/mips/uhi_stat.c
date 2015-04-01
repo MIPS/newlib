@@ -40,7 +40,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 #include "uhi_stat.h"
 
 int

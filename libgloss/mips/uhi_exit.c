@@ -49,7 +49,7 @@
 
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 int __get_startup_BEV (void) __attribute__((weak));
 void __return_to_boot (int32_t exit_code) __attribute__((noreturn))

@@ -64,30 +64,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # endif
 #endif
 
-// Memory mapped L2 config has no defined fields so the line size and
-// total size of the cache must be provided explicitly.
-#ifdef MEM_MAPPED_L2C
-# if !defined(SLINE_SIZE) || !defined(STOTAL_BYTES)
-#  error "Memory mapped L2 config requires SLINE_SIZE and STOTAL_BYTES"
-# endif
-# define SLINE_ENC 1
-# if defined(TLINE_SIZE) && defined(TTOTAL_BYTES)
-#  define TLINE_ENC 1
-# endif
-#else
-# define SLINE_ENC    ((C0_CONFIG2_VALUE >> CFG2_SL_SHIFT) & CFG2_SL_BITS)
-# define SLINE_SIZE   (2 << SLINE_ENC)
-# define SSET_ENC     ((C0_CONFIG2_VALUE >> CFG2_SS_SHIFT) & CFG2_SS_BITS)
-# define SSET_SIZE    (64 << SSET_ENC)
-# define SASSOC_ENC   ((C0_CONFIG2_VALUE >> CFG2_SA_SHIFT) & CFG2_SA_BITS)
-# define SASSOC	      (SASSOC_ENC + 1)
-# define STOTAL_BYTES (SLINE_SIZE * SSET_SIZE * SASSOC)
+#define SLINE_ENC    ((C0_CONFIG2_VALUE >> CFG2_SL_SHIFT) & CFG2_SL_BITS)
+#define SLINE_SIZE   (2 << SLINE_ENC)
+#define SSET_ENC     ((C0_CONFIG2_VALUE >> CFG2_SS_SHIFT) & CFG2_SS_BITS)
+#define SSET_SIZE    (64 << SSET_ENC)
+#define SASSOC_ENC   ((C0_CONFIG2_VALUE >> CFG2_SA_SHIFT) & CFG2_SA_BITS)
+#define SASSOC	      (SASSOC_ENC + 1)
+#define STOTAL_BYTES (SLINE_SIZE * SSET_SIZE * SASSOC)
 
-# define TLINE_ENC    ((C0_CONFIG2_VALUE >> CFG2_TL_SHIFT) & CFG2_TL_BITS)
-# define TLINE_SIZE   (2 << TLINE_ENC)
-# define TSET_ENC     ((C0_CONFIG2_VALUE >> CFG2_TS_SHIFT) & CFG2_TS_BITS)
-# define TSET_SIZE    (64 << TSET_ENC)
-# define TASSOC_ENC   ((C0_CONFIG2_VALUE >> CFG2_TA_SHIFT) & CFG2_TA_BITS)
-# define TASSOC	      (TASSOC_ENC + 1)
-# define TTOTAL_BYTES (TLINE_SIZE * TSET_SIZE * TASSOC)
-#endif
+#define TLINE_ENC    ((C0_CONFIG2_VALUE >> CFG2_TL_SHIFT) & CFG2_TL_BITS)
+#define TLINE_SIZE   (2 << TLINE_ENC)
+#define TSET_ENC     ((C0_CONFIG2_VALUE >> CFG2_TS_SHIFT) & CFG2_TS_BITS)
+#define TSET_SIZE    (64 << TSET_ENC)
+#define TASSOC_ENC   ((C0_CONFIG2_VALUE >> CFG2_TA_SHIFT) & CFG2_TA_BITS)
+#define TASSOC	      (TASSOC_ENC + 1)
+#define TTOTAL_BYTES (TLINE_SIZE * TSET_SIZE * TASSOC)

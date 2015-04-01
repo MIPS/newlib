@@ -49,7 +49,7 @@
 
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 int
 write (int fd, const void *buf, size_t count)

@@ -34,7 +34,7 @@
 #include <mips/cpu.h>
 #include <mips/fpa.h>
 #include <mips/hal.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
 int __get_startup_BEV (void) __attribute__((weak));
 int __chain_uhi_excpt (struct gpctx *) __attribute__((weak));
@@ -279,5 +279,13 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
   PUTSNDS ("BadPInstr:\t", ctx->badpinstr, 8, "\n");
 
   /* Raise UHI exception which may or may not return.  */
-  __uhi_exception (ctx);
+  if (__uhi_exception (ctx) == 0)
+    {
+      /* The exception was acknowledged but not handled.  Abort.  */
+      ctx->epc = (sreg_t)(long)&__exit;
+      /* Clear any delay slot marker */
+      ctx->cause &= ~CR_BD;
+      /* Exit code of 255 */
+      ctx->a[0] = 0xff;
+    }
 }
