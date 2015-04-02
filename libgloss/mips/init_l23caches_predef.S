@@ -46,7 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TLINE_ENC     ((C0_CONFIG2_VALUE >> CFG2_TL_SHIFT) & CFG2_TL_BITS)
 #define TLINE_SIZE    (2 << TLINE_ENC)
 #define TSET_ENC      ((C0_CONFIG2_VALUE >> CFG2_TS_SHIFT) & CFG2_TS_BITS)
-#define TSET_SIZE     (64 << TSET_ENC)
+#define TSET_SIZE     (64 << (TSET_ENC & 0x7))
 #define TASSOC_ENC    ((C0_CONFIG2_VALUE >> CFG2_TA_SHIFT) & CFG2_TA_BITS)
 #define TASSOC	      (TASSOC_ENC + 1)
 #define TTOTAL_BYTES  (TLINE_SIZE * TSET_SIZE * TASSOC)
@@ -54,7 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SLINE_ENC     ((C0_CONFIG2_VALUE >> CFG2_SL_SHIFT) & CFG2_SL_BITS)
 #define SLINE_SIZE    (2 << SLINE_ENC)
 #define SSET_ENC      ((C0_CONFIG2_VALUE >> CFG2_SS_SHIFT) & CFG2_SS_BITS)
-#define SSET_SIZE     (64 << SSET_ENC)
+#define SSET_SIZE     (64 << (SSET_ENC & 0x7))
 #define SASSOC_ENC    ((C0_CONFIG2_VALUE >> CFG2_SA_SHIFT) & CFG2_SA_BITS)
 #define SASSOC	      (SASSOC_ENC + 1)
 #define STOTAL_BYTES  (SLINE_SIZE * SSET_SIZE * SASSOC)
@@ -105,7 +105,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /**************************************************************************************
-* __init_l23cache invalidates all secondary/tertiary data cache entries
+* init_l23cache invalidates all secondary/tertiary data cache entries
 **************************************************************************************/
 
 #if SLINE_ENC != 0

@@ -135,6 +135,7 @@ next_L3cache_tag:
     addiu   a0, -1			// Decrement set counter
     add	    a2, a1			// Get next line address
     bne	    a0, zero, next_L3cache_tag
+
 done_l3cache:
     jr      ra
 END(__init_l23cache)
