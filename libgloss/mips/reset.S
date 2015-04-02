@@ -87,7 +87,7 @@ init_resources:
     .weak __boot_init_hook
     lui	  a2, %hi(__boot_init_hook)
     addiu a2, a2, %lo(__boot_init_hook)
-    beqz  a0, 1f
+    beqz  a2, 1f
     jalr  a2
 1:
     # Copy code and data to RAM
