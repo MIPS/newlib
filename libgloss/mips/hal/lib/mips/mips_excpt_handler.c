@@ -36,10 +36,6 @@
 #include <mips/hal.h>
 #include <mips/uhi_syscalls.h>
 
-int __get_startup_BEV (void) __attribute__((weak));
-int __chain_uhi_excpt (struct gpctx *) __attribute__((weak));
-int32_t __uhi_exception (struct gpctx *);
-
 /* Defined in .ld file */
 extern char __use_excpt_boot[];
 extern char __attribute__((weak)) __flush_to_zero[];
@@ -279,7 +275,7 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
   PUTSNDS ("BadPInstr:\t", ctx->badpinstr, 8, "\n");
 
   /* Raise UHI exception which may or may not return.  */
-  if (__uhi_exception (ctx) == 0)
+  if (__uhi_exception (ctx, UHI_ABI) != 0)
     {
       /* The exception was acknowledged but not handled.  Abort.  */
       ctx->epc = (sreg_t)(long)&__exit;

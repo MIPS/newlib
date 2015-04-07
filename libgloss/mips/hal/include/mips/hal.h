@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _UHI_H
-#define _UHI_H
+#ifndef _HAL_H
+#define _HAL_H
 
 #include <mips/asm.h>
 #include <mips/m32c0.h>
@@ -124,14 +124,24 @@ struct gpctx
   reg_t lo;
   /* This field is for future extension */
   void *link;
-  /* Status represents the status at the point of exception but
-     with EXL cleared */
+  /* Status at the point of the exception.  This may not be restored
+     on return from exception if running under an RTOS */
   uint32_t status;
   /* These fields should be considered read-only */
   uint32_t cause;
   uint32_t badinstr;
   uint32_t badpinstr;
 };
+
+#if _MIPS_SIM == _ABIO32
+#define UHI_ABI 0
+#elif _MIPS_SIM == _ABIN32
+#define UHI_ABI 1
+#elif _MIPS_SIM == _ABI64
+#define UHI_ABI 2
+#else
+#error "UHI context structure is not defined for current ABI"
+#endif
 
 /* Fall back exception handlers:
    _mips_handle_exception - May be implemented by a user but is aliased
@@ -141,11 +151,25 @@ struct gpctx
 extern void _mips_handle_exception (struct gpctx *ctx, int exception);
 extern void __exception_handle (struct gpctx *ctx, int exception);
 
+/* Obtain the largest available region of RAM */
+extern void _get_ram_range (void **ram_base, void **ram_extent)
+
 /* Invoke a UHI operation via SDBBP using the provided context */
-int __uhi_indirect (struct gpctx *);
+extern int __uhi_indirect (struct gpctx *);
+
+/* Report an unhandled exception */
+extern int32_t __uhi_exception (struct gpctx *, int32_t);
+
+/* Print a message to a logger.  Minimal formatting support for one
+   integer argument.  */
+extern int32_t __plog (int8_t *, int32_t);
+
+/* Boot context support functions */
+extern int __get_startup_BEV (void) __attribute__((weak));
+extern int __chain_uhi_excpt (struct gpctx *) __attribute__((weak));
 
 /* Emergency exit, use it when unrecoverable errors occur */
-int __exit (int);
+extern int __exit (int);
 
 #endif
-#endif
+#endif // _HAL_H
