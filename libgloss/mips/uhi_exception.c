@@ -52,16 +52,17 @@
 #include <mips/hal.h>
 
 int32_t
-__uhi_exception (struct gpctx *ctx)
+__uhi_exception (struct gpctx *ctx, int32_t abi)
 {
   register struct gpctx *arg1 asm ("$4") = ctx;
+  register int32_t arg2 asm ("$5") = abi;
   register int32_t op asm ("$25") = __MIPS_UHI_EXCEPTION;
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
 
-  __asm__ __volatile__(" # %0 = __uhi_exception(%2) op=%3\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "+r" (arg1)
-		       : "r" (op)
-		       : "$3", "$5");
+  __asm__ __volatile__ (" # %0 = __uhi_exception(%1, %2) op=%3\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret)
+			: "r" (arg1), "r" (arg2), "r" (op)
+			: "$3");
   return ret;
 }

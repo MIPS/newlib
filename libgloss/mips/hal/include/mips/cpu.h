@@ -200,8 +200,6 @@ __extension__ ({ \
 
 #endif /*_mips_mfc0*/
 
-#include <mips/atomic.h>
-
 /*
  * Count-leading zeroes and ones.
  * Simulate with a function call if this CPU hasn't defined a
