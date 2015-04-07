@@ -152,7 +152,7 @@ extern void _mips_handle_exception (struct gpctx *ctx, int exception);
 extern void __exception_handle (struct gpctx *ctx, int exception);
 
 /* Obtain the largest available region of RAM */
-extern void _get_ram_range (void **ram_base, void **ram_extent)
+extern void _get_ram_range (void **ram_base, void **ram_extent);
 
 /* Invoke a UHI operation via SDBBP using the provided context */
 extern int __uhi_indirect (struct gpctx *);

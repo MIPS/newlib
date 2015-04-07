@@ -54,7 +54,6 @@
 LEAF(__exception_entry)
 	.set	push
 	.set	noat
-	.set	noreorder
 .weak   _mips_tlb_refill
 	_mips_tlb_refill = __exception_save
 __tlb_refill_loop:
@@ -65,17 +64,13 @@ __tlb_refill_loop:
 	LA	k1, __first_boot
 	lw	k1, 0(k1)
 	beqz	k1, 1f
-	nop
 	# The start code is responsible for clearing __first_boot prior
 	# to installing the exception handlers.
 	j	_start
-	nop
 1:
 	LA	k1, _mips_tlb_refill
 	beqz	k1, __tlb_refill_loop
-	nop
 	jr	k1
-	nop
 
 	.org 0x80
 .weak   _mips_xtlb_refill
@@ -83,18 +78,14 @@ __tlb_refill_loop:
 __xtlb_refill_loop:
 	LA	k1, _mips_xtlb_refill
 	beqz	k1, __xtlb_refill_loop
-	nop
 	jr	k1
-	nop
 
 	.org 0x100
 .weak   _mips_cache_error
 __cache_error_loop:
 	LA	k1, _mips_cache_error
 	beqz	k1, __cache_error_loop
-	nop
 	jr	k1
-	nop
 
 	.org 0x180
 	# Free up k1, defering sp adjustment until later
@@ -103,7 +94,6 @@ __cache_error_loop:
 	# Use k1 to invoke __exception_save
 	LA	k1, _mips_general_exception
 	jr	k1
-	nop
 	.set    pop
 END(__exception_entry)
 
@@ -117,7 +107,6 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	.globl  __exception_save;
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# k1 is already saved, so use it to save the users sp
 	move	k1, sp
@@ -216,7 +205,6 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	# reason
 	LA	t9, _mips_handle_exception
 	jr	t9
-	nop
 
 1:	# Return point from handler
 	# Load context
