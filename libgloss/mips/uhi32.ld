@@ -123,7 +123,7 @@ SECTIONS
 			       : __isr_vec_space),
 	   "Actual ISR vector spacing does not match __isr_vec_space");
     ASSERT(__base + 0x200 == (DEFINED(__isr_vec_sw0)
-			      ? __isr_vec_sw0 : __base + 0x200),
+			      ? __isr_vec_sw0 & 0xfffffffe : __base + 0x200),
 	   "__isr_vec_sw0 is not placed at EBASE + 0x200");
     . = ALIGN(8);
   } = 0
