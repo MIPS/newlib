@@ -95,7 +95,7 @@ init_resources:
     jalr  a2
 1:
     # Copy code and data to RAM
-    li    s1_all_ones, 0xffffffff
+    li    s1, 0xffffffff
 
     # Copy code and read-only/initialized data from FLASH to (uncached) RAM.
     lui   a1, %hi(__flash_app_start)
@@ -132,7 +132,7 @@ $Lcopy_to_ram_done:
 $Lall_done:
     # If _start returns it will return to this point.
     # Just spin here reporting the exit.
-    move    $25, 1			# UHI exit operation
+    li	    $25, 1			# UHI exit operation
     move    $4, v0			# Collect exit code for UHI exit
     sdbbp   1				# Invoke UHI operation
     b       $Lall_done

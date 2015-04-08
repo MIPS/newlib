@@ -51,7 +51,7 @@
 #include <mips/hal.h>
 
 int32_t
-__uhi_exception (struct gpctx *ctx)
+__uhi_exception (struct gpctx *ctx, int32_t _unused)
 {
   __exit(2);
   /* Never returns.  */

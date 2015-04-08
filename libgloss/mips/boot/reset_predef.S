@@ -101,7 +101,7 @@ $Lnot_nmi:
     jalr  a2
 1:
     # Copy code and data to RAM
-    li    s1_all_ones, 0xffffffff
+    li    s1, 0xffffffff
 
     # Copy code and read-only/initialized data from FLASH to (uncached) RAM.
     lui   a1, %hi(__flash_app_start)
