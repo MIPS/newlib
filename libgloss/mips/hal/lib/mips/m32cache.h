@@ -66,7 +66,6 @@ IMPORT(mips_scache_ways,4)
 #define mask	t2
 
 #define cacheop(kva, n, linesize, op)	\
-	.set	noreorder ;		\
 	/* check for bad size */	\
 	blez	n,11f ;			\
 	PTR_ADDU maxaddr,kva,n ;	\
@@ -74,13 +73,14 @@ IMPORT(mips_scache_ways,4)
 	PTR_SUBU mask,linesize,1 ;	\
 	not	mask ;			\
 	and	addr,kva,mask ;		\
+	PTR_SUBU addr,linesize ;	\
 	PTR_ADDU maxaddr,-1 ;		\
 	and	maxaddr,mask ;		\
 	/* the cacheop loop */		\
-10:	cache	op,0(addr) ;	 	\
+10:	PTR_ADDU addr,linesize ;	\
+	cache	op,0(addr) ;	 	\
 	bne	addr,maxaddr,10b ;	\
-	PTR_ADDU addr,linesize ;	\
-11:	.set	reorder
+11:
 
 /* virtual cache op: no limit on size of region */
 #define vcacheop(kva, n, linesize, op)	\

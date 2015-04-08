@@ -23,7 +23,6 @@
  *			unsigned idx)
  */
 LEAF(mips_tlbwi2)
-	.set	noreorder
 #if _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64
 	rmtc0	a0,$entryhi
 	mtc0	a1,$entrylo0
@@ -46,8 +45,11 @@ LEAF(mips_tlbwi2)
 	ssnop
 	ehb
 	tlbwi
-	.set	reorder
+	.set push
+	.set	noreorder
 	jr.hb	ra
+	nop
+	.set pop
 END(mips_tlbwi2)
 
 
@@ -55,7 +57,6 @@ END(mips_tlbwi2)
  * void mips_tlbwr2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask)
  */
 LEAF(mips_tlbwr2)
-	.set	noreorder
 	rmtc0	a0,$entryhi
 	mtc0	a1,$entrylo0
 	mtc0	a2,$entrylo1
@@ -63,8 +64,11 @@ LEAF(mips_tlbwr2)
 	ssnop
 	ehb
 	tlbwr
-	.set	reorder
+	.set push
+	.set noreorder
 	jr.hb	ra
+	nop
+	.set pop
 END(mips_tlbwr2)
 
 /*
@@ -76,7 +80,6 @@ END(mips_tlbwr2)
  * NOTE has side effect of setting entryhi
  */
 LEAF(mips_tlbrwr2)
-	.set	noreorder
 	rmtc0	a0,$entryhi
 	ssnop
 	ehb
@@ -90,15 +93,22 @@ LEAF(mips_tlbrwr2)
 	mtc0	a2,$entrylo1
 	mtc0	a3,$pagemask
 	ssnop
-	bltz	v0,1f		/* doesnt exist */
 	ehb
-	.set	reorder
+	bltz	v0,1f		/* doesnt exist */
 
 	tlbwi
+	.set push
+	.set noreorder
 	jr.hb	ra
+	nop
+	.set pop
 
 1:	tlbwr
+	.set push
+	.set noreorder
 	jr.hb	ra
+	nop
+	.set pop
 END(mips_tlbrwr2)
 
 
@@ -107,7 +117,6 @@ END(mips_tlbrwr2)
  *		unsigned index)
  */
 LEAF(mips_tlbri2)
-	.set	noreorder
 	lw	t0,16(sp)
 	mtc0	t0,$index
 	ssnop
@@ -117,7 +126,6 @@ LEAF(mips_tlbri2)
 	ssnop; ssnop
 	ehb
 
-	.set	reorder
 	rmfc0	t0,$entryhi
 	mfc0	t1,$entrylo0
 	mfc0	t2,$entrylo1
@@ -126,7 +134,7 @@ LEAF(mips_tlbri2)
 	sw	t1,0(a1)
 	sw	t2,0(a2)
 	sw	t3,0(a3)
-	j	ra
+	jr	ra
 END(mips_tlbri2)
 
 
@@ -136,7 +144,6 @@ END(mips_tlbri2)
  * look for entry entryhi not zapped
  */
 LEAF(mips_tlbprobe2)
-	.set	noreorder
 	rmfc0	t0,$entryhi
 	rmtc0	a0,$entryhi
 	ssnop
@@ -148,7 +155,6 @@ LEAF(mips_tlbprobe2)
 
 	mfc0	v0,$index
 	bltz	v0,1f
-	nop
 
 	tlbr
 	ssnop; ssnop
@@ -159,7 +165,6 @@ LEAF(mips_tlbprobe2)
 	mfc0	t2,$pagemask
 
 	rmtc0	t0,$entryhi	/* restore entry hi */
-	.set	reorder
 
 	sw	v1,0(a1)
 	sw	t1,0(a2)
@@ -177,7 +182,6 @@ END(mips_tlbprobe2)
  * invalidate an entry entryhi is NOT changed
  */
 LEAF(mips_tlbinval)
-	.set	noreorder
 	rmfc0	t0,$entryhi	/* save old entry hi */
 	rmtc0	a0,$entryhi
 	ssnop
@@ -192,16 +196,19 @@ LEAF(mips_tlbinval)
 	mtc0	zero,$entrylo1
 	li	v1,KSEG1_BASE	/* replace with this */
 	rmtc0	v1,$entryhi
-	bltz	v0,1f
 	ehb
+	bltz	v0,1f
 
 	tlbwi
 	ssnop
 	ehb			/* tlbwi uses $entryhi late */
 
 1:	rmtc0	t0,$entryhi	/* restore entry hi */
-	.set reorder
+	.set push
+	.set noreorder
 	jr.hb	ra
+	nop
+	.set pop
 END(mips_tlbinval)
 
 /*
@@ -220,7 +227,7 @@ LEAF(mips_tlb_size)
 
 	and	v0,t1,CFG1_MMUS_MASK	/* get number of entries */
 	srl	v0,CFG1_MMUS_SHIFT
-	addu	v0,1
+	addiu	v0,1
 
-9:	j	ra
+9:	jr	ra
 END(mips_tlb_size)
