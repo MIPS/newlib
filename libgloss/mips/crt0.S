@@ -40,9 +40,11 @@
       || defined (__mips_eabi))
 #  define LA(t,x)	dla	t,x
 #  define PTR_ADDU	daddu
+#  define PTR_L		ld
 # else
 #  define LA(t,x)	la	t,x
 #  define PTR_ADDU	addu
+#  define PTR_L		lw
 # endif
 #endif /* __mips_embedded_pic */
 
@@ -245,7 +247,7 @@ zerobss:
 
 	/* NOTE: a0[0] contains the last address+1 of memory. */
 	LA (a0, __ram_extent)
-	LD	t0,0(a0)			# the extent of ram
+	PTR_L	t0,0(a0)			# the extent of ram
 	lw	$0,-4(t0)			# check for valid memory
 	/* Allocate 32 bytes for the register parameters.  Allocate 16
 	   bytes for a null argv and envp.  Round the result up to 64
