@@ -81,8 +81,8 @@ PROVIDE (software_init_hook = 0);
 /* The default base address for application code is 0x80200000 which
    leaves 2M of space at the start of KSEG0 for a bootloader. */
 PROVIDE (__app_start = 0xffffffff80200000);
-/* Set default vector spacing to 32 bytes. */
-PROVIDE (__isr_vec_space = 32);
+/* Set default vector spacing to 64 bytes. */
+PROVIDE (__isr_vec_space = 64);
 /* Leave space for 9 vector entries by default. 8 entry points and one
    fallback handler. */
 PROVIDE (__isr_vec_count = 9);
