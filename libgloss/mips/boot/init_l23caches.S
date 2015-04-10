@@ -43,10 +43,10 @@ LEAF(__init_l23cache)
 
     // Check for memory mapped L2 cache config
     mfc0    a3, C0_CONFIG4
-    ext	    a3, v0, CFG4_M_SHIFT, 1
+    ext	    a3, a3, CFG4_M_SHIFT, 1
     beqz    a3, l2_config2
     mfc0    a3, C0_CONFIG5
-    ext     a3, v0, CFG5_L2C_SHIFT, 1
+    ext     a3, a3, CFG5_L2C_SHIFT, 1
     beqz    a3, l2_config2
     // Report a failure as this code cannot cope with memory mapped L2 config
     // UHI Boot Failure operation
