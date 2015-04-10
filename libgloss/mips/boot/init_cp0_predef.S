@@ -55,33 +55,62 @@ LEAF(__init_cp0)
     mtc0  v1, C0_WATCHHI
     mtc0  zero, C0_WATCHLO
 
+# ifndef C0_WATCHHI_VALUE
+#  error "C0_WATCHHI_VALUE is required"
+# endif
+
 # if (C0_WATCHHI_VALUE & WATCHHI_M) != 0
     mtc0  v1, C0_WATCHHI, 1
     mtc0  zero, C0_WATCHLO, 1
+
+#  ifndef C0_WATCHHI1_VALUE
+#   error "C0_WATCHHI1_VALUE is required"
+#  endif
 
 #  if (C0_WATCHHI1_VALUE & WATCHHI_M) != 0
     mtc0  v1, C0_WATCHHI, 2
     mtc0  zero, C0_WATCHLO, 2
 
+#   ifndef C0_WATCHHI2_VALUE
+#    error "C0_WATCHHI2_VALUE is required"
+#   endif
+
 #   if (C0_WATCHHI2_VALUE & WATCHHI_M) != 0
     mtc0  v1, C0_WATCHHI, 3
     mtc0  zero, C0_WATCHLO, 3
+
+#    ifndef C0_WATCHHI3_VALUE
+#     error "C0_WATCHHI3_VALUE is required"
+#    endif
 
 #    if (C0_WATCHHI3_VALUE & WATCHHI_M) != 0
     mtc0  v1, C0_WATCHHI, 4
     mtc0  zero, C0_WATCHLO, 4
 
+#     ifndef C0_WATCHHI4_VALUE
+#      error "C0_WATCHHI4_VALUE is required"
+#     endif
+
 #     if (C0_WATCHHI4_VALUE & WATCHHI_M) != 0
     mtc0  v1, C0_WATCHHI, 5
     mtc0  zero, C0_WATCHLO, 5
+
+#      ifndef C0_WATCHHI5_VALUE
+#       error "C0_WATCHHI5_VALUE is required"
+#      endif
 
 #      if (C0_WATCHHI5_VALUE & WATCHHI_M) != 0
     mtc0  v1, C0_WATCHHI, 6
     mtc0  zero, C0_WATCHLO, 6
 
+#       ifndef C0_WATCHHI6_VALUE
+#        error "C0_WATCHHI6_VALUE is required"
+#       endif
+
 #       if (C0_WATCHHI6_VALUE & WATCHHI_M) != 0
     mtc0  v1, C0_WATCHHI, 7
     mtc0  zero, C0_WATCHLO, 7
+
 #       endif
 #      endif
 #     endif

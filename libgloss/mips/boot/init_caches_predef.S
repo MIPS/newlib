@@ -163,14 +163,12 @@ END(__init_dcache)
 #endif // DLINE_ENC != 0
 
 #if ILINE_ENC != 0 || DLINE_ENC != 0
-LEAF(_change_k0_cca)
+LEAF(__change_k0_cca)
     // NOTE! This code must be executed in KSEG1 (not KSEG0 uncached)
     // Set CCA for kseg0 to cacheable
 
     mfc0  CONFIG, C0_CONFIG
-    li	  TEMP, 3					  // CCA for all others
-    beqz  a0, $Lset_kseg0_cca
-    li	  TEMP, 5					  // CCA for coherent cores (fall through)
+    li	  TEMP, CFG_C_NONCOHERENT		  // CCA for all others
 
 $Lset_kseg0_cca:
     ins	  CONFIG, TEMP, 0, 3			  // instert K0
@@ -181,5 +179,5 @@ $Lset_kseg0_cca:
     nop
     .set pop
 
-END(_change_k0_cca)
+END(__change_k0_cca)
 #endif // ILINE_ENC != 0 || DLINE_ENC != 0

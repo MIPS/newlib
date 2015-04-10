@@ -115,6 +115,9 @@ extern "C" {
 #define CR_IP0		0x00000100
 
 #define CR_XMASK	0x0000007c 	/* exception code mask */
+#define CR_X_MASK	0x0000007c
+#define  CR_X_SHIFT		 2
+#define  CR_X_BITS		 5
 #define CR_XCPT(x)	((x)<<2)
 
 /*
@@ -149,9 +152,9 @@ extern "C" {
 #define SR_MCU		0x00040000 	/* MCU ASE implemented */
 #define  SR_MCU_SHIFT		18
 
-#define SR_RIPL_MASK	0x0000fc00
-#define  SR_RIPL_SHIFT		10
-#define  SR_RIPL_BITS		 6
+#define SR_IPL_MASK	0x0000fc00
+#define  SR_IPL_SHIFT		10
+#define  SR_IPL_BITS		 6
 #define SR_IMASK	0x0000ff00
 
 /* interrupt mask bits */

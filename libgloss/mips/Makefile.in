@@ -163,8 +163,8 @@ libyamon.a: $(YAMONOBJS)
 	${AR} ${ARFLAGS} $@ $(YAMONOBJS)
 	${RANLIB} $@
 
-libhal.a: $(HALOBJ)
-	${AR} ${ARFLAGS} $@ $(HALOBJ)
+libhal.a: $(HALOBJ) $(BOOTOBJ)
+	${AR} ${ARFLAGS} $@ $^
 	${RANLIB} $@
 
 # nullmon.a , This is what you want if you want crt0 but NO mon services

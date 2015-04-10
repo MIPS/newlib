@@ -57,11 +57,11 @@ LEAF(__cpu_init)
     mfc0  k1, C0_STATUS		  # Read CP0 Status
     ext	  k1, k1, SR_NMI_SHIFT, 1 # extract NMI
     beqz  k1, $Lnot_nmi		  # Branch if this is NOT an NMI exception.
-    move  k0, t9			# Preserve t9
-    move  k1, a0			# Preserve a0
-    li	  $25, 15			# UHI exception operation
-    li	  $4, 0				# Use hard register context
-    sdbbp 1				# Invoke UHI operation
+    move  k0, t9		  # Preserve t9
+    move  k1, a0		  # Preserve a0
+    li	  $25, 15		  # UHI exception operation
+    li	  $4, 0			  # Use hard register context
+    sdbbp 1			  # Invoke UHI operation
 
 $Lnot_nmi:
     # Init CP0 Status, Count, Compare, Watch*, and Cause.
@@ -101,7 +101,7 @@ $Lnot_nmi:
     jalr  a2
 1:
     # Copy code and data to RAM
-    li    s1_all_ones, 0xffffffff
+    li    s1, 0xffffffff
 
     # Copy code and read-only/initialized data from FLASH to (uncached) RAM.
     lui   a1, %hi(__flash_app_start)
@@ -135,7 +135,11 @@ $Lcopy_to_ram_done:
     eret
 
 $Lall_done:
-    # If main returns it will return to this point.  Just spin here.
+    # If _start returns it will return to this point.
+    # Just spin here reporting the exit.
+    li	    $25, 1			# UHI exit operation
+    move    $4, v0			# Collect exit code for UHI exit
+    sdbbp   1				# Invoke UHI operation
     b       $Lall_done
 
 END(__cpu_init)
