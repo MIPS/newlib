@@ -12,7 +12,7 @@
 ISR_VEC_SPACE = 64
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
-CFLAGS += -g
+CFLAGS += -g -DISR_VEC_SPACE=$(ISR_VEC_SPACE)
 LD_FLAGS += -g
 
 OBJS = test.o excpt_isr.o 

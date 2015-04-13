@@ -14,20 +14,22 @@ Codescape GNU Tools for MIPS Bare Metal toolchain
 (referred to as the Bare Metal Tookchain in this document).
 
 
+This example code demonstrates a bootable example built for a specific
+cpu core, either the P5600 or I6400.
 
 Set Environment variable MIPS_ELF_ROOT
-	This should be set to the root of the installation 
+        This should be set to the root of the installation 
         directory for the Bare Metal Toolchain (that is, 
         below the bin directory)
 
-To build with different vector spacing (e.g. 128)
-	# make ISR_VEC_SPACE=128
+To build for the P5600
+        # make CORE=P5600
 
-To build big-endian
-	# make
+To build for the I6400
+	# make CORE=I6400
 
-To build little-endian
-	# make ENDIAN=EL
+To build little endian
+	# make CORE=(I6400|P5600) ENDIAN=EL
 
 To delete temporary and built files
-	# make clean
+        # make clean CORE=P5600
