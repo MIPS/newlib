@@ -14,9 +14,9 @@ include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 CFLAGS += -g
 LD_FLAGS += -g
 
-OBJS = demo.o
+OBJS = demotlb.o
 
-test.elf: $(OBJS)
+demotlb.elf: $(OBJS)
 	$(LD) $^ $(LDFLAGS) -o $@
 
 %.o: %.c
@@ -24,4 +24,4 @@ test.elf: $(OBJS)
 
 .PHONY: clean
 clean:
-	rm -f test.elf $(OBJS)
+	rm -f demotlb.elf $(OBJS)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination Technologies 
+ * Copyright (c) 2015, Imagination Technologies LLC and Imagination Technologies 
  * Limited. 
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -13,7 +13,7 @@
 #include <stdio.h>
 
 int
-main (int argc, char **argv, char * envp[])
+main ()
 {
     printf ("Hello World!\n");
     return 0;

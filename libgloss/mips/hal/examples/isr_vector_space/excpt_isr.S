@@ -32,7 +32,7 @@
 #include <mips/asm.h>
 #include <mips/cpu.h>
 
-#define VEC_SPACE (SZPTR * 8)
+#define VEC_SPACE ISR_VEC_SPACE
 
 LEAF(__isr_vec)
 	.set	push

@@ -27,6 +27,7 @@ ifeq ($(CORE), P5600)
  DEFINES += -DC0_CONFIG2_VALUE=0x80000000
  DEFINES += -DC0_CONFIG4_VALUE=0xc01c0000
  DEFINES += -DC0_CONFIG5_VALUE=0x10000038
+ DEFINES += -DC0_WATCHHI_VALUE=0x00000000
 else
  ifeq ($(CORE), I6400)
   DEFINES =  -DC0_CONFIG1_VALUE=0x9EAB559B
@@ -41,7 +42,7 @@ else
   $(error Please specify a core using CORE=(P5600|I6400))
  endif
 endif
-OBJS = bootexample.o reset_predef.o init_caches_predef.o init_cp0_predef.o
+OBJS = examplepredef.o reset_predef.o init_caches_predef.o init_cp0_predef.o
 OBJS += init_l23caches_predef.o
 
 CFLAGS += -g $(DEFINES)

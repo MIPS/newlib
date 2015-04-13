@@ -16,46 +16,50 @@
 
 jmp_buf context;
 
-void fault_recover();
+void fault_recover ();
 
 int
-main (int argc, char* argv[], char* envp[])
+main ()
 {
   int error = 0;
-  error = setjmp(context);
-  if(error){
-  
-    printf("Error handled %d\n", error);
-    return 0;
-  }
-  
-  // Initial entry, cause an memory error.
+  error = setjmp (context);
+  if (error)
+    {
 
-  int * a = 0;
+      printf ("Error handled %d\n", error);
+      return 0;
+    }
+
+  // Initial return from setjmp, cause an memory error.
+
+  int *a = 0;
   *a = 0;
 
   return -1;
-    
+
 }
 
-void __exception_handle(struct gpctx * ctx, int exception);
+void __exception_handle (struct gpctx *ctx, int exception);
 
 
-void _mips_handle_exception(struct gpctx * ctx, int exception){
+void
+_mips_handle_exception (struct gpctx *ctx, int exception)
+{
 
-  if(exception == EXC_TLBS){
-    printf("exception caught\n");
-    ctx->epc = &fault_recover;
-  } else {
-    __exception_handle(ctx, exception);
-  }
+  if (exception == EXC_TLBS)
+    {
+      printf ("exception caught\n");
+      ctx->epc = (reg_t)&fault_recover;
+    }
+  else
+    {
+      __exception_handle (ctx, exception);
+    }
 
-
-  return;
 }
 
 void
-fault_recover()
+fault_recover ()
 {
-  longjmp(context, EXC_TLBS);
+  longjmp (context, EXC_TLBS);
 }
