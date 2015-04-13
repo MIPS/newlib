@@ -240,7 +240,7 @@ install:
 	  $(INSTALL_DATA) $${header} $(DESTDIR)$(tooldir)/include/mips; \
 	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/boot
-	@for file in ${srcdir}/boot/*.[hS] ; do\
+	@for file in ${srcdir}/hal/boot/*.[hS] ; do\
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/boot/; \
 	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/hal
