@@ -24,10 +24,10 @@ int
 main ()
 {
 
-  /* Enable SW interrupt 1 */
-  C0_SET_BITS (C0_STATUS, 0, SR_SINT1);
+  /* Enable SW interrupt 0 */
+  C0_SET_BITS (C0_STATUS, 0, SR_SINT0);
   /* Trigger the interrupt */
-  C0_SET_BITS (C0_CAUSE, 0, SR_SINT1);
+  C0_SET_BITS (C0_CAUSE, 0, SR_SINT0);
   /* Wait for handling */
   while (!handled)
     {
@@ -46,7 +46,7 @@ _mips_interrupt (void)
   /* Count the interrupt */
   handled += 1;
   /* Clear the interrupt */
-  C0_CLEAR_BITS (C0_CAUSE, 0, SR_SINT1);
+  C0_CLEAR_BITS (C0_CAUSE, 0, SR_SINT0);
   /* Restore EPC */
   _m32c0_mtc0 (C0_EPC, 0, epc);
 }
