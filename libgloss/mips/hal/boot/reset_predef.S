@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #define _RESETCODE
-#define COPY_TO_RAM
 
 #include <mips/regdef.h>
 #include <mips/cpu.h>
