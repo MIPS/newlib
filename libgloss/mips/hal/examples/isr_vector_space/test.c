@@ -13,40 +13,42 @@
 
 #include <stdio.h>
 #include <mips/cpu.h>
-volatile int handled;
-
-#define C0_SET_BITS(REG, IDX, BITS) \
-  _m32c0_mtc0((REG), (IDX), _m32c0_mfc0 ((REG), (IDX)) | (BITS))
-#define C0_CLEAR_BITS(REG, IDX, BITS) \
-  _m32c0_mtc0((REG), (IDX), _m32c0_mfc0 ((REG), (IDX)) & ~(BITS))
+volatile int handledsw0;
+volatile int handledsw1;
 
 int
 main ()
 {
-
-  /* Enable SW interrupt 1 */
-  C0_SET_BITS (C0_STATUS, 0, SR_SINT1);
+  /* Enable SW interrupts 0/1 */
+  _mips_bsc0 (C0_STATUS, SR_SINT0 | SR_SINT1);
   /* Trigger the interrupt */
-  C0_SET_BITS (C0_CAUSE, 0, SR_SINT1);
+  _mips_bsc0 (C0_CAUSE, SR_SINT0);
+  _mips_bsc0 (C0_CAUSE, SR_SINT1);
+
   /* Wait for handling */
-  while (!handled)
+  while (!handledsw0 || !handledsw1)
     {
     };
 
   return 1;
 }
 
-void __attribute__ ((interrupt, keep_interrupts_masked))
-_mips_interrupt (void)
+/* Handle SW1 */
+void __attribute__ ((interrupt("vector=sw1")))
+_mips_isr_sw1 (void)
 {
-  /* Stash our EPC */
-  unsigned long epc = _m32c0_mfc0 (C0_EPC, 0);
   /* Prove that semi-hosting still works! */
   write (1, "Hello World\n", 12);
   /* Count the interrupt */
-  handled += 1;
+  handledsw1 += 1;
   /* Clear the interrupt */
-  C0_CLEAR_BITS (C0_CAUSE, 0, SR_SINT1);
-  /* Restore EPC */
-  _m32c0_mtc0 (C0_EPC, 0, epc);
+  _mips_bcc0 (C0_CAUSE, SR_SINT1);
+}
+
+/* Provide a fall-back handler if anything other than SW0 is raised */
+void __attribute__ ((interrupt, keep_interrupts_masked))
+_mips_interrupt (void)
+{
+  write (1, "Unhandled interrupt occurred\n", 29);
+  __exit (2);
 }
