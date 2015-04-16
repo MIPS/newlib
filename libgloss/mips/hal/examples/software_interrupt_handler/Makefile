@@ -1,18 +1,14 @@
-
-# Copyright Imgination Technologies, 2015
+# Copyright Imagination Technologies, 2015
 #
-# Relevant licensing information. @FINDME 
+# Relevant licensing information. @FINDME
 
-# Variables that mipshal.mk will expand to linker arguments must
-# be defined before inclusion of mipsbook.mk . 
-#
-# make will take the value of variables defined in the environment
-# rather than the lines here.
+# Variables that mipshal.mk will expand to linker arguments must be defined
+# before inclusion of mipshal.mk
 
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
 CFLAGS += -g
-LD_FLAGS += -g
+LDFLAGS += -g
 
 OBJS = swtest.o
 

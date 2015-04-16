@@ -379,6 +379,10 @@ do { \
 		(mips32_getvpecontrol () & ~(VPECONTROL_TARGTC)) \
 		| ((tc) << VPECONTROL_TARGTC_SHIFT))
 
+#define mips32_mt_gettarget() \
+	((mips32_getvpecontrol () & (VPECONTROL_TARGTC)) \
+	 >> VPECONTROL_TARGTC_SHIFT)
+
 /*
  * Before using any mips32_mt_ macros you should ensure the
  * destination VPE and TC are set with a call to mips32_mt_settarget()
