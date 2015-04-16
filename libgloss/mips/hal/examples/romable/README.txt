@@ -1,28 +1,14 @@
-Copyright (c) 2015, Imagination Technologies LLC and Imagination Technologies 
-Limited. 
- 
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted under the terms of the MIPS Free To Use 1.0 
-license that you will have received with this package. If you haven't 
-received this file, please contact Imagination Technologies or see the 
-following URL for details.
-http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
-
-
-This example code and makefile is for use with the 
-Codescape GNU Tools for MIPS Bare Metal toolchain 
-(referred to as the Bare Metal Toolchain in this document).
+Example of a system suitable for loading onto a ROM.
 
 Set Environment variable MIPS_ELF_ROOT
-        This should be set to the root of the installation 
-        directory for the Bare Metal Toolchain where folders
-	like 'bin' and 'share' are found.
+	This should be set to the root of the installation directory for the 
+	toolchain (that is, below the bin directory)
 
 To build big-endian
-        # make
+	# make
 
-To build big-endian suitable for a ROM. i.e. including boot code
-        # make ROMABLE=1
+To build little-endian
+	# make ENDIAN=EL
 
 To delete temporary and built files
-        # make clean
+	# make clean

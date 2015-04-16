@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Imagination Technologies LLC and Imagination Technologies 
- * Limited. 
+ * Copyright 2015, Imagination Technologies Limited and/or its 
+ *         affiliated group companies.
  * 
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted under the terms of the MIPS Free To Use 1.0 
@@ -17,3 +17,4 @@ main ()
 {
     return 255;
 }
+

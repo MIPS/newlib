@@ -298,6 +298,11 @@ init:
 
 	/* if a0 > 0 then we have arguments ready in a0 to a2 registers */
 	bgtz	a0,.Lmain
+	.weak	__convert_argv_pointers
+	LA (t0, __convert_argv_pointers)
+	beqz	t0, 1f
+	jalr	t0
+1:
 	/* if a0 == 0 then no arguments have been set up */
 	beqz	a0, 1f
 	/* if a0 < -1 then we have undefined behaviour so assume no
@@ -382,7 +387,7 @@ _exit:
 	# break instruction can cope with 0xfffff, but GAS limits the range:
 	break	1023
 	b	7b				# but loop back just in-case
-	.end _exit
+	.end  
  
 /* Assume the PICBASE set up above is no longer valid below here.  */
 #ifdef __mips_embedded_pic
