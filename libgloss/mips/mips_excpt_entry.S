@@ -112,7 +112,6 @@ __interrupt_loop:
 	beqz	k1, __interrupt_loop
 	nop
 	jr	k1
-	nop
 
 	.set    pop
 END(__exception_entry)
@@ -127,7 +126,6 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	.globl  __exception_save;
 	.set	push
 	.set	noat
-	.set	noreorder
 
 	# k1 is already saved, so use it to save the users sp
 	move	k1, sp

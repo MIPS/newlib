@@ -61,7 +61,7 @@ __cpu_timer_poll:
 	bnezl	a0, 1f		# continue if delta non-zero
 	srl	a0, a0, 1	# divide ticks by 2		{DELAY SLOT}
 	# perform a quick return to the caller:
-	j	ra
+	jr	ra
 	nop			#				{DELAY SLOT}
 1:
 	mfc0	v0, C0_COUNT	# get current counter value
@@ -92,7 +92,7 @@ __cpu_timer_poll:
 	nop
 	# We have now been delayed (in the foreground) for AT LEAST
 	# the required number of counter ticks.
-	j	ra		# return to caller
+	jr	ra		# return to caller
 	nop			#				{DELAY SLOT}
 	.set	reorder
 	.end	__cpu_timer_poll
@@ -245,7 +245,7 @@ __cpu_flush:
 	bne	t1, t2, 7b
 	addu	t1, a1		# (delay slot) increment by Icache line size
 
-	j	ra	# return to the caller
+	jr	ra	# return to the caller
 	nop
 
 8:
@@ -278,7 +278,7 @@ __cpu_flush:
 	bne	t1, t2, 9b
 	addu	t1, a0
 
-	j	ra	# return to the caller
+	jr	ra	# return to the caller
 	nop
 	.set	reorder
 	.end	__cpu_flush
@@ -399,7 +399,7 @@ copyloop:
 	nop
         la      a0,__buserr_cnt
 	sw	$0,0(a0)
-	j	ra
+	jr	ra
 	nop
         .set reorder
 	.end	__default_buserr_handler
@@ -435,7 +435,7 @@ res_copyloop:
 	subu	a1,a1,4
 	bne	a1,$0,res_copyloop
 	nop
-	j	ra
+	jr	ra
 	nop
         .set reorder
 	.end	__restore_buserr_handler
@@ -449,7 +449,7 @@ __buserr_count:
 	# out: unsigned int __buserr_cnt
         la      v0,__buserr_cnt
 	lw	v0,0(v0)
-	j	ra
+	jr	ra
 	nop
         .set reorder
 	.end	__buserr_count

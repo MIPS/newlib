@@ -36,7 +36,6 @@ XLEAF(mips_tlbinvalall)
 1:	and	a1,t1,CFG1_MMUSMASK	/* get number of entries - 1 */
 	srl	a1,CFG1_MMUSSHIFT
 
-	.set	noreorder
 	rmfc0	t0,$entryhi		/* save pid */
 	mtc0	zero,$entrylo0		/* tlblo0 = invalid */
 	mtc0	zero,$entrylo1		/* tlblo1 = invalid */
@@ -59,7 +58,6 @@ XLEAF(mips_tlbinvalall)
 	
 	/* if match, bump the vpn value and try again */
 	bgez	v0,2f			/* found! */
-	nop
 	
 	/* got a uniqe vpn - write it to tlb - no mcheck possible */
 	mtc0	a1,$index		
@@ -69,12 +67,11 @@ XLEAF(mips_tlbinvalall)
 	tlbwi
 	
 	/* continue until whole tlb written */
-2:	bgez	a1,1b
-	addu	a0,0x2000		/* BDSLOT: inc vpn */
+2:	addu	a0,0x2000		/* BDSLOT: inc vpn */
+	bgez	a1,1b
 
 	ehb				/* tlbwi uses $entryhi late */
 	rmtc0	t0,$entryhi		/* restore pid */
-	.set reorder
 
 9:	jr.hb	ra
 END(mips_init_tlb)

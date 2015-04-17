@@ -23,7 +23,6 @@
  *			unsigned idx)
  */
 LEAF(mips_tlbwi2)
-	.set	noreorder
 #if __mips64 && _MIPS_SIM==_ABIO32
 	/* old algorithmics 64-bit extended o32+ */
 	lw	t4,16(sp)	# mask
@@ -54,7 +53,6 @@ LEAF(mips_tlbwi2)
 	ssnop
 	ehb
 	tlbwi
-	.set	reorder
 	jr.hb	ra
 END(mips_tlbwi2)
 
@@ -63,7 +61,6 @@ END(mips_tlbwi2)
  * void mips_tlbwr2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask)
  */
 LEAF(mips_tlbwr2)
-	.set	noreorder
 #if __mips64 && _MIPS_SIM==_ABIO32
 	/* old algorithmics 64-bit extended o32+ */
 	lw	t0,16(sp)	# mask
@@ -81,7 +78,6 @@ LEAF(mips_tlbwr2)
 	ssnop
 	ehb
 	tlbwr
-	.set	reorder
 	jr.hb	ra
 END(mips_tlbwr2)
 
@@ -94,7 +90,6 @@ END(mips_tlbwr2)
  * NOTE has side effect of setting entryhi
  */
 LEAF(mips_tlbrwr2)
-	.set	noreorder
 	rmtc0	a0,$entryhi
 	ssnop
 	ehb
@@ -118,9 +113,8 @@ LEAF(mips_tlbrwr2)
 	mtc0	a3,$pagemask
 #endif
 	ssnop
-	bltz	v0,1f		/* doesnt exist */
 	ehb
-	.set	reorder
+	bltz	v0,1f		/* doesnt exist */
 
 	tlbwi
 	jr.hb	ra
@@ -135,7 +129,6 @@ END(mips_tlbrwr2)
  *		unsigned index)
  */
 LEAF(mips_tlbri2)
-	.set	noreorder
 	lw	t0,16(sp)
 	mtc0	t0,$index
 	ssnop
@@ -145,7 +138,6 @@ LEAF(mips_tlbri2)
 	ssnop; ssnop
 	ehb
 
-	.set	reorder
 	rmfc0	t0,$entryhi
 	mfc0	t1,$entrylo0
 	mfc0	t2,$entrylo1
@@ -164,7 +156,6 @@ END(mips_tlbri2)
  * look for entry entryhi not zapped
  */
 LEAF(mips_tlbprobe2)
-	.set	noreorder
 	rmfc0	t0,$entryhi
 	rmtc0	a0,$entryhi
 	ssnop
@@ -176,7 +167,6 @@ LEAF(mips_tlbprobe2)
 
 	mfc0	v0,$index
 	bltz	v0,1f
-	nop
 
 	tlbr
 	ssnop; ssnop
@@ -187,7 +177,6 @@ LEAF(mips_tlbprobe2)
 	mfc0	t2,$pagemask
 
 	rmtc0	t0,$entryhi	/* restore entry hi */
-	.set	reorder
 
 #if __mips64 && _MIPS_SIM==_ABIO32
 	/* old algorithmics 64-bit extended o32+ */
@@ -214,7 +203,6 @@ END(mips_tlbprobe2)
  * invalidate an entry entryhi is NOT changed
  */
 LEAF(mips_tlbinval)
-	.set	noreorder
 	rmfc0	t0,$entryhi	/* save old entry hi */
 	rmtc0	a0,$entryhi
 	ssnop
@@ -229,15 +217,14 @@ LEAF(mips_tlbinval)
 	mtc0	zero,$entrylo1
 	li	v1,KSEG1_BASE	/* replace with this */
 	rmtc0	v1,$entryhi
-	bltz	v0,1f
 	ehb
+	bltz	v0,1f
 
 	tlbwi
 	ssnop
 	ehb			/* tlbwi uses $entryhi late */
 
 1:	rmtc0	t0,$entryhi	/* restore entry hi */
-	.set reorder
 	jr.hb	ra
 END(mips_tlbinval)
 
