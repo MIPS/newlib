@@ -303,22 +303,24 @@ WLEAF(__get_startup_BEV)
 	.set	pop
 WEND(__get_startup_BEV)
 
-#
-# FUNCTION: __convert_argv_pointers
-#
-# DESCRIPTION: Convert 64bit pointers to 32bit.
-#
 
 EXPORT(__MIPS_UHI_BAD_POINTER)
 	.asciz "UHI: BAD POINTER"
 	.section 	.rodata,"a",@progbits
 	.align 4
 
+#if _MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIN32 /* ABI test */
+
+#
+# FUNCTION: __convert_argv_pointers
+#
+# DESCRIPTION: Convert 64bit pointers to 32bit.
+#
+
 WLEAF(__convert_argv_pointers)
-	.set	push
-# a0 contains no of arguments
-# allocate, align
-# Let's copy get getargs.
+
+	/* Early out if a0 == 0 */
+	beqz	a0, .Lend
 
 	/* Verify 64-bit mode */
 	PTR_MFC0 t0, C0_STATUS
@@ -350,8 +352,7 @@ WLEAF(__convert_argv_pointers)
 	addiu	$13, $13, 1
 	beqz	$13, .LGoodp
 	/* Overwrite "good" pointer with bad value */
-	lui	$12, %hi(__MIPS_UHI_BAD_POINTER)
-	addiu	$12, %lo(__MIPS_UHI_BAD_POINTER)
+	LA	$12, __MIPS_UHI_BAD_POINTER
 .LGoodp:
 	PTR_S	$12, 0(t2)
 	
@@ -366,6 +367,5 @@ WLEAF(__convert_argv_pointers)
 .Lend:
 	jr	$31
 
-	.set pop
 WEND(__convert_argv_pointers)
-
+#endif /* ABI test */

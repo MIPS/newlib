@@ -296,13 +296,14 @@ init:
 	LD	a1,(REGSIZE * 1)(t0)
 	LD	a2,(REGSIZE * 2)(t0)
 
-	/* if a0 > 0 then we have arguments ready in a0 to a2 registers */
-	bgtz	a0,.Lmain
+	/* Convert pointers potientially */
 	.weak	__convert_argv_pointers
 	LA (t0, __convert_argv_pointers)
 	beqz	t0, 1f
 	jalr	t0
 1:
+        /* if a0 > 0 then we have arguments ready in a0 to a2 registers */
+	bgtz    a0,.Lmain
 	/* if a0 == 0 then no arguments have been set up */
 	beqz	a0, 1f
 	/* if a0 < -1 then we have undefined behaviour so assume no
