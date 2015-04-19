@@ -17,20 +17,23 @@ sbrk (int nbytes)
   void *ram_base;
   void *ram_extent;
 
-  _get_ram_range (&ram_base, &ram_extent);
+  if (heap_start == NULL)
+    {
+      _get_ram_range (&ram_base, &ram_extent);
 
-  /* If the _end symbol is within the RAM then use _end.  */
-  if ((void*)_end > ram_base && (void*)_end < ram_extent)
-    {
-      heap_start = _end;
-      heap_ptr = _end;
-      heap_size = ram_extent - (void*)_end;
-    }
-  else
-    {
-      heap_start = ram_base;
-      heap_ptr = ram_base;
-      heap_size = ram_extent - ram_base;
+      /* If the _end symbol is within the RAM then use _end.  */
+      if ((void*)_end > ram_base && (void*)_end < ram_extent)
+	{
+	  heap_start = _end;
+	  heap_ptr = _end;
+	  heap_size = ram_extent - (void*)_end;
+	}
+      else
+	{
+	  heap_start = ram_base;
+	  heap_ptr = ram_base;
+	  heap_size = ram_extent - ram_base;
+	}
     }
 
   if ((heap_ptr >= heap_start) && (heap_ptr < (heap_start + heap_size))) {
