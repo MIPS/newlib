@@ -279,8 +279,6 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
     {
       /* The exception was acknowledged but not handled.  Abort.  */
       ctx->epc = (sreg_t)(long)&__exit;
-      /* Clear any delay slot marker */
-      ctx->cause &= ~CR_BD;
       /* Exit code of 255 */
       ctx->a[0] = 0xff;
     }
