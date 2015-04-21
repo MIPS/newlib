@@ -29,6 +29,7 @@
 #include <mips/cpu.h>
 #include <mips/hal.h>
 #include <mips/endian.h>
+#include <mips/regdef.h>
 
 	# Create space to store k0, k1, ra and sp
 	.data
@@ -304,21 +305,16 @@ WLEAF(__get_startup_BEV)
 WEND(__get_startup_BEV)
 
 
-EXPORT(__MIPS_UHI_BAD_POINTER)
-	.asciz "UHI: BAD POINTER"
-	.section 	.rodata,"a",@progbits
-	.align 4
-
-#if _MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIN32 /* ABI test */
+EXPORTS(__MIPS_UHI_BAD_POINTER, 32)
+	.ascii "UHI: BAD POINTER\000"
 
 #
 # FUNCTION: __convert_argv_pointers
 #
 # DESCRIPTION: Convert 64bit pointers to 32bit.
 #
-
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIN32
 WLEAF(__convert_argv_pointers)
-
 	/* Early out if a0 == 0 */
 	beqz	a0, .Lend
 
@@ -330,42 +326,41 @@ WLEAF(__convert_argv_pointers)
 	/* Set up stack pointer */
 	move	t0, a0		
 	sll	t1, t0, 2	
-	addiu	t1, t1, ALSZ
-	move	t2, sp
-	move	$14, sp
 	PTR_SUBU	sp, sp, t1
+	move	t2, sp
 	move	t3, a1
+	lui	t1, %hi(0xFFFFFFFF)
+	addiu	t1, %lo(0xFFFFFFFF)
 	
 
 .Lloop:
 #if BYTE_ORDER == LITTLE_ENDIAN
-	PTR_L	$12, 0(t3)
-	PTR_L	$13, 4(t3)
+	lw	t8, 0(t3)
+	lw	t9, 4(t3)
 #elif BYTE_ORDER == BIG_ENDIAN
-	PTR_L	$13, 0(t3)
-	PTR_L	$12, 4(t3)
+	lw	t9, 0(t3)
+	lw	t8, 4(t3)
 #else
 #error BYTE_ORDER
 #endif
-	/* if t5 != 0 && t5 != 0xFFFFFFFF */
-	beqz	$13, .LGoodp
-	addiu	$13, $13, 1
-	beqz	$13, .LGoodp
-	/* Overwrite "good" pointer with bad value */
-	LA	$12, __MIPS_UHI_BAD_POINTER
+	/* if s1 != 0 && s1 != 0xFFFFFFFF */
+	beqz	t9, .LGoodp
+	beq	t9, t1, .LGoodp
+	/* Overwrite bad pointer with stock bad value */
+	LA	t8, __MIPS_UHI_BAD_POINTER
 .LGoodp:
-	PTR_S	$12, 0(t2)
+	sw	t8, 0(t2)
 	
 	PTR_ADDU t2, t2, 4
-	PTR_ADDU t3, t3, 4
+	PTR_ADDU t3, t3, 8
 	addiu	t0, t0, -1
 	bnez	t0, .Lloop
 
-	move	a1, $14
+	move	a1, sp
 	PTR_SUBU sp, sp, 16+(NARGSAVE*SZARG)
 
 .Lend:
-	jr	$31
-
+	jr	ra
 WEND(__convert_argv_pointers)
-#endif /* ABI test */
+#endif /* ABI TEST */ 
+
