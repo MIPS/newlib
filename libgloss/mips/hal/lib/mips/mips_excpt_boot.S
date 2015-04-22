@@ -126,7 +126,7 @@ WEND(__register_excpt_boot)
 #
 # FUNCTION:	__return_to_boot (int exit_code)
 #
-# DESCRIPTION: UHI EXIT wasn't handled, return back to caller of _start 
+# DESCRIPTION: UHI EXIT wasn't handled, return back to caller of _start
 #
 WLEAF(__return_to_boot)
 	.set	push

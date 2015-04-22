@@ -147,7 +147,7 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	REG_S	$31, CTX_REG(31) + ADJ(sp)
 	PTR_S	$0, CTX_LINK + ADJ(sp) # Clear the link field
 
-#if (__mips_isa_rev < 6) 
+#if (__mips_isa_rev < 6)
 	mfhi	$9
 	mflo	$10
 	REG_S	$9, CTX_HI0 + ADJ(sp)

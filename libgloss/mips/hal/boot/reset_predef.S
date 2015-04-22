@@ -89,7 +89,7 @@ $Lnot_nmi:
 
 #if defined(DLINE_ENC) && DLINE_ENC != 0
     # Initialize the L1 data cache
-    jal	  __init_dcache 
+    jal	  __init_dcache
 #endif
 
     # Allow everything else to be initialized via a hook.

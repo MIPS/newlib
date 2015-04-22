@@ -144,8 +144,8 @@ SLEAF(_size_cache)
 	# Check if we have $config,3 register present
 	and	tmp,cfg,CFG2_M
 	beqz	tmp,9f
-	
-	# Check if Coherency Manager memory-mapped 
+
+	# Check if Coherency Manager memory-mapped
 	# Global Configuration Register Space is implemented.
 	mfc0	tmp,$config,3
 	ext	tmp,tmp,CFG3_CMGCR_SHIFT,1

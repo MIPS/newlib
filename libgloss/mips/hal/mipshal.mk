@@ -1,7 +1,7 @@
 
 # Copyright Imagination Technologies, 2015
 #
-# Relevant licensing information required. @FINDME 
+# Relevant licensing information required. @FINDME
 
 # Usage:
 #
@@ -13,7 +13,7 @@
 # Symbols that are to be overwridden should be defined in the the makefile
 # before "include mipshal.mk" or passed to make on the command line in the
 # form 'make STACK=0x1000' or 'make FLASH_START=0xBFC00000'.
-# 
+#
 # Care should be taken to ensure that no pre-existing environment variables
 # collide with the set of variables that this file inspects as unintended
 # results may happen.
@@ -74,7 +74,7 @@ endif
 
 ifdef ROMABLE
   MIPS_HAL_LDFLAGS += -Wl,-u,__reset_vector
-  ifeq ($(ABI), 64) 
+  ifeq ($(ABI), 64)
     ELF_ENTRY ?= 0xFFFFFFFFBFC00000
   else
     ELF_ENTRY ?= 0xBFC00000

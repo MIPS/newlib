@@ -32,9 +32,9 @@ EXPORTS(_count_wrap, 4)
 	.word	0x0
 
 #
-# FUNCTION:	
+# FUNCTION:
 #
-# DESCRIPTION: 
+# DESCRIPTION:
 #
 LEAF(mips_start_minimal_counter)
 	di	$8

@@ -71,7 +71,7 @@ LEAF(__init_icache)
     ext	  SET_SIZE, CONFIG1, CFG1_IS_SHIFT, 3	  // Extract IS
     addiu SET_SIZE, SET_SIZE, 1			  // Rotate to account for 7 == 32 sets
     andi  SET_SIZE, SET_SIZE, 7			  // Mask down to 3-bit
-    li	  TEMP,	32 
+    li	  TEMP,	32
     sllv  SET_SIZE, TEMP, SET_SIZE		  // I$ Sets per way
 
     // Config1IA == I$ Assoc - 1

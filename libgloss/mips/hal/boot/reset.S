@@ -84,7 +84,7 @@ init_resources:
     jalr  a2
 
     # Initialize the L1 data cache
-    jal	  __init_dcache 
+    jal	  __init_dcache
 
     # Allow everything else to be initialized via a hook.
     .weak __boot_init_hook

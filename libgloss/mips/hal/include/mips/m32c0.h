@@ -513,7 +513,7 @@ extern "C" {
 #define CFG_C_WTHRU_NOALLOC	0
 #define CFG_C_WTHRU_ALLOC	1
 #define CFG_C_COHERENTXCL	4
-#define CFG_C_COHERENTXCLW	5 
+#define CFG_C_COHERENTXCLW	5
 #define CFG_C_COHERENTUPD	6
 #define CFG_C_UNCACHED_ACCEL	7
 #endif
