@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted under the terms of the MIPS Free To Use 1.0 
- * license that you will have received with this package. If you haven't 
- * received this file, please contact Imagination Technologies or see the 
+ * Technologies Limited.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
  * following URL for details.
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  *
@@ -513,13 +513,13 @@ extern "C" {
 #define CFG_C_WTHRU_NOALLOC	0
 #define CFG_C_WTHRU_ALLOC	1
 #define CFG_C_COHERENTXCL	4
-#define CFG_C_COHERENTXCLW	5 	
+#define CFG_C_COHERENTXCLW	5 
 #define CFG_C_COHERENTUPD	6
 #define CFG_C_UNCACHED_ACCEL	7
 #endif
 
 
-/* 
+/*
  * Primary Cache TagLo (CP0 Register 28, Select 0/2)
  */
 #define TAG_PTAG_MASK           0xffffff00      /* Primary Tag */
@@ -610,8 +610,8 @@ extern "C" {
 
 #ifdef __ASSEMBLER__
 
-/* 
- * MIPS32 Coprocessor 0 register numbers 
+/*
+ * MIPS32 Coprocessor 0 register numbers
  */
 #define C0_INDEX	$0
 #define C0_INX		$0
@@ -749,8 +749,8 @@ typedef unsigned long long	reg_t;
 typedef signed long long	sreg_t;
 #endif
 
-/* 
- * MIPS32 Coprocessor 0 register numbers 
+/*
+ * MIPS32 Coprocessor 0 register numbers
  */
 #define C0_INDEX	0
 #define C0_INX		0
@@ -847,7 +847,7 @@ typedef signed long long	sreg_t;
 #define _mips_wait() \
   __asm__ __volatile ("wait")
 
-/* 
+/*
  * Define macros for accessing the MIPS32 coprocessor 0 registers.
  * Most apart from "set" return the original register value.
  */

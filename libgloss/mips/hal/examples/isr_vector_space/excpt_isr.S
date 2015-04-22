@@ -39,9 +39,9 @@ LEAF(__isr_vec)
 	.set	noat
 AENT(__isr_vec_sw0)
 .weak   _mips_isr_sw0
-	getd	k1, %gp_rel(handledsw0)(gp)
+	lw	k1, %gp_rel(handledsw0)(gp)
 	addiu	k1, k1, 1
-	setd	k1, %gp_rel(handledsw0)(gp)
+	sw	k1, %gp_rel(handledsw0)(gp)
 	mfc0	k1, C0_CAUSE
 	ins	k1, zero, CR_IP_SHIFT + 0, 1
 	mtc0    k1, C0_CAUSE
