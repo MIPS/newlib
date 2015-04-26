@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -841,7 +841,7 @@ typedef signed long long	sreg_t;
 #define C0_KSCRATCH5	31,6
 #define C0_KSCRATCH6	31,7
 
-# define _mips_sync() __asm__ __volatile__ ("sync" : : : "memory")
+#define _mips_sync() __asm__ __volatile__ ("sync" : : : "memory")
 
 /* wait for unmasked interrupt */
 #define _mips_wait() \

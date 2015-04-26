@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -48,7 +48,6 @@ extern int	mips_icache_size, mips_icache_linesize, mips_icache_ways;
 extern int	mips_dcache_size, mips_dcache_linesize, mips_dcache_ways;
 extern int	mips_scache_size, mips_scache_linesize, mips_scache_ways;
 extern int	mips_tcache_size, mips_tcache_linesize, mips_tcache_ways;
-extern int	mips_scache_split, mips_scache_discontig;
 
 /* these are now the only standard interfaces to the caches */
 extern void	mips_size_cache (void);
@@ -63,7 +62,6 @@ extern void	mips_clean_icache (vaddr_t, size_t);
 extern void	mips_lock_dcache (vaddr_t, size_t);
 extern void	mips_lock_icache (vaddr_t, size_t);
 extern void	mips_lock_scache (vaddr_t, size_t);
-
 
 /*
  * Other common utilities for all CPUs
@@ -113,8 +111,6 @@ __extension__ ({ \
     _mips_mtc0 (reg, (__o & ~(clr)) | (set)); \
     __o; \
 })
-
-
 
 /*
  * Standard MIPS CP0 register access functions
