@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -11,29 +11,13 @@
  *
  */
 
-
 /*
  * m32cache.h: MIPS32 cache support functions
  */
 
-
-/*
- * Note:	 pessimistic hazard timings assumed.
- */
-
-#if 1 /*#cache(m32)*/
-
-	.set	nomips16
-/* we must fix this so that this module can compile with "generic" flags */
-#if __mips != 32 && __mips != 64 && !R4000
-#error use -mips32 or -mips64 options with this file
-#endif
-
 #include <mips/asm.h>
 #include <mips/regdef.h>
 #include <mips/m32c0.h>
-#include <mips/prid.h>
-
 
 /*
  * MIPS32 cache operations.
@@ -94,13 +78,6 @@ IMPORT(mips_scache_ways,4)
 12:	cacheop(kva, t3, linesize, op)
 
 
-#if defined(IN_PMON) ||  defined(ITROM)
-/* caches are always sized first */
-#define SIZE_CACHE(reg,which)		\
-	lw	reg,which;		\
-	blez	reg,9f;			\
-	sync
-#else
 /* caches may not have been sized yet */
 #define SIZE_CACHE(reg,which)		\
 	lw	reg,which;		\
@@ -111,9 +88,6 @@ IMPORT(mips_scache_ways,4)
 	move	ra,v1;			\
 9:	blez	reg,9f;			\
 	sync
-#endif
-
-
 
 #define tmp		t0
 #define cfg		t1
@@ -131,6 +105,3 @@ IMPORT(mips_scache_ways,4)
 #define tmp3		a1
 #define tmp4		a2
 #define tmp5		a3
-
-
-#endif /* #cache(m32) */

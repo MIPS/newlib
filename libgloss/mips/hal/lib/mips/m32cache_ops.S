@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -11,21 +11,11 @@
  *
  */
 
-
 /*
  * m32cache_ops.sx: MIPS32 cache support functions
  */
 
-
-/*
- * Note:	 pessimistic hazard timings assumed.
- */
-
 #include "m32cache.h"
-
-#if 1 /*#cache(m32)*/
-
-#ifndef CSMIPS_CACHE_EXTRAROUTINES
 
 /*
  * void m32_flush_cache (void)
@@ -110,9 +100,6 @@ END(m32_flush_icache)
  * Writeback and invalidate address range in all caches
  */
 LEAF(m32_clean_cache)
-#if __mips_isa_rev < 2
-XLEAF(m32_sync_icache)
-#endif
 	SIZE_CACHE(a2,mips_dcache_linesize)
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_D)
 
@@ -130,7 +117,6 @@ XLEAF(m32_sync_icache)
 	jr.hb	ra
 END(m32_clean_cache)
 
-#if __mips_isa_rev >= 2
 /*
  * void m32_sync_icache (unsigned kva, size_t n)
  *
@@ -164,8 +150,6 @@ LEAF(m32_sync_icache)
 9:	sync
 	jr.hb	ra
 END(m32_sync_icache)
-#endif
-
 
 /*
  * void m32_clean_dcache (unsigned kva, size_t n)
@@ -203,9 +187,6 @@ LEAF(m32_clean_dcache_nowrite)
 	jr.hb	ra
 END(m32_clean_dcache_nowrite)
 
-
-
-
 /*
  * Cache locking
  *
@@ -215,7 +196,6 @@ END(m32_clean_dcache_nowrite)
  * mips_flush_xcache routines, because these will flush the
  * locked data out of the cache too; use only mips_clean_xcache.
  */
-
 
 /*
  * void m32_lock_dcache (void *data, size_t n)
@@ -229,7 +209,6 @@ LEAF(m32_lock_dcache)
 9:	jr.hb	ra
 END(m32_lock_dcache)
 
-
 /*
  * void m32_lock_icache (void *code, size_t n)
  *
@@ -242,206 +221,6 @@ LEAF(m32_lock_icache)
 9:	jr.hb	ra
 END(m32_lock_icache)
 
-
 LEAF(m32_lock_scache)
 	j	ra
 END(m32_lock_scache)
-
-#endif /* !CSMIPS_CACHE_EXTRAROUTINES */
-
-
-
-
-/*
- * The following functions operate on individual cache levels, or use
- * indexed addressing, so they are probably only useful for cache
- * diagnostics or possibly virtual memory operating systems.
- */
-
-#if defined(CSMIPS_CACHE_EXTRAROUTINES) || defined(ITROM)
-
-/*
- * void m32_flush_cache_nowrite (void *base)
- *
- * Invalidate but don't writeback all caches (probably only
- * sensible for cache diagnostics). Use "base" as the
- * cacheable base address, in case kseg0 is uncacheable.
- */
-LEAF(m32_flush_cache_nowrite)
-	/* disable all i/u and cache exceptions */
-	mfc0	a3,$sr
-	li	a1,~SR_IE
-	and	a1,a3
-	or	a1,SR_ERL		# will this work?
-	mtc0	a1,$sr
-#if __mips_isa_rev < 2
-	ssnop; ssnop
-#endif
-	ehb
-
-	mtc0	zero,$errctl
-	mtc0	zero,$taglo		# 4K taglo / 20Kc itaglo
-	mtc0	zero,$taghi		# 4K taghi / 20Kc itaghi
-	mtc0	zero,$taglo,2		# 20Kc dtaglo
-	mtc0	zero,$taghi,2		# 20Kc dtaghi
-	mtc0	zero,$taglo,4		# 25Kf L23taglo
-	mtc0	zero,$taghi,4		# 25Kf L23taghi
-	ehb
-
-	/* invalidate primary caches individually */
-	lw	a1,mips_dcache_size
-	lw	a2,mips_dcache_linesize
-	blez	a1,9f
-	cacheop(a0,a1,a2,Index_Store_Tag_D)
-
-9:	lw	a1,mips_icache_size
-	lw	a2,mips_icache_linesize
-	blez	a1,9f
-	cacheop(a0,a1,a2,Index_Store_Tag_I)
-
-9:	sync
-	lw	a1,mips_scache_size
-	lw	a2,mips_scache_linesize
-	blez	a1,9f
-	cacheop(a0,a1,a2,Index_Store_Tag_S)
-
-9:	mtc0	a3,$sr
-#if __mips_isa_rev < 2
-	ssnop; ssnop
-#endif
-	sync
-	jr.hb	ra
-END(m32_flush_cache_nowrite)
-
-
-/*
- * void m32_clean_dcache_indexed (unsigned kva, size_t n)
- *
- * Writeback and invalidate indexed range in primary data cache
- */
-LEAF(m32_clean_dcache_indexed)
-	SIZE_CACHE(a3,mips_dcache_size)
-	lw	v0,mips_dcache_ways
-	lw	a2,mips_dcache_linesize
-	divu	a3,v0			# calculate set size
-
-1:	icacheop(a0,a1,a2,a3,Index_Writeback_Inv_D)
-	addu	a0,a3			# do next set
-	subu	v0,1			# until all done
-	bnez	v0,1b
-
-	sync
-
-9:	jr.hb	ra
-END(m32_clean_dcache_indexed)
-
-
-/*
- * void m32_clean_icache (unsigned kva, size_t n)
- *
- * Writeback and invalidate address range in instruction caches
- */
-LEAF(m32_clean_icache_nowrite)
-	SIZE_CACHE(a2,mips_icache_linesize)
-	vcacheop(a0,a1,a2,Hit_Invalidate_I)
-
-	/* flush secondary cache */
-9:	lw	a2,mips_scache_linesize
-	blez	a2,9f
-	vcacheop(a0,a1,a2,Hit_Invalidate_S)
-
-9:	jr.hb	ra
-END(m32_clean_icache_nowrite)
-
-
-/*
- * void m32_clean_icache_indexed (unsigned kva, size_t n)
- *
- * Writeback and invalidate indexed range in primary instruction cache
- */
-LEAF(m32_clean_icache_indexed)
-	SIZE_CACHE(a3,mips_icache_size)
-	lw	v0,mips_icache_ways
-	lw	a2,mips_icache_linesize
-	divu	a3,v0			# calculate set size
-
-1:	icacheop(a0,a1,a2,a3,Index_Invalidate_I)
-	addu	a0,a3			# do next set
-	subu	v0,1			# until all sets done
-	bnez	v0,1b
-
-9:	jr.hb	ra
-END(m32_clean_icache_indexed)
-
-/*
- * void m32_clean_scache (unsigned kva, size_t n)
- *
- * Writeback and invalidate address range in secondary cache
- */
-LEAF(m32_clean_scache)
-	/* flush secondary cache */
-	SIZE_CACHE(a2,mips_scache_linesize)
-	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
-	sync
-9:	jr.hb	ra
-END(m32_clean_scache)
-
-
-/*
- * void m32_clean_scache_nowrite (unsigned kva, size_t n)
- *
- * Invalidate an address range in secondary cache
- */
-LEAF(m32_clean_scache_nowrite)
-	/* flush secondary cache */
-	SIZE_CACHE(a2,mips_scache_linesize)
-	vcacheop(a0,a1,a2,Hit_Invalidate_S)
-9:	jr.hb	ra
-END(m32_clean_scache_nowrite)
-
-/*
- * void mips_clean_sdcache_nowrite (unsigned kva, size_t n)
- *
- * Invalidate an address range in secondary data cache
- */
-LEAF(m32_clean_sdcache_nowrite)
-9:	j	ra
-END(m32_clean_sdcache_nowrite)
-
-/*
- * void mips_clean_sicache_nowrite (unsigned kva, size_t n)
- *
- * Invalidate an address range in secondary instruction cache
- */
-LEAF(m32_clean_sicache_nowrite)
-9:	j	ra
-END(m32_clean_sicache_nowrite)
-
-
-/*
- * void m32_hit_writeback_inv_dcache (unsigned kva, size_t n)
- *
- * Writeback and invalidate address range in primary data cache
- */
-LEAF(m32_hit_writeback_inv_dcache)
-	SIZE_CACHE(a2,mips_dcache_linesize)
-	vcacheop(a0,a1,a2,Hit_Writeback_Inv_D)
-	sync
-9:	jr.hb	ra
-END(m32_hit_writeback_inv_dcache)
-
-/*
- * void m32_hit_writeback_inv_scache (unsigned kva, size_t n)
- *
- * Writeback and invalidate address range in secondary cache
- */
-LEAF(m32_hit_writeback_inv_scache)
-	SIZE_CACHE(a2,mips_dcache_linesize)
-	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
-	sync
-9:	jr.hb	ra
-END(m32_hit_writeback_inv_scache)
-
-#endif /* CSMIPS_CACHE_EXTRAROUTINES */
-
-#endif /* #cache(m32) */

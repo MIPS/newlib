@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -11,14 +11,8 @@
  *
  */
 
-
 /*
  * m32cache.sx: MIPS32 cache support functions
- */
-
-
-/*
- * Note:	 pessimistic hazard timings assumed.
  */
 
 #if defined(__mips_isa_rev) && __mips_isa_rev >= 6
@@ -31,10 +25,6 @@
 #ifdef L2_CM3
 #include <mips/m64r6cm3.h>
 #endif
-
-#if 1 /*#cache(m32)*/
-
-#ifndef CSMIPS_CACHE_EXTRAROUTINES
 
 /*
  * static void _size_cache()
@@ -212,14 +202,10 @@ LEAF(m32_clean_icache)
 	SIZE_CACHE(a2,mips_icache_linesize)
 	vcacheop(a0,a1,a2,Hit_Invalidate_I)
 
-9:	lw	a2,mips_scache_linesize
+	lw	a2,mips_scache_linesize
 	blez	a2,9f
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
 	sync
 
 9:	jr.hb	ra
 END(m32_clean_icache)
-
-#endif /* !CSMIPS_CACHE_EXTRAROUTINES */
-
-#endif /* #cache(m32) */

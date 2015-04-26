@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -11,14 +11,11 @@
  *
  */
 
-
 /*
  * cache_ops.sx: switchable cache support
  */
 
 #include "cache.h"
-
-#ifndef CSMIPS_CACHE_EXTRAROUTINES
 
 /*
  * void mips_flush_cache (void)
@@ -83,7 +80,6 @@ SWCACHE(clean_dcache_nowrite)
  */
 SWCACHE(lock_dcache)
 
-
 /*
  * void mips_lock_icache (vaddr_t va, unsigned int size)
  *
@@ -91,21 +87,9 @@ SWCACHE(lock_dcache)
  */
 SWCACHE(lock_icache)
 
-
 /*
  * void mips_lock_scache (vaddr_t va, unsigned int size)
  *
  * Load and lock a block of memory into the secondary cache
  */
 SWCACHE(lock_scache)
-
-#else /* CSMIPS_CACHE_EXTRAROUTINES */
-
-/* Special functions for test software only */
-SWCACHE(flush_cache_nowrite)
-
-SWCACHE(clean_icache_indexed)
-
-SWCACHE(clean_dcache_indexed)
-
-#endif /* CSMIPS_CACHE_EXTRAROUTINES */

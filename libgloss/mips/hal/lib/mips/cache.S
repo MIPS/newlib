@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -11,14 +11,11 @@
  *
  */
 
-
 /*
  * cache.sx: switchable cache support
  */
 
 #include "cache.h"
-
-#ifndef CSMIPS_CACHE_EXTRAROUTINES
 
 DECL(mips_icache_size,-1)
 DECL(mips_icache_linesize,-1)
@@ -32,23 +29,9 @@ DECL(mips_scache_size,-1)
 DECL(mips_scache_linesize,-1)
 DECL(mips_scache_ways,1)
 
-/* R4000 specials */
-DECL(mips_scache_split,0)
-DECL(mips_scache_discontig,0)
-
 DECL(mips_tcache_size,-1)
 DECL(mips_tcache_linesize,-1)
 DECL(mips_tcache_ways,1)
-
-/*
- * void mips_init_cache (void)
- *
- * Size and (re)initialise caches from scratch; usually only called
- * once during power on reset.
- *
- * NOTE: loses any dirty lines in writeback caches
- */
-SWCACHE(init_cache)
 
 /*
  * void mips_size_cache (void)
@@ -64,5 +47,3 @@ SWCACHE(size_cache)
  * Joint caches (i.e. combined I & D) will be cleaned too.
  */
 SWCACHE(clean_icache)
-
-#endif /* CSMIPS_CACHE_EXTRAROUTINES */
