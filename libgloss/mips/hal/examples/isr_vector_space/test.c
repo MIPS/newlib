@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 #include <mips/cpu.h>
-volatile int handledsw1 = 1;
+volatile int handledsw1 = 0;
 volatile int handledsw0 = 0;
 
 int
@@ -28,6 +28,8 @@ main ()
   while (!handledsw1 || !handledsw0)
     {
     };
+
+  printf ("SW0 and SW1 interrupts handled\n");
 
   return 1;
 }
@@ -44,7 +46,7 @@ _mips_isr_sw1 (void)
   _mips_bcc0 (C0_CAUSE, SR_SINT1);
 }
 
-/* Provide a fall-back handler if anything other than SW0 is raised */
+/* Provide a fall-back handler if anything other than SW0/SW1 is raised */
 void __attribute__ ((interrupt, keep_interrupts_masked))
 _mips_interrupt (void)
 {
