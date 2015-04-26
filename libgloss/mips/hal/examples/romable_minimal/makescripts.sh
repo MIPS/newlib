@@ -1,9 +1,14 @@
 #!/bin/bash
 
-if [ "x$COMPILER" = "x" ]; then
-  echo "Error: COMPILER is not set"
+if [ "x$MIPS_ELF_ROOT" = "x" ]; then
+  echo "Error: MIPS_ELF_ROOT is not set"
   exit 1
 fi
+if [ "x$MIPS_TOOLCHAIN" = "x" ]; then
+  echo "Error: MIPS_TOOLCHAIN is not set (i.e. mips-img-elf)"
+  exit 1
+fi
+COMPILER=${MIPS_ELF_ROOT}/bin/${MIPS_TOOLCHAIN}-gcc
 
 uhi32=`${COMPILER} --print-file-name=uhi32.ld`
 uhi64_64=`${COMPILER} --print-file-name=uhi64_64.ld`
