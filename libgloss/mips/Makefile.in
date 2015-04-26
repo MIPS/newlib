@@ -95,6 +95,9 @@ BOOTOBJ = reset.o init_cp0.o init_caches.o init_l23caches.o
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
 
+EXAMPLES = custom_excpt fault_recovery interrupt_handler isr_vector_space \
+	   romable romable_minimal romable_predef
+
 CFLAGS = -g
 
 GCC_LDFLAGS = `if [ -d ${objroot}/../gcc ] ; \
@@ -249,6 +252,15 @@ install:
 	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/rules
 	@$(INSTALL_DATA) ${srcdir}/hal/mipshal.mk $(DESTDIR)$(exec_prefix)/share/mips/rules/
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples
+	@for example in $(EXAMPLES); do\
+	  mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}; \
+	  for file in ${srcdir}/hal/examples/$${example}/{*.[cS],*.txt,Makefile}; do\
+	    $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
+	  done; \
+	done
+	$(INSTALL_PROGRAM) ${srcdir}/hal/examples/romable_minimal/makescripts.sh \
+	  $(DESTDIR)$(exec_prefix)/share/mips/examples/romable_minimal/makescripts.sh
 
 info:
 install-info:
