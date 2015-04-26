@@ -1,8 +1,18 @@
-This example code demonstrates a minimal bootable example with a quiet
-exception handler. The main differences are found in the linker script
-which is derived from uhi*.ld linker scripts, using makescripts.sh.
+Demonstration of a bootable example without some of the support code normally
+needed for debug, hosted or semi-hosted environments.
 
-Set Environment variable MIPS_ELF_ROOT
+The removed features are:
+* No support for UHI argument handling operations (i.e. a0 == -1)
+* No support for returning to a boot monitor or using a boot monitor's
+  UHI support
+* Quiet unhandled exceptions, no output is produced but instead the UHI
+  exception operation is raised and a debugger (or application) can
+  respond to it
+
+These features are removed by modifying the the linker scripts which are
+derived from uhi*.ld linker scripts, using makescripts.sh.
+
+Set environment variable MIPS_ELF_ROOT
 	This should be set to the root of the installation directory for the
 	toolchain (that is, below the bin directory).
 

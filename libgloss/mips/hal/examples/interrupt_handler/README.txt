@@ -1,4 +1,4 @@
-Demonstration of installing an interrupt handler for software interrupt 0.
+Demonstration of installing an interrupt handler for software interrupts 0.
 
 Set environment variable MIPS_ELF_ROOT
 	This should be set to the root of the installation directory for the

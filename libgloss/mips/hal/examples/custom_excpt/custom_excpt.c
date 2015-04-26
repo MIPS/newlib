@@ -1,6 +1,6 @@
 /*
  * Copyright 2015, Imagination Technologies Limited and/or its
- *         affiliated group companies.
+ *                 affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -17,7 +17,6 @@
 int
 main ()
 {
-
   /* Some pointer setup to access memory address 0*/
   int b = -1;
   int *a = 0;
@@ -27,27 +26,22 @@ main ()
   b = *a;
   /* Return value should be 0 */
   return b;
-
 }
 
-
-/* This exception handler emulates register zero style handling
- * but for memory, i.e. writes to page zero are ignored and reads
- * return a zero for select instructions.
+/*
+ * This exception handler emulates register zero style handling but for memory,
+ * i.e. writes to page zero are ignored and reads return a zero for select
+ * instructions.
  */
 void
 _mips_handle_exception (struct gpctx *ctx, int exception)
 {
-
-  /* In this non-micromips example we are not going to emulate all mips
-   * branch instructions for correct return to epc.
+  /*
+   * This example is designed to work only MIPS and does not handle the case
+   * where a memory operation occurs in a branch delay slot.
    */
-  if (CR_BD & mips_getcr () || 0x1 & ctx->epc)
-    {
-      /* Pass exception */
-      __exception_handle (ctx, exception);
-    }
-  else
+  if ((mips_getcr () & CR_BD) == 0
+      && (ctx->epc & 0x1) == 0)
     {
       unsigned int fault_instruction = 0;
       switch (exception)
@@ -60,13 +54,13 @@ _mips_handle_exception (struct gpctx *ctx, int exception)
 	      unsigned int store_reg = (fault_instruction >> 21) & 0x1f;
 	      int16_t offset = fault_instruction & 0xffff;
 	      unsigned int destination = ctx->r[store_reg] + offset;
+
 	      if (destination < 4096)
 		{
 		  write (1, "Handled write to zero page\n", 27);
 		  ctx->epc += 4;
 		  return;
 		}
-
 	    }
 	  break;
 
@@ -86,21 +80,14 @@ _mips_handle_exception (struct gpctx *ctx, int exception)
 		  ctx->r[rt] = 0;
 		  return;
 		}
-
 	    }
-
-
 	  break;
-
 
 	default:
-	  /* All other exceptions are passed to the default exception
-	  *  handler.
-	  */
-	  __exception_handle (ctx, exception);
 	  break;
-
 	}
     }
 
+  /* All other exceptions are passed to the default exception handler.  */
+  __exception_handle (ctx, exception);
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Imagination Technologies LLC and Imagination Technologies
- * Limited.
+ * Copyright 2015, Imagination Technologies Limited and/or its
+ *                 affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -10,46 +10,44 @@
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  */
 
-
 #include <stdio.h>
 #include <mips/cpu.h>
-volatile int handledsw1 = 0;
-volatile int handledsw0 = 0;
+#include <mips/hal.h>
+volatile int handled;
 
 int
 main ()
 {
-  /* Enable SW interrupts 0/1 */
-  _mips_bsc0 (C0_STATUS, SR_SINT0 | SR_SINT1);
+  /* Enable SW interrupt 0 */
+  _mips_bsc0 (C0_STATUS, SR_SINT0);
   /* Trigger the interrupt */
-  _mips_bsc0 (C0_CAUSE, SR_SINT1);
   _mips_bsc0 (C0_CAUSE, SR_SINT0);
   /* Wait for handling */
-  while (!handledsw1 || !handledsw0)
+  while (!handled)
     {
     };
 
-  printf ("SW0 and SW1 interrupts handled\n");
+  printf ("SW0 interrupt handled");
 
   return 1;
 }
 
-/* Handle SW1 */
-void __attribute__ ((interrupt("vector=sw1")))
-_mips_isr_sw1 (void)
+/* Handle SW0 */
+void __attribute__ ((interrupt("vector=sw0")))
+_mips_isr_sw0 (void)
 {
   /* Prove that semi-hosting still works! */
   write (1, "Hello World\n", 12);
   /* Count the interrupt */
-  handledsw1 += 1;
+  handled += 1;
   /* Clear the interrupt */
-  _mips_bcc0 (C0_CAUSE, SR_SINT1);
+  _mips_bcc0 (C0_CAUSE, SR_SINT0);
 }
 
-/* Provide a fall-back handler if anything other than SW0/SW1 is raised */
+/* Provide a fall-back handler if anything other than SW0 is raised */
 void __attribute__ ((interrupt, keep_interrupts_masked))
 _mips_interrupt (void)
 {
-  write (1, "Generic interrupt trapped.\n", 27);
-  __exit(2);
+  write (1, "Unhandled interrupt occurred\n", 29);
+  __exit (2);
 }

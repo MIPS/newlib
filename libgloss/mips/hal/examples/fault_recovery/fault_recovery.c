@@ -1,6 +1,6 @@
 /*
  * Copyright 2015, Imagination Technologies Limited and/or its
- *         affiliated group companies.
+ *                 affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -21,8 +21,8 @@ void fault_recover ();
 int
 main ()
 {
-  int error = 0;
-  error = setjmp (context);
+  int error = setjmp (context);
+
   if (error)
     {
       printf ("Error handled %d\n", error);
@@ -36,7 +36,6 @@ main ()
 
   /* Return error on this return path. */
   return -1;
-
 }
 
 void
@@ -50,10 +49,7 @@ _mips_handle_exception (struct gpctx *ctx, int exception)
       ctx->epc = (reg_t)&fault_recover;
     }
   else
-    {
-      __exception_handle (ctx, exception);
-    }
-
+    __exception_handle (ctx, exception);
 }
 
 void

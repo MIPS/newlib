@@ -1,6 +1,6 @@
 /*
  * Copyright 2015, Imagination Technologies Limited and/or its
- *         affiliated group companies.
+ *                 affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -15,5 +15,6 @@
 int
 main ()
 {
-    return 255;
+  write (1, "minimal\n", 8);
+  return 255;
 }

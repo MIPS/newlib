@@ -1,7 +1,7 @@
 Demonstration of exception handling by triggering a memory fault, recovering
 and then continuing.
 
-Set Environment variable MIPS_ELF_ROOT
+Set environment variable MIPS_ELF_ROOT
 	This should be set to the root of the installation directory for the
 	toolchain (that is, below the bin directory)
 

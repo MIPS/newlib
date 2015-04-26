@@ -1,6 +1,5 @@
-#
 # Copyright 2015, Imagination Technologies Limited and/or its
-#         affiliated group companies.
+#                 affiliated group companies.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -12,8 +11,12 @@
 # Variables that mipshal.mk will expand to compiler/linker arguments must be
 # defined before inclusion of mipshal.mk
 
-# Define flash start as the uncached reset vector address
+# Indicate the application should start via the reset vector
 ROMABLE = 1
+# Default to o32 ABI
+ABI ?= 32
+
+# Set up a 1:1 mapping for physical to virtual addresses
 ifeq ($(ABI), 64)
   FLASH_START = 0xFFFFFFFFBFC00000
   APP_START = 0xFFFFFFFF80000000
@@ -24,24 +27,21 @@ else
   LDSCRIPT = minimal32.ld
 endif
 
-# Set default ABI to o32
-ABI ?= 32
-
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
 CFLAGS += -g
 LDFLAGS += -g
-OBJS = minimal.o
+OBJS = romable_minimal.o
+APP = romable_minimal.elf
 
-all: minimal.elf
+all: $(APP)
 
-minimal.elf: $(OBJS)
+$(APP): $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-
 .PHONY: clean
 clean:
-	rm -f minimal.elf $(OBJS)
+	rm -f $(APP) $(OBJS)

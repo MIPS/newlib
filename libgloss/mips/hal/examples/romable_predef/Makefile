@@ -1,5 +1,5 @@
 # Copyright 2015, Imagination Technologies Limited and/or its
-#         affiliated group companies.
+#                 affiliated group companies.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -11,18 +11,8 @@
 # Variables that mipshal.mk will expand to compiler/linker arguments must be
 # defined before inclusion of mipshal.mk
 
-# Define flash start and the entry point.
+# Indicate the application should start via the reset vector
 ROMABLE = 1
-
-ifeq ($(ABI), 64)
-FLASH_START = 0xFFFFFFFFBFC00000
-APP_START = 0xFFFFFFFF80000000
-else
-FLASH_START = 0xBFC00000
-APP_START = 0x80000000
-endif
-
-include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
 ifeq ($(CORE), P5600)
  DEFINES =  -DC0_CONFIG1_VALUE=0xFEA3519B
@@ -30,6 +20,11 @@ ifeq ($(CORE), P5600)
  DEFINES += -DC0_CONFIG4_VALUE=0xc01c0000
  DEFINES += -DC0_CONFIG5_VALUE=0x10000038
  DEFINES += -DC0_WATCHHI_VALUE=0x00000000
+ override ABI = 32
+ override ENDIAN = EL
+ override MIPS_TOOLCHAIN = mips-mti-elf
+ FLASH_START = 0xBFC00000
+ APP_START = 0x80000000
 else
  ifeq ($(CORE), I6400)
   DEFINES =  -DC0_CONFIG1_VALUE=0x9EAB559B
@@ -40,27 +35,36 @@ else
   DEFINES += -DC0_WATCHHI1_VALUE=0x80000000
   DEFINES += -DC0_WATCHHI2_VALUE=0x80000000
   DEFINES += -DC0_WATCHHI3_VALUE=0x00000000
+  override ABI = 64
+  override ENDIAN = EL
+  override MIPS_TOOLCHAIN = mips-img-elf
+  FLASH_START = 0xFFFFFFFFBFC00000
+  APP_START = 0xFFFFFFFF80000000
  else
   $(error Please specify a core using CORE=(P5600|I6400))
  endif
 endif
-OBJS = examplepredef.o reset_predef.o init_caches_predef.o init_cp0_predef.o
+
+include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
+
+OBJS = romable_predef.o reset_predef.o init_caches_predef.o init_cp0_predef.o
 OBJS += init_l23caches_predef.o
+APP = romable_predef.elf
 
 CFLAGS += -g $(DEFINES)
 LDFLAGS += -g
 
-all: examplepredef.elf
+all: $(APP)
 
-examplepredef.elf: $(OBJS)
-	$(LD) $(LDFLAGS) $(OBJS) -o $@
+$(APP): $(OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 %.o: $(MIPS_ELF_ROOT)/share/mips/boot/%.S
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 .PHONY: clean
 clean:
-	rm -f examplepredef.elf $(OBJS)
+	rm -f $(APP) $(OBJS)

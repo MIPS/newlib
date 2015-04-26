@@ -1,6 +1,6 @@
 /*
  * Copyright 2015, Imagination Technologies Limited and/or its
- *         affiliated group companies.
+ *                 affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -15,6 +15,6 @@
 int
 main ()
 {
-    printf ("Hello world (from reset_vector)!\n");
-    return 0;
+  printf ("Hello world!\n");
+  return 0;
 }

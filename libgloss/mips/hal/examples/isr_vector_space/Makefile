@@ -1,5 +1,5 @@
 # Copyright 2015, Imagination Technologies Limited and/or its
-#         affiliated group companies.
+#                 affiliated group companies.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -15,12 +15,15 @@ ISR_VEC_SPACE = 64
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
 CFLAGS += -g -DISR_VEC_SPACE=$(ISR_VEC_SPACE)
-LD_FLAGS += -g
+LDFLAGS += -g
 
-OBJS = test.o excpt_isr.o
+OBJS = isr_vector_space.o excpt_isr.o
+APP = isr_vector_space.elf
 
-test.elf: $(OBJS)
-	$(LD) $^ $(LDFLAGS) -o $@
+all: $(APP)
+
+$(APP): $(OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@
@@ -30,4 +33,4 @@ test.elf: $(OBJS)
 
 .PHONY: clean
 clean:
-	rm -f test.elf $(OBJS)
+	rm -f $(APP) $(OBJS)

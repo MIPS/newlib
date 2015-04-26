@@ -1,5 +1,5 @@
 # Copyright 2015, Imagination Technologies Limited and/or its
-#         affiliated group companies.
+#                 affiliated group companies.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -16,14 +16,17 @@ include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 CFLAGS += -g
 LDFLAGS += -g
 
-OBJS = swtest.o
+OBJS = interrupt_handler.o
+APP = interrupt_handler.elf
 
-swtest.elf: $(OBJS)
-	$(LD) $^ $(LDFLAGS) -o $@
+all: $(APP)
+
+$(APP): $(OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 .PHONY: clean
 clean:
-	rm -f swtest.elf $(OBJS)
+	rm -f $(APP) $(OBJS)

@@ -1,4 +1,6 @@
-Demonstration of defining custom interrupt vector spacing
+Demonstration of defining custom interrupt vector spacing and overriding the
+interrupt vector. This extends the interrupt handler demo to include both
+a C and assembly coded handler.
 
 Set environment variable MIPS_ELF_ROOT
 	This should be set to the root of the installation directory for the
