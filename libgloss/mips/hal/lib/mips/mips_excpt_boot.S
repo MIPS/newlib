@@ -28,6 +28,8 @@
 #include <mips/asm.h>
 #include <mips/cpu.h>
 #include <mips/hal.h>
+#include <mips/endian.h>
+#include <mips/regdef.h>
 
 	# Create space to store k0, k1, ra and sp
 	.data
@@ -301,3 +303,65 @@ WLEAF(__get_startup_BEV)
 
 	.set	pop
 WEND(__get_startup_BEV)
+
+
+EXPORTS(__MIPS_UHI_BAD_POINTER, 32)
+	.ascii "UHI: BAD POINTER\000"
+
+#
+# FUNCTION: __convert_argv_pointers
+#
+# DESCRIPTION: Convert 64bit pointers to 32bit.
+#
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIN32
+WLEAF(__convert_argv_pointers)
+	/* Early out if a0 <= 0 */
+	blez	a0, .Lend
+
+	/* Verify 64-bit mode */
+	mfc0	t0, C0_STATUS
+	ext	t1, t0, SR_KX_SHIFT, 1
+	beqz	t1, .Lend
+
+	/* Set up stack pointer */
+	move	t0, a0
+	sll	t1, t0, 2
+	addiu   t1, t1, ALSZ            /* Round to stack alignment */
+	and     t1, t1, ALMASK
+
+	PTR_SUBU sp, sp, t1
+	move	t2, sp
+	move	t3, a1
+	li	t1, -1
+
+.Lloop:
+#if BYTE_ORDER == LITTLE_ENDIAN
+	lw	t8, 0(t3)
+	lw	t9, 4(t3)
+#elif BYTE_ORDER == BIG_ENDIAN
+	lw	t9, 0(t3)
+	lw	t8, 4(t3)
+#else
+#error BYTE_ORDER
+#endif
+	/* if s1 != 0 && s1 != 0xFFFFFFFF */
+	beqz	t9, .LGoodp
+	beq	t9, t1, .LGoodp
+	/* Overwrite bad pointer with stock bad value */
+	LA	t8, __MIPS_UHI_BAD_POINTER
+.LGoodp:
+	sw	t8, 0(t2)
+
+	PTR_ADDU t2, t2, 4
+	PTR_ADDU t3, t3, 8
+	addiu	t0, t0, -1
+	bnez	t0, .Lloop
+
+	move	a1, sp
+	PTR_SUBU sp, sp, (NARGSAVE*SZARG)
+
+	move	a2, zero
+.Lend:
+	jr	ra
+WEND(__convert_argv_pointers)
+#endif /* ABI TEST */
