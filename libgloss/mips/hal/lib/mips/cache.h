@@ -30,6 +30,6 @@
 
 #define SWCACHE(name) 		\
 LEAF(_ASMCONCAT(mips_, name));	\
-	j	_ASMCONCAT(m32_, name) \
+	j	_ASMCONCAT(m32_, name); \
 	jr	ra;		\
 END(_ASMCONCAT(mips_, name))
