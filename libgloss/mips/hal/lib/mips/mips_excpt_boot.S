@@ -315,8 +315,8 @@ EXPORTS(__MIPS_UHI_BAD_POINTER, 32)
 #
 #if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIN32
 WLEAF(__convert_argv_pointers)
-	/* Early out if a0 == 0 */
-	beqz	a0, .Lend
+	/* Early out if a0 <= 0 */
+	blez	a0, .Lend
 
 	/* Verify 64-bit mode */
 	PTR_MFC0 t0, C0_STATUS
