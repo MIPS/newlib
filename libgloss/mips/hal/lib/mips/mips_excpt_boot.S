@@ -318,10 +318,12 @@ WLEAF(__convert_argv_pointers)
 	/* Early out if a0 <= 0 */
 	blez	a0, .Lend
 
-	/* Verify 64-bit mode */
-	PTR_MFC0 t0, C0_STATUS
-	ext	t1, t0, SR_KX_SHIFT, 1
-	beqz	t1, .Lend
+	/* Verify we came from 64-bit mode */
+	LA      t2, __start_ctx
+	REG_L	t1,  start_ctx_sr(t2)
+	andi	t1, SR_KX
+	beqz	t1, .Lend 
+	
 
 	/* Set up stack pointer */
 	move	t0, a0		
