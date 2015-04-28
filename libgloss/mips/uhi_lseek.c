@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,34 +32,28 @@
 */
 
 /*
- * @Synopsis     int32_t lseek (int32_t fd, int32_t offset, int32_t whence);
+ * @Synopsis	 lseek
  *
- *               Parameters:
- *                 $4 - File handle
- *                 $5 - Offset
- *                 $6 - Direction
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for seek
+ *		   $4 - File handle
+ *		   $5 - Offset
+ *		   $6 - Direction
  *
- *               Return:
- *                 $2 - New offset
- *
- *               Arguments to syscall:
- *                 $25 - Operation code for seek
- *                 $4 - File handle
- *                 $5 - Offset
- *                 $6 - Direction
- *
- *               Return from syscall:
- *                 $2 - New offset
- *                 $3 - errno
+ *		 Return from syscall:
+ *		   $2 - New offset
+ *		   $3 - errno
  *
  * @Description  File seek
 */
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
-int32_t lseek (int32_t fd, int32_t offset, int32_t whence)
+off_t
+lseek (int fd, off_t offset, int whence)
 {
   register int32_t arg1 asm ("$4") = fd;
   register int32_t arg2 asm ("$5") = offset;
@@ -68,20 +62,19 @@ int32_t lseek (int32_t fd, int32_t offset, int32_t whence)
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t new_errno asm ("$3") = 0;
 
-  __asm__ __volatile__(" # %0,%1 = lseek(%2, %3, %4) op=%5\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "=r" (new_errno), "+r" (arg1), "+r" (arg2)
-		       : "r" (arg3), "r" (op));
+  __asm__ __volatile__ (" # %0,%1 = lseek(%2, %3, %4) op=%5\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "=r" (new_errno), "+r" (arg1),
+			  "+r" (arg2)
+			: "r" (arg3), "r" (op));
 
   if (ret == -1)
     {
       /* Do a dance to set errno, errno is a function call that can
-         clobber $3.  */
+	 clobber $3.  */
       volatile uint32_t errno_tmp = new_errno;
       errno = errno_tmp;
     }
 
   return ret;
 }
-
-

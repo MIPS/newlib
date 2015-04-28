@@ -60,7 +60,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stddef.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 #include "uhi_stat.h"
 
 /* This macro declares a dummy type with -ve size if CONDITION is false */

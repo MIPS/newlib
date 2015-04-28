@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -11,30 +11,13 @@
  *
  */
 
-
 /*
  * m32cache.h: MIPS32 cache support functions
  */
 
-
-/*
- * Note:	 pessimistic hazard timings assumed.
- */
-
-#if 1 /*#cache(m32)*/
-
-	.set	nomips16
-/* we must fix this so that this module can compile with "generic" flags */
-#if __mips != 32 && __mips != 64 && !R4000
-#error use -mips32 or -mips64 options with this file
-#endif
-
-#define _BOOTCODE
 #include <mips/asm.h>
 #include <mips/regdef.h>
 #include <mips/m32c0.h>
-#include <mips/prid.h>
-
 
 /*
  * MIPS32 cache operations.
@@ -67,7 +50,6 @@ IMPORT(mips_scache_ways,4)
 #define mask	t2
 
 #define cacheop(kva, n, linesize, op)	\
-	.set	noreorder ;		\
 	/* check for bad size */	\
 	blez	n,11f ;			\
 	PTR_ADDU maxaddr,kva,n ;	\
@@ -75,13 +57,14 @@ IMPORT(mips_scache_ways,4)
 	PTR_SUBU mask,linesize,1 ;	\
 	not	mask ;			\
 	and	addr,kva,mask ;		\
+	PTR_SUBU addr,linesize ;	\
 	PTR_ADDU maxaddr,-1 ;		\
 	and	maxaddr,mask ;		\
 	/* the cacheop loop */		\
-10:	cache	op,0(addr) ;	 	\
+10:	PTR_ADDU addr,linesize ;	\
+	cache	op,0(addr) ;	 	\
 	bne	addr,maxaddr,10b ;	\
-	PTR_ADDU addr,linesize ;	\
-11:	.set	reorder
+11:
 
 /* virtual cache op: no limit on size of region */
 #define vcacheop(kva, n, linesize, op)	\
@@ -95,13 +78,6 @@ IMPORT(mips_scache_ways,4)
 12:	cacheop(kva, t3, linesize, op)
 
 
-#if defined(IN_PMON) ||  defined(ITROM)
-/* caches are always sized first */
-#define SIZE_CACHE(reg,which)		\
-	lw	reg,which;		\
-	blez	reg,9f;			\
-	sync
-#else
 /* caches may not have been sized yet */
 #define SIZE_CACHE(reg,which)		\
 	lw	reg,which;		\
@@ -112,9 +88,6 @@ IMPORT(mips_scache_ways,4)
 	move	ra,v1;			\
 9:	blez	reg,9f;			\
 	sync
-#endif
-
-
 
 #define tmp		t0
 #define cfg		t1
@@ -132,6 +105,3 @@ IMPORT(mips_scache_ways,4)
 #define tmp3		a1
 #define tmp4		a2
 #define tmp5		a3
-
-
-#endif /* #cache(m32) */

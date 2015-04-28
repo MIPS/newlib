@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted under the terms of the MIPS Free To Use 1.0 
- * license that you will have received with this package. If you haven't 
- * received this file, please contact Imagination Technologies or see the 
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
  * following URL for details.
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  *
@@ -33,29 +33,11 @@ extern "C" {
 
 #if __mips == 64 && ! __mips16
 
-# if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-/* use GCC builtins for better optimisation */
-
 /* 64-bit count leading zeroes */
 # define mips_dclz(x) __builtin_clzll (x)
 
 /* 64-bit count trailing zeroes */
 # define mips_dctz(x) __builtin_ctzll (x)
-
-#else
-
-/* 64-bit count leading zeroes */
-#define mips_dclz(x) __extension__({ \
-    unsigned long long __x = (x); \
-    unsigned int __v; \
-    __asm__ ("dclz %0,%1" : "=d" (__v) : "d" (__x)); \
-    __v; \
-})
-
-/* 64-bit count trailing zeroes */
-#define mips_dctz(x) (63 ^ mips_dclz ((x) & -(x)))
-
-#endif
 
 #define mips_dclo(x) __extension__({ \
     unsigned long long __x = (x); \
@@ -63,8 +45,6 @@ extern "C" {
     __asm__ ("dclo %0,%1" : "=d" (__v) : "d" (__x)); \
     __v; \
 })
-
-#if __mips_isa_rev >= 2
 
 /* MIPS64r2 dshd opcode */
 #define _mips64r2_dshd(x) __extension__({ \
@@ -110,8 +90,6 @@ extern "C" {
 	     : "dJ" (__x), "I" (pos), "I" (sz)); \
     __v; \
 })
-
-#endif /* __mips_isa_rev >= 2 */
 
 #endif /* __mips == 64 && ! __mips16 */
 

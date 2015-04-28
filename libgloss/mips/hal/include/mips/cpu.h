@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted under the terms of the MIPS Free To Use 1.0
@@ -30,14 +30,6 @@ extern "C" {
 #ifndef SR_IMASK
 #if __mips == 64
 #include <mips/m64c0.h>
-#elif _MIPS_ARCH_M14K || _MIPS_ARCH_M4K
-#include <mips/mipsm14k.h>
-#elif _MIPS_ARCH_24KC || _MIPS_ARCH_24KEC || _MIPS_ARCH_24KEF || _MIPS_ARCH_24KEF1_1 || _MIPS_ARCH_24KEF2_1 || _MIPS_ARCH_24KEFX || _MIPS_ARCH_24KEX || _MIPS_ARCH_24KF || _MIPS_ARCH_24KF1_1 || _MIPS_ARCH_24KF2_1 || _MIPS_ARCH_24KFX || _MIPS_ARCH_24KX
-#include <mips/mips24k.h>
-#elif _MIPS_ARCH_34KC || _MIPS_ARCH_34KF || _MIPS_ARCH_34KF1_1 || _MIPS_ARCH_34KF2_1 || _MIPS_ARCH_34KFX || _MIPS_ARCH_34KN || _MIPS_ARCH_34KX
-#include <mips/mips34k.h>
-#elif _MIPS_ARCH_74KC || _MIPS_ARCH_74KF || _MIPS_ARCH_74KF1_1 || _MIPS_ARCH_74K2_1 || _MIPS_ARCH_74K3_2 || _MIPS_ARCH_74KFX || _MIPS_ARCH_74KX
-    #include <mips/mips74k.h>
 #elif __mips == 32
 #include <mips/m32c0.h>
 #endif
@@ -56,10 +48,8 @@ extern int	mips_icache_size, mips_icache_linesize, mips_icache_ways;
 extern int	mips_dcache_size, mips_dcache_linesize, mips_dcache_ways;
 extern int	mips_scache_size, mips_scache_linesize, mips_scache_ways;
 extern int	mips_tcache_size, mips_tcache_linesize, mips_tcache_ways;
-extern int	mips_scache_split, mips_scache_discontig;
 
 /* these are now the only standard interfaces to the caches */
-extern void	mips_init_cache (void);
 extern void	mips_size_cache (void);
 extern void	mips_flush_cache (void);
 extern void	mips_flush_dcache (void);
@@ -73,20 +63,12 @@ extern void	mips_lock_dcache (vaddr_t, size_t);
 extern void	mips_lock_icache (vaddr_t, size_t);
 extern void	mips_lock_scache (vaddr_t, size_t);
 
-
 /*
  * Other common utilities for all CPUs
  */
-extern void	(mips_wbflush) (void);
+extern void	mips_wbflush (void);
 extern void	mips_cycle (unsigned);
-extern void	mips_init_tlb (void);
 extern int	mips_tlb_size (void);
-
-/* Functional interface to coprocessor 0 registers */
-/* XXX Only supports 32-bit registers. */
-/* _mips_xxc0 (reg, clear, set) */
-extern reg32_t _mips_xxc0 (unsigned int, reg32_t, reg32_t);
-/*extern reg64_t _mips_dxxc0 (unsigned int, reg32_t, reg32_t);*/
 
 /*
  * Coprocessor 0 register manipulation
@@ -129,8 +111,6 @@ __extension__ ({ \
     _mips_mtc0 (reg, (__o & ~(clr)) | (set)); \
     __o; \
 })
-
-
 
 /*
  * Standard MIPS CP0 register access functions
@@ -216,8 +196,6 @@ __extension__ ({ \
 
 #endif /*_mips_mfc0*/
 
-#include <mips/atomic.h>
-
 /*
  * Count-leading zeroes and ones.
  * Simulate with a function call if this CPU hasn't defined a
@@ -269,20 +247,7 @@ do { \
 #define PREF_STORE_RETAINED	PREF_STORE
 #endif
 
-#if __GNUC__ >= 3
 #define mips_prefetch __builtin_prefetch
-#else
-/* Some compatibility with GCC 3.x __builtin_prefetch() */
-#define mips_prefetch(ADDR, RW, LOCALITY) \
-    _mips_pref((RW) \
-	       ? ((LOCALITY) == 0 ? PREF_STORE_STREAMED \
-		 : (LOCALITY) == 3 ? PREF_STORE_RETAINED \
-		 : PREF_STORE) \
-	      : ((LOCALITY) == 0 ? PREF_LOAD_STREAMED \
-		 : (LOCALITY) == 3 ? PREF_LOAD_RETAINED \
-		 : PREF_LOAD), \
-	      *(ADDR))
-#endif
 
 #ifdef PREF_WRITEBACK_INVAL
 /* MIPS specific "nudge" (push to memory) operation */
@@ -303,7 +268,6 @@ do { \
 
 /*
  * Default versions of get/put for any MIPS CPU.
- * Some CPUs may have defined special versions for on-chip ram, etc.
  */
 #ifndef mips_get_byte
 #define mips_get_byte(addr, errp)	(*(volatile unsigned char *)(addr))
@@ -326,16 +290,7 @@ do { \
 	: "+d" (__count)); 				\
     } while (0)
 
-
 /* default implementation of _mips_intdisable is a function */
-extern int (_mips_intdisable) (void);
-extern void (_mips_intrestore) (int s);
-
-#ifndef _mips_wait
-/* wait for an active interrupt, possibly at reduced power
-   on most (all?) CPUs the interrupts must be enabled */
-#define _mips_wait() (void)0
-#endif
 
 #endif /* !ASSEMBLER */
 

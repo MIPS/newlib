@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted under the terms of the MIPS Free To Use 1.0 
- * license that you will have received with this package. If you haven't 
- * received this file, please contact Imagination Technologies or see the 
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
  * following URL for details.
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  *
@@ -26,7 +26,7 @@
 /*
  * MIPS32 MVPControl Register (CP0 Register 0, Select 1)
  */
-#define MVPCONTROL_EVP		0x00000001  /* Enable Virtual Processors */ 
+#define MVPCONTROL_EVP		0x00000001  /* Enable Virtual Processors */
 #define MVPCONTROL_VPC		0x00000002  /* VPE Configuration State */
 #define MVPCONTROL_STLB		0x00000004  /* Share TLBS */
 #define MVPCONTROL_CPA		0x00000008  /* Cache Partitioning Active */
@@ -35,39 +35,39 @@
  * MIPS32 MVPConf0 Register (CP0 Register 0, Select 2)
  */
 #define MVPCONF0_PTC		0x000000ff
-#define  MVPCONF0_PTC_SHIFT		 0	
-#define MVPCONF0_PVPE		0x00003c00	
-#define  MVPCONF0_PVPE_SHIFT		10	
-#define MVPCONF0_TCA		0x00008000	
-#define MVPCONF0_PTLBE		0x03ff0000	
+#define  MVPCONF0_PTC_SHIFT		 0
+#define MVPCONF0_PVPE		0x00003c00
+#define  MVPCONF0_PVPE_SHIFT		10
+#define MVPCONF0_TCA		0x00008000
+#define MVPCONF0_PTLBE		0x03ff0000
 #define  MVPCONF0_PTLBE_SHIFT		16
-#define MVPCONF0_TLBS		0x20000000	
-#define MVPCONF0_M		0x80000000	
+#define MVPCONF0_TLBS		0x20000000
+#define MVPCONF0_M		0x80000000
 
 /*
  * MIPS32 MVPConf1 Register (CP0 Register 0, Select 3)
  */
-#define MVPCONF1_PCP1		0x000000ff	
-#define  MVPCONF1_PCP1_SHIFT		 0	
-#define MVPCONF1_PCP2		0x0003fc00	
-#define  MVPCONF1_PCP2_SHIFT		10	
-#define MVPCONF1_PCX		0x0ff00000	
+#define MVPCONF1_PCP1		0x000000ff
+#define  MVPCONF1_PCP1_SHIFT		 0
+#define MVPCONF1_PCP2		0x0003fc00
+#define  MVPCONF1_PCP2_SHIFT		10
+#define MVPCONF1_PCX		0x0ff00000
 #define  MVPCONF1_PCX_SHIFT		20
-#define MVPCONF1_C1F		0x40000000     
-#define MVPCONF1_C1M		0x80000000	
+#define MVPCONF1_C1F		0x40000000
+#define MVPCONF1_C1M		0x80000000
 
 /*
  * MIPS32 VPEControl Register (CP0 Register 1, Select 1)
  */
-#define VPECONTROL_TARGTC	0x000000ff	
-#define  VPECONTROL_TARGTC_SHIFT	 0	
-#define VPECONTROL_TARGVPE	0x00003c00	
-#define  VPECONTROL_TARGVPE_SHIFT	10	
-#define VPECONTROL_TE		0x00008000	
-#define VPECONTROL_EXCPT	0x00070000	
-#define  VPECONTROL_EXCPT_SHIFT	        16	
-#define VPECONTROL_GSI		0x00100000	
-#define VPECONTROL_YSI		0x00200000	
+#define VPECONTROL_TARGTC	0x000000ff
+#define  VPECONTROL_TARGTC_SHIFT	 0
+#define VPECONTROL_TARGVPE	0x00003c00
+#define  VPECONTROL_TARGVPE_SHIFT	10
+#define VPECONTROL_TE		0x00008000
+#define VPECONTROL_EXCPT	0x00070000
+#define  VPECONTROL_EXCPT_SHIFT	        16
+#define VPECONTROL_GSI		0x00100000
+#define VPECONTROL_YSI		0x00200000
 
 /*
  * MIPS32 VPEConf0 Register (CP0 Register 1, Select 2)
@@ -76,17 +76,17 @@
 #define VPECONF0_MVP		0x00000002
 #define VPECONF0_XTC		0x1fe00000
 #define VPECONF0_XTC_SHIFT		21
-#define VPECONF0_M		0x80000000	
+#define VPECONF0_M		0x80000000
 
 /*
  * MIPS32 VPEConf1 Register (CP0 Register 1, Select 3)
  */
-#define VPECONF1_NCP1		0x000000ff	
-#define  VPECONF1_NCP1_SHIFT		 0	
-#define VPECONF1_NCP2		0x0003fc00	
-#define  VPECONF1_NCP2_SHIFT		10	
-#define VPECONF1_NCX		0x0ff00000	
-#define  VPECONF1_NCX_SHIFT		20	
+#define VPECONF1_NCP1		0x000000ff
+#define  VPECONF1_NCP1_SHIFT		 0
+#define VPECONF1_NCP2		0x0003fc00
+#define  VPECONF1_NCP2_SHIFT		10
+#define VPECONF1_NCX		0x0ff00000
+#define  VPECONF1_NCX_SHIFT		20
 
 /*
  * MIPS32 YQMask Register (CP0 Register 1, Select 4)
@@ -143,9 +143,9 @@
 /*
  * MIPS32 TCBind Register (CP0 Register 2, Select 2)
  */
-#define TCBIND_CURVPE		0x0000000f	
-#define  TCBIND_CURVPE_SHIFT		 0	
-#define TCBIND_CURTC		0x1fe00000	
+#define TCBIND_CURVPE		0x0000000f
+#define  TCBIND_CURVPE_SHIFT		 0
+#define TCBIND_CURTC		0x1fe00000
 #define  TCBIND_CURTC_SHIFT		21
 
 /*
@@ -215,8 +215,8 @@
 
 #ifdef __ASSEMBLER__
 
-/* 
- * MT Coprocessor 0 register numbers 
+/*
+ * MT Coprocessor 0 register numbers
  */
 #define C0_MVPCONTROL         $0,1
 #define C0_MVPCONF0           $0,2
@@ -339,7 +339,7 @@
 __extension__ ({ \
 	unsigned long __res; \
 	__asm__ __volatile__( \
-	"%[mftgpr\t%0,$" #rt "%]" \
+	"mftgpr\t%0,$" #rt \
 		: "=d" (__res)); \
 	__res; \
 })
@@ -348,7 +348,7 @@ __extension__ ({ \
 #define _m32c0_mttgpr(rd,v) \
 do { \
 	__asm__ __volatile__( \
-		"%[mttgpr\t%z0,$" #rd "%]" \
+		"mttgpr\t%z0,$" #rd \
 		: : "dJ" (v)); \
 } while (0)
 
@@ -378,6 +378,10 @@ do { \
 	mips32_setvpecontrol ( \
 		(mips32_getvpecontrol () & ~(VPECONTROL_TARGTC)) \
 		| ((tc) << VPECONTROL_TARGTC_SHIFT))
+
+#define mips32_mt_gettarget() \
+	((mips32_getvpecontrol () & (VPECONTROL_TARGTC)) \
+	 >> VPECONTROL_TARGTC_SHIFT)
 
 /*
  * Before using any mips32_mt_ macros you should ensure the
@@ -429,7 +433,7 @@ do { \
 #define mips32_mt_settccontext(val)	_m32c0_mttc0(2, 5, val)
 
 
-/* 
+/*
  * MT Intrinsics
  */
 #define mips_mt_fork(a, pv, cv)					\

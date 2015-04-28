@@ -3,7 +3,7 @@
 */
 
 /*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright (c) 2015, Imagination Technologies Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,43 +32,45 @@
 */
 
 /*
- * @Synopsis     void __exit (int32_t exit_code);
+ * @Synopsis	 void __exit (int32_t exit_code);
  *
- *               Parameters:
- *                 $4 - Exit code
+ *		 Parameters:
+ *		   exit_code - Exit code
  *
- *               Return:
- *                 None
+ *		 Return:
+ *		   None
  *
- *               Arguments to syscall:
- *                 $25 - Operation code for exit
- *                 $4 - Exit code
+ *		 Arguments to syscall:
+ *		   $25 - Operation code for exit
+ *		   $4 - Exit code
  *
  * @Description  Transfer control to the debug port
 */
 
 #include <stdint.h>
 #include <errno.h>
-#include "uhi_syscalls.h"
+#include <mips/uhi_syscalls.h>
 
-int __get_startup_BEV (void);
-void __return_to_boot (int32_t exit_code)  __attribute__ ((noreturn));
+int __get_startup_BEV (void) __attribute__((weak));
+void __return_to_boot (int32_t exit_code) __attribute__((noreturn))
+  __attribute__((weak));
 
 /* Defined in .ld file */
 extern char __use_excpt_boot[];
 
 /* _exit has been declared weak to allow its defination in the application */
-__attribute__ ((weak)) void __exit (int32_t exit_code)
+void
+__exit (int32_t exit_code)
 {
   register int32_t arg1 asm ("$4") = exit_code;
   register int32_t op asm ("$25") = __MIPS_UHI_EXIT;
   register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
 
-  __asm__ __volatile__(" # _exit(%0 %1) op=%2\n"
-                       SYSCALL (__MIPS_UHI_SYSCALL_NUM)
-                       : "+r" (ret), "+r" (arg1)
-		       : "r" (op)
-		       : "$3", "$5");
+  __asm__ __volatile__ (" # _exit(%0 %1) op=%2\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret), "+r" (arg1)
+			: "r" (op)
+			: "$3", "$5");
 
   /* exit wasn't handled, return to caller of _start 
    * __use_excpt_boot has following values
@@ -77,11 +79,13 @@ __attribute__ ((weak)) void __exit (int32_t exit_code)
 	 is 0 at startup
    * 2 = Always use exception handler present in boot
   */
-  if (((long) __use_excpt_boot == 2) ||
-      (long) __use_excpt_boot == 1 && __get_startup_BEV () == 0)
+  if (((long) __use_excpt_boot == 2
+       || ((long) __use_excpt_boot == 1
+	   && __get_startup_BEV
+	   && __get_startup_BEV () == 0))
+      && __return_to_boot)
     __return_to_boot (exit_code);
 
   /* Infinite loop if control returns.  */
   __exit (exit_code);
 }
-

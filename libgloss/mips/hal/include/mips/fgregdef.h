@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted under the terms of the MIPS Free To Use 1.0 
- * license that you will have received with this package. If you haven't 
- * received this file, please contact Imagination Technologies or see the 
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
  * following URL for details.
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  *
@@ -32,7 +32,7 @@
 #define fa1	$f14
 #endif
 
-#if __mipsfp64
+#if __mips_fpr == 64
 
 /* 64-bit f.p. registers (-mips3 and above) */
 
@@ -50,19 +50,36 @@
 #define ft10	$f18
 #define ft11	$f19
 
+# if  (defined _ABIN32 && _MIPS_SIM == _ABIN32) \
+      || (defined _ABI64 && _MIPS_SIM == _ABI64)
 /* saved registers */
-#define	fs0	$f20
-#define	fs1	$f21
-#define	fs2	$f22
-#define	fs3	$f23
-#define	fs4	$f24
-#define	fs5	$f35
-#define	fs6	$f26
-#define	fs7	$f27
-#define	fs8	$f28
-#define	fs9	$f29
-#define	fs10	$f30
-#define	fs11	$f31
+#  define	fs0	$f20
+#  define	fs1	$f21
+#  define	fs2	$f22
+#  define	fs3	$f23
+#  define	fs4	$f24
+#  define	fs5	$f35
+#  define	fs6	$f26
+#  define	fs7	$f27
+#  define	fs8	$f28
+#  define	fs9	$f29
+#  define	fs10	$f30
+#  define	fs11	$f31
+# else
+/* o32 FP64 */
+#  define	ft12	$f21
+#  define	ft13	$f23
+#  define	ft14	$f35
+#  define	ft15	$f27
+#  define	ft16	$f29
+#  define	ft17	$f31
+#  define	fs0	$f20
+#  define	fs1	$f22
+#  define	fs2	$f24
+#  define	fs3	$f26
+#  define	fs4	$f28
+#  define	fs5	$f30
+# endif
 
 #else
 
@@ -70,11 +87,21 @@
 
 /* temporary registers */
 #define ft0	$f4
-#define ft1	$f6
-#define ft2	$f8
-#define ft3	$f10
-#define ft4	$f16
-#define ft5	$f18
+#define ft1	$f5
+#define ft2	$f6
+#define ft3	$f7
+#define ft4	$f8
+#define ft5	$f9
+#define ft6	$f10
+#define ft7	$f11
+#define ft8	$f12
+#define ft9	$f13
+#define ft10	$f14
+#define ft11	$f15
+#define ft12	$f16
+#define ft13	$f17
+#define ft14	$f18
+#define ft15	$f19
 
 /* saved registers */
 #define	fs0	$f20

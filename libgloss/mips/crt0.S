@@ -25,7 +25,7 @@
 #include "regs.S"
 #include "abiflags.S"
 
-#define STARTUP_STACK_SIZE	0x0100	  /* Temporary stack size to run C code */
+#define STARTUP_STACK_SIZE	0x0400	  /* Temporary stack size to run C code */
 
 /* This is for referencing addresses that are not in the .sdata or
    .sbss section under embedded-pic, or before we've set up gp.  */
@@ -40,9 +40,11 @@
       || defined (__mips_eabi))
 #  define LA(t,x)	dla	t,x
 #  define PTR_ADDU	daddu
+#  define PTR_L		ld
 # else
 #  define LA(t,x)	la	t,x
 #  define PTR_ADDU	addu
+#  define PTR_L		lw
 # endif
 #endif /* __mips_embedded_pic */
 
@@ -57,12 +59,17 @@
 # define ST sw
 #endif
 
-	.comm	__memsize, 12
-	.comm	__lstack, STARTUP_STACK_SIZE
+	.section .startdata, "aw", @nobits
+	.balign 16
+	.space	STARTUP_STACK_SIZE
+__lstack: # Points to the end of the stack
+__ram_extent:
+	.space 8
 
 	.data
+
 __temp_space:	   /* Temporary space to save arguments */
-	.space	REGSIZE * 4
+	.space	REGSIZE * 3
 
 	.text
 	.align	2
@@ -108,7 +115,6 @@ _start:
 	ST	a0, (REGSIZE * 0)(t0)
 	ST	a1, (REGSIZE * 1)(t0)
 	ST	a2, (REGSIZE * 2)(t0)
-	ST	$7, (REGSIZE * 3)(t0)	/* reserved */
 
 	/* 
 	 * Save k0, k1, ra and sp and register
@@ -216,7 +222,7 @@ _start:
 /*
  * zero out the bss section.
  */
-	.globl	get_mem_info .text
+	.globl	_get_ram_info .text
 	.globl	__stack
 	.globl	__global
 	.ent	zerobss
@@ -233,17 +239,16 @@ zerobss:
 	LA (t0, __stack)			# is __stack set ?
 	bne	t0,zero,4f
 
-	LA (t0, __lstack)			# make a small stack so we
-	PTR_ADDU sp, t0, STARTUP_STACK_SIZE	# can run some C code
-	LA (a0, __memsize)			# get the usable memory size
-	jal	get_mem_info
+	LA (sp, __lstack)			# make a small stack so we can
+						# run some C code
+	li	a0,0				# no need for the ram base
+	LA (a1, __ram_extent)			# storage for the extent of ram
+	jal	_get_ram_range
 
-	/* NOTE: a0[0] contains the amount of memory available, and
-	         not the last memory address. */
-	LA (a0, __memsize)
-	lw	t0,0(a0)			# amount of memory available
-	LA (t1, K0BASE)				# cached kernel memory
-	PTR_ADDU t0,t0,t1			# get the end of memory address
+	/* NOTE: a0[0] contains the last address+1 of memory. */
+	LA (a0, __ram_extent)
+	PTR_L	t0,0(a0)			# the extent of ram
+	lw	$0,-4(t0)			# check for valid memory
 	/* Allocate 32 bytes for the register parameters.  Allocate 16
 	   bytes for a null argv and envp.  Round the result up to 64
 	   bytes to preserve alignment.  */
@@ -283,7 +288,6 @@ init:
 	jal	monstartup
 #endif
 
-
 	jal	_init				# run global constructors
 
 	/* restore argument registers */
@@ -291,8 +295,13 @@ init:
 	LD	a0,(REGSIZE * 0)(t0)
 	LD	a1,(REGSIZE * 1)(t0)
 	LD	a2,(REGSIZE * 2)(t0)
-	LD	$7,(REGSIZE * 3)(t0)
 
+	/* Convert pointers potentially */
+	.weak	__convert_argv_pointers
+	LA (t0, __convert_argv_pointers)
+	beqz	t0, 1f
+	jalr	t0
+1:
 	/* if a0 > 0 then we have arguments ready in a0 to a2 registers */
 	bgtz	a0,.Lmain
 	/* if a0 == 0 then no arguments have been set up */

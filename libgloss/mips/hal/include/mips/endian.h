@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014, Imagination Technologies LLC and Imagination
- * Technologies Limited. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted under the terms of the MIPS Free To Use 1.0 
- * license that you will have received with this package. If you haven't 
- * received this file, please contact Imagination Technologies or see the 
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted under the terms of the MIPS Free To Use 1.0
+ * license that you will have received with this package. If you haven't
+ * received this file, please contact Imagination Technologies or see the
  * following URL for details.
  * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
  *
@@ -41,7 +41,7 @@ extern "C" {
 #elif defined(__MIPSEL__) || defined(MIPSEL)
 #define BYTE_ORDER      LITTLE_ENDIAN
 #else
-#error BYTE_ORDER 
+#error BYTE_ORDER
 #endif
 
 #ifndef __ASSEMBLER__
@@ -70,35 +70,6 @@ extern "C" {
 	     : "d" (__swap32md_x)); 					\
     __swap32md_v; 							\
 })
-
-#elif defined(__OPTIMIZE_SIZE__) && !defined(_POSIX_SOURCE)
-
-#define MD_SWAP
-
-/* When optimizing for size, better to call a shared worker function,
-   unless the code is small enough or there's only one use of the
-   function, in which case it will be inlined. */
-
-#include <sys/cdefs.h>
-#include <sys/swap.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern __inline__ uint16_t __swap16md (uint16_t x)
-{
-    return __swap16gen(x);
-}
-
-extern __inline__ uint32_t __swap32md (uint32_t x)
-{
-    return __swap32gen(x);
-}
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 #endif /* __ASSEMBLER__ */
