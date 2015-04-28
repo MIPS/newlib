@@ -302,7 +302,8 @@ WLEAF(__convert_argv_pointers)
 	blez	a0, .Lend
 
 	/* Verify 64-bit mode */
-	mfc0	t0, C0_STATUS
+	LA      t0, __start_ctx
+	REG_L   t0, start_ctx_sr(t0)
 	ext	t1, t0, SR_KX_SHIFT, 1
 	beqz	t1, .Lend
 
