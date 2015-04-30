@@ -253,9 +253,13 @@ install:
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/rules
 	@$(INSTALL_DATA) ${srcdir}/hal/mipshal.mk $(DESTDIR)$(exec_prefix)/share/mips/rules/
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples
-	@for example in $(EXAMPLES); do\
+	for example in $(EXAMPLES); do\
 	  mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}; \
-	  for file in ${srcdir}/hal/examples/$${example}/{*.[cS],*.txt,Makefile}; do\
+	  $(INSTALL_DATA) ${srcdir}/hal/examples/$${example}/Makefile \
+	    $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
+	  $(INSTALL_DATA) ${srcdir}/hal/examples/$${example}/README.txt \
+	    $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
+	  for file in ${srcdir}/hal/examples/$${example}/*.[cS]; do\
 	    $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
 	  done; \
 	done
