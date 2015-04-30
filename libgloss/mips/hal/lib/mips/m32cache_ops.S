@@ -124,26 +124,26 @@ END(m32_clean_cache)
  */
 LEAF(m32_sync_icache)
 	/* check for bad size */
-	addu	maxaddr,a0,a1
+	PTR_ADDU	maxaddr,a0,a1
 	blez	a1,9f
 
 	/* get synci step and skip if not required */
 	rdhwr	a2,$1
-	addu	maxaddr,-1
+	PTR_ADDU	maxaddr,-1
 	beqz	a2,9f
 
 	/* ensure stores complete */
 	sync
 
 	/* align to line boundaries */
-	subu	mask,a2,1
+	PTR_SUBU	mask,a2,1
 	not	mask
 	and	addr,a0,mask
-	subu   	addr,a2
+	PTR_SUBU   	addr,a2
 	and	maxaddr,mask
 
 	/* the cacheop loop */
-10:	addu   	addr,a2
+10:	PTR_ADDU   	addr,a2
 	synci	0(addr)
 	bne     addr,maxaddr,10b
 
@@ -200,7 +200,7 @@ END(m32_clean_dcache_nowrite)
 /*
  * void m32_lock_dcache (void *data, size_t n)
  *
- * Load and lock a block of date into the d-cache
+ * Load and lock a block of data into the d-cache
  */
 LEAF(m32_lock_dcache)
 	SIZE_CACHE(a2,mips_dcache_linesize)
@@ -221,6 +221,14 @@ LEAF(m32_lock_icache)
 9:	jr.hb	ra
 END(m32_lock_icache)
 
+/*
+ * void m32_lock_scache (void * data, size_t n)
+ *
+ * Load and lock a block of data into the s-cache
+ */
 LEAF(m32_lock_scache)
-	j	ra
+	SIZE_CACHE(a2,mips_scache_linesize)
+	vcacheop(a0,a1,a2,Fetch_Lock_S)
+	sync
+9:	jr.hb	ra
 END(m32_lock_scache)

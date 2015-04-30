@@ -561,10 +561,11 @@ extern "C" {
 #define Hit_Writeback_Inv_T              0x16        /* 5       2 */
 #define Hit_Writeback_Inv_S              0x17        /* 5       3 */
 #define Hit_Writeback_D                  0x19        /* 6       1 */
-#define Hit_Writeback_T                  0x1A        /* 6       1 */
+#define Hit_Writeback_T                  0x1A        /* 6       2 */
 #define Hit_Writeback_S                  0x1B        /* 6       3 */
 #define Fetch_Lock_I                 	 0x1C        /* 7       0 */
 #define Fetch_Lock_D                 	 0x1D        /* 7       1 */
+#define Fetch_Lock_S                     0x1F        /* 7       3 */
 
 /* MIPS32 WatchLo Register (CP0 Register 18) */
 #define WATCHLO_VA		0xfffffff8

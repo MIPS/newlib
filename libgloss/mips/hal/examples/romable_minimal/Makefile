@@ -24,7 +24,11 @@ ifeq ($(ABI), 64)
 else
   FLASH_START = 0xBFC00000
   APP_START = 0x80000000
-  LDSCRIPT = minimal32.ld
+  ifeq ($(ABI), n32)
+     LDSCRIPT = minimal64_n32.ld
+  else
+     LDSCRIPT = minimal32.ld
+  endif
 endif
 
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
