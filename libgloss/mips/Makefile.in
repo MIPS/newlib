@@ -250,6 +250,10 @@ install:
 	@for file in ${srcdir}/hal/lib/mips/*.[hSc] ${srcdir}/crt0.S; do\
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/hal/; \
 	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/uhi
+	@for file in ${srcdir}/uhi_*.c ${srcdir}/yamon_*.c ${srcdir}/syscalls.c; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/uhi/; \
+	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/rules
 	@$(INSTALL_DATA) ${srcdir}/hal/mipshal.mk $(DESTDIR)$(exec_prefix)/share/mips/rules/
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples

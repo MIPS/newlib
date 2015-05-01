@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
-#include "regs.S"
 
 extern char __attribute__((weak)) __memory_size[];
 extern char __attribute__((weak)) __memory_base[];

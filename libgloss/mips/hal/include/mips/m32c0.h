@@ -146,6 +146,7 @@ extern "C" {
 #define SR_TS		0x00200000	/* TLB shutdown */
 #define  SR_TS_SHIFT		21
 #define SR_SR		0x00100000	/* soft reset occurred */
+#define SR_PE		0x00100000	/* soft reset (clear parity error) */
 #define  SR_SR_SHIFT		20
 #define SR_NMI		0x00080000 	/* NMI occurred */
 #define  SR_NMI_SHIFT		19
