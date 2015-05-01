@@ -16,6 +16,9 @@
  * m32tlb_ops.sx: MIPS32 TLB support functions
  */
 
+#include <mips/asm.h>
+#include <mips/regdef.h>
+#include <mips/m32c0.h>
 #include <mips/m32tlb.h>
 
 /*

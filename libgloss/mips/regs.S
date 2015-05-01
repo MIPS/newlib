@@ -99,7 +99,7 @@
 #define SR_IE		0x00000001	/* Interrupt enable */
 
 #define SR_MX		0x01000000	/* MDMX or DSP ASE */
-#define C5_MSA		0x08000000	/* MSA ASE */
+#define CFG5_MSAEN	0x08000000	/* MSA ASE */
 
 /* Standard (R4000) cache operations. Taken from "MIPS R4000
    Microprocessor User's Manual" 2nd edition: */

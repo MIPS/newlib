@@ -22,7 +22,8 @@
 	.set nomips16
 #endif
 
-#include "regs.S"
+#include <mips/regdef.h>
+#include <mips/m32c0.h>
 #include "abiflags.S"
 
 #define STARTUP_STACK_SIZE	0x0400	  /* Temporary stack size to run C code */
@@ -183,7 +184,7 @@ _start:
 	li	v1,SR_FR
 	beq	t1,zero,2f
 	or	v0,v0,v1		/* Enable 64-bit FPU registers.  */
-	li	v1,C5_MSA
+	li	v1,CFG5_MSAEN
 	.set	push
 	.set	mips32
 	mtc0	v1,C0_CONFIG,5		/* Enable MSA.  */

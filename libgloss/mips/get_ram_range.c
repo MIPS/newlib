@@ -31,8 +31,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "regs.S"
-
+#if _MIPS_SIM == _ABI64
+# define K0BASE 0xFFFFFFFF80000000LL
+#else
+# define K0BASE 0x80000000
+#endif
 void
 _get_ram_range (void **ram_base, void **ram_extent)
 {
