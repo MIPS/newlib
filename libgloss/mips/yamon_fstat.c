@@ -1,9 +1,6 @@
 /*
- * yamon_fstat.c
-*/
-
-/*
- * Copyright (c) 2014, Imagination Technologies Ltd.
+ * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ *                      affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
