@@ -28,23 +28,57 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+ /*
+  * m32tlb.h: MIPS32 TLB support functions
+  */
+
+#ifndef _M32TLB_H_
+#define _M32TLB_H_
+
 #if __mips != 32 && __mips != 64
 #error use -mips32 or -mips64 option with this file
 #endif
 
 #include <mips/notlb.h>
+#ifndef __ASSEMBLER__
 
-#if __mips64
-#define rmfc0	dmfc0
-#define rmtc0	dmtc0
-#define sr	sd
-#else
-#define rmfc0	mfc0
-#define rmtc0	mtc0
-#define sr	sw
-#endif
+typedef unsigned int tlbhi_t;
+typedef unsigned int tlblo_t;
 
-#if __mips_isa_rev >= 2
-/* ssnop not needed with ehb explicit hazard barrier */
-#define ssnop
-#endif
+// Returns the size of the TLB.
+int mips_tlb_size (void);
+ // Probes the TLB for an entry matching hi, and if present invalidates it.
+void mips_tlbinval (tlbhi_t hi);
+
+// Invalidate the whole TLB.
+void mips_tlbinvalall (void);
+
+// Reads the TLB entry with specified by index, and returns the EntryHi, 
+// EntryLo0, EntryLo1 and PageMask parts in *phi, *plo0, *plo1 and *pmsk 
+// respectively.
+void mips_tlbri2 (tlbhi_t *phi, tlblo_t *plo0, tlblo_t *plo1, unsigned *pmsk,
+       int index);
+
+// Writes hi, lo0, lo1 and msk into the TLB entry specified by index.
+void mips_tlbwi2 (tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned msk,
+        int index);
+
+// Writes hi, lo0, lo1 and msk into the TLB entry specified by the 
+// Random register.
+void mips_tlbwr2 (tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned msk);
+
+// Probes the TLB for an entry matching hi and returns its index, or -1 if 
+// not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the 
+// entry are also returned in *plo0, *plo1 and *pmsk respectively
+int mips_tlbprobe2 (tlbhi_t hi, tlblo_t *plo0, tlblo_t *plo1, unsigned *pmsk);
+
+// Probes the TLB for an entry matching hi and if present rewrites that entry, 
+// otherwise updates a random entry. A safe way to update the TLB.
+int mips_tlbrwr2 (tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned msk);
+
+void mips_init_tlb();
+
+#endif /* __ASSEMBLER__ */
+
+#endif /* _M32TLB_H_ */
+

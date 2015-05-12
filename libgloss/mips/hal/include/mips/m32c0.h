@@ -35,9 +35,10 @@
 extern "C" {
 #endif
 
+#ifndef _M64C0_H_
 /* MIPS32-specific MMU interface */
 #include <mips/m32tlb.h>
-
+#endif
 /*
  * MIPS32 Exception Codes
  */
@@ -620,6 +621,50 @@ extern "C" {
 #define EBASE_CPU	0x000003ff	/* CPU number */
 #define  EBASE_CPU_SHIFT	 0
 #define  EBASE_CPU_BITS		10
+
+/* MIPS32r2 EntryHi register (CP0 Register 10, Select 0) */
+#define C0_ENTRYHI_R_MASK		0xC000000000000000
+#define C0_ENTRYHI_R_BITS		2
+#define C0_ENTRYHI_R_SHIFT		15
+#define C0_ENTRYHI_VPN2_MASK	0x3FFFFFF000
+#define C0_ENTRYHI_VPN2_BITS	26
+#define C0_ENTRYHI_VPN2_SHIFT	13
+#define C0_ENTRYHI_VPN2X_MASK	0x3
+#define C0_ENTRYHI_VPN2X_BITS	2
+#define C0_ENTRYHI_VPN2X_SHIFT	10
+#define C0_ENTRYHI_EHINV_MASK	0x400
+#define C0_ENTRYHI_EHINV_BITS	1
+#define C0_ENTRYHI_EHINV_SHIFT	10
+#define C0_ENTRYHI_ASIDX_MASK	0x300
+#define C0_ENTRYHI_ASIDX_BITS	2
+#define C0_ENTRYHI_ASIDX_SHIFT	8
+#define C0_ENTRYHI_ASID_MASK	0xFF
+#define C0_ENTRYHI_ASID_BITS	8
+#define C0_ENTRYHI_ASID_SHIFT	0
+
+/* MIPS32 EntryLo0 register (CP0 Register 2, select 0) */
+#define ENTRYLO0_PFN_MASK	0x3FFFFFE0
+#define ENTRYLO0_PFN_BITS	23
+#define ENTRYLO0_PFN_SHIFT	6
+
+#define ENTRYLO0_C_MASK		0x38
+#define ENTRYLO0_C_BITS		3
+#define ENTRYLO0_C_SHIFT	3
+
+#define ENTRYLO0_D_MASK		0x4
+#define ENTRYLO0_D_BITS		1
+#define ENTRYLO0_D_SHIFT	2
+
+#define ENTRYLO0_V_MASK		0x2
+#define ENTRYLO0_V_BITS		1
+#define ENTRYLO0_V_SHIFT	1
+
+
+#define ENTRYLO0_G_MASK		0x1
+#define ENTRYLO0_G_BITS		1
+#define ENTRYLO0_G_SHIFT	0
+
+
 
 #ifdef __ASSEMBLER__
 

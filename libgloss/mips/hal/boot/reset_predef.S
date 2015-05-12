@@ -92,6 +92,11 @@ $Lnot_nmi:
     jal	  __init_dcache
 #endif
 
+#if defined(HAVE_TLB) && HAVE_TLB
+    # Initialize the TLB
+    jal   __init_tlb
+#endif
+
     # Allow everything else to be initialized via a hook.
     .weak __boot_init_hook
     lui	  a2, %hi(__boot_init_hook)

@@ -86,6 +86,9 @@ init_resources:
     # Initialize the L1 data cache
     jal	  __init_dcache
 
+    # Initialize the TLB.
+    jal   __init_tlb
+
     # Allow everything else to be initialized via a hook.
     .weak __boot_init_hook
     lui	  a2, %hi(__boot_init_hook)
