@@ -31,11 +31,17 @@
 #ifndef _M64C0_H_
 #define _M64C0_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /* Superset of MIPS32 */
 #include <mips/m32c0.h>
 
 /* Define MIPS64 user-level intrinsics */
 #include <mips/mips64.h>
+
+/* MIPS64-specific MMU interface */
+#include <mips/m64tlb.h>
 
 #ifdef __cplusplus
 }

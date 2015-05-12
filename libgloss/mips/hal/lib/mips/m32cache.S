@@ -76,18 +76,23 @@ SLEAF(_size_cache)
 	srl	iways,CFG1_IA_SHIFT
 	addu	iways,1
 	move	icachesize,iways
-
+	
 	# Total icache size = lines/way * linesize * ways
 	li	ilinesize,1
 	addu	tmp,1
 	sll	ilinesize,tmp
-	sll	icachesize,tmp
+        sll     icachesize,tmp
 
 	# Get I-cache lines per way
 	and	tmp,cfg,CFG1_IS_MASK
 	srl	tmp,CFG1_IS_SHIFT
 	addu	tmp,6
 	sll	icachesize,tmp
+
+	# Store icache config
+        sw      icachesize,mips_icache_size
+        sw      ilinesize,mips_icache_linesize
+        sw      iways,mips_icache_ways
 
 8:	# No I-cache, check for D-cache
 	and	tmp,cfg,CFG1_DL_MASK
@@ -112,6 +117,12 @@ SLEAF(_size_cache)
 	addu	tmp,6
 	sll	dcachesize,tmp
 
+        # Stire dcache config
+	sw      dcachesize,mips_dcache_size
+        sw      dlinesize,mips_dcache_linesize
+        sw      dways,mips_dcache_ways
+
+
 8:	# No D-cache, check for L2 cache
 
 	# Check if we have $config,2 register present
@@ -120,29 +131,38 @@ SLEAF(_size_cache)
 
 	mfc0	cfg,$config,2
 
-	/* get scache line size (log2) */
+	# Get scache line size (log2) #
 	and	tmp,cfg,CFG2_SL_MASK
 	srl	tmp,CFG2_SL_SHIFT
 	beqz	tmp,1f		# no s-cache
 	addu	tmp,1
 
-	/* get number of scache ways */
+	# Get number of scache ways 
 	and	sways,cfg,CFG2_SA_MASK
 	srl	sways,CFG2_SA_SHIFT
 	addu	sways,1
 	move	scachesize,sways
 
-	/* scache size = lines/way * linesize * ways */
+	# Total scache size = lines/way * linesize * ways 
 	li	slinesize,1
 	sll	slinesize,tmp
 	sll	scachesize,tmp
 
-	/* get scache lines per way */
+	# Get scache lines per way 
 	and	tmp,cfg,CFG2_SS_MASK
 	srl	tmp,CFG2_SS_SHIFT
 	addu	tmp,6
 	sll	scachesize,tmp
 
+	# Store scache config.
+	sw      scachesize,mips_scache_size
+        sw      slinesize,mips_scache_linesize
+        sw      sways,mips_scache_ways
+
+
+	# If we are operating with a coherency manager, the s-cache
+	# sizes we wrote may be incorrect, examine the coherency manger
+	# control registers.
 1:
 	# Check if we have $config,3 register present
 	and	tmp,cfg,CFG2_M
@@ -154,29 +174,47 @@ SLEAF(_size_cache)
 	ext	tmp,tmp,CFG3_CMGCR_SHIFT,1
 	beqz	tmp,9f		# Return if not implemented
 
-	# Read CMGCRBase to find CMGCR_BASE_ADDR
-	PTR_MFC0 tmp,C0_CMGCRBASE
-	sll	tmp,4
-	lui	tmp2,0xb000	# Make it virtual
-	or	tmp,tmp2
-
-	# Read GCR_L2_CONFIG
-	PTR_L	tmp,GCR_L2_CONFIG(tmp)
-
-	ext	slinesize, tmp, 8, 4		# Extract line size
-	li	tmp2, 2
-	sllv	slinesize, tmp2, slinesize	# Now have true L2 line size in bytes
-	ext	sways, tmp, 12, 4		# Extract sets/way
-	li	tmp2, 64
-	sllv	sways, tmp2, sways		# Now we have true L2 sets/way
-	ext	tmp, tmp, 0, 8		# Extract L2 associativity
-	addiu	tmp, tmp, 1
-	mul	tmp, tmp, sways		# Get total number of sets
-	mul	scachesize, slinesize, tmp	# L2 cache size
+	
+	.weak	__CMProbe
+	LA	tmp, __CMProbe
+	beqz	tmp, 9f
+	move	tmp4, ra
+	jal	tmp
+	move	ra, tmp4
 
 9:	# Return
 	jr	ra
 SEND(_size_cache)
+
+WLEAF(__CMProbe)
+
+        # Read CMGCRBase to find CMGCR_BASE_ADDR
+        PTR_MFC0 tmp,C0_CMGCRBASE
+        sll     tmp,4
+        lui     tmp2,0xb000     # Make it virtual
+        or      tmp,tmp2
+
+        # Read GCR_L2_CONFIG
+        PTR_L   tmp,GCR_L2_CONFIG(tmp)
+
+        ext     slinesize, tmp, 8, 4            # Extract line size
+        li      tmp2, 2
+        sllv    slinesize, tmp2, slinesize      # Now have true L2 line size in bytes
+        ext     sways, tmp, 12, 4               # Extract sets/way
+        li      tmp2, 64
+        sllv    sways, tmp2, sways              # Now we have true L2 sets/way
+        ext     tmp, tmp, 0, 8          # Extract L2 associativity
+        addiu   tmp, tmp, 1
+        mul     tmp, tmp, sways         # Get total number of sets
+        mul     scachesize, slinesize, tmp      # L2 cache size
+
+	sw      scachesize,mips_scache_size
+	sw      slinesize,mips_scache_linesize
+	sw      sways,mips_scache_ways
+	
+	# Return
+	jr	ra
+WEND(__CMProbe)
 
 /*
  * void size_cache()
@@ -190,17 +228,6 @@ LEAF(m32_size_cache)
 
 	bal	_size_cache
 	move	ra,tmp3
-
-..savesize:
-	sw	icachesize,mips_icache_size
-	sw	dcachesize,mips_dcache_size
-	sw	scachesize,mips_scache_size
-	sw	ilinesize,mips_icache_linesize
-	sw	dlinesize,mips_dcache_linesize
-	sw	slinesize,mips_scache_linesize
-	sw	iways,mips_icache_ways
-	sw	dways,mips_dcache_ways
-	sw	sways,mips_scache_ways
 
 8:	# Return
 	jr	ra
