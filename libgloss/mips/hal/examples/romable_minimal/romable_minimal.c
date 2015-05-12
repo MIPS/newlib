@@ -34,5 +34,5 @@ int
 main ()
 {
   write (1, "minimal\n", 8);
-  return 255;
+  return 0;
 }

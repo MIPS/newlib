@@ -146,4 +146,8 @@ $Ldone_tcache:
     jr	  ra
 END(__init_l23cache)
 
+LEAF(__init_l23cache_cached)
+	jr	ra
+END(__init_l23cache_cached)
+
 #endif // SLINE_ENC != 0

@@ -1,6 +1,6 @@
 /*
  * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ *                 affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,69 +28,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _MIPS_ENDIAN_H_
-#define _MIPS_ENDIAN_H_
+#include <mips/asm.h>
+#include <mips/regdef.h>
+#include <mips/m32c0.h>
+#include <mips/hal.h>
+#include <mips/endian.h>
 
-#ifndef __ASSEMBLER__
-#include <stdint.h>	/* get compiler types */
-#include <sys/types.h>
+#
+# FUNCTION:	_xpa_save
+#
+# DESCRIPTION:	save the XPA version of badvaddr.
+#
+# RETURNS:	int
+#
+#			0:	No context saved
+#			CTX_*:	Type of conext stored
+#
+LEAF(_xpa_save)
+	PTR_S	zero, LINKCTX_NEXT(a)
+	# Test for LPA support
+	mfc0	t0, C0_CONFIG3
+	ext	t0, t0, CFG3_LPA, 1
+	beqz	t0, 1f
+	# Test for LPA enabled
+	mfc0	t0, C0_PAGEGRAIN
+	ext	t0, t0, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
+	bnez	t0, 2f
+
+	# LPA either unavailable or not enabled
+	# return 0
+1:	move	v0, zero
+	jr	ra
+
+2:	lui	v0, %hi(LINKCTX_TYPE_XPA)
+	oru	v0, v0, %lo(LINKCTX_TYPE_XPA)
+	mfc0	t0, C0_BADVADDR
+	mfhc0	t1, C0_BADVADDR
+#if BYTE_ORDER == BIG_ENDIAN
+	sw	t0, XPACTX_BADVADDR(a0)
+	sw	t1, (XPACTX_BADVADDR+4)(a0)
+#else /* BYTE ORDER == LITTLE_ENDIAN */
+	sw	t1, XPACTX_BADVADDR(a0)
+	sw	t0, (XPACTX_BADVADDR+4)(a0)
 #endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef BYTE_ORDER
-/*
- * Definitions for byte order,
- * according to byte significance from low address to high.
- */
-#define LITTLE_ENDIAN   1234    /* least-significant byte first (vax) */
-#define BIG_ENDIAN      4321    /* most-significant byte first (IBM, net) */
-
-#if defined(__MIPSEB__) || defined(MIPSEB)
-#define BYTE_ORDER      BIG_ENDIAN
-#elif defined(__MIPSEL__) || defined(MIPSEL)
-#define BYTE_ORDER      LITTLE_ENDIAN
-#else
-#error BYTE_ORDER
-#endif
-
-#ifndef __ASSEMBLER__
-
-#if __mips_isa_rev >= 2 && ! __mips16
-
-/* MIPS32r2 & MIPS64r2 can use the wsbh and rotate instructions, define
-   MD_SWAP so that <sys/endian.h> will use them. */
-
-#define MD_SWAP
-
-#define __swap16md(x) __extension__({					\
-    uint16_t __swap16md_x = (x);					\
-    uint16_t __swap16md_v;						\
-    __asm__ ("wsbh %0,%1" 						\
-	     : "=d" (__swap16md_v) 					\
-	     : "d" (__swap16md_x)); 					\
-    __swap16md_v; 							\
-})
-
-#define __swap32md(x) __extension__({					\
-    uint32_t __swap32md_x = (x);					\
-    uint32_t __swap32md_v;						\
-    __asm__ ("wsbh %0,%1; rotr %0,16" 					\
-	     : "=d" (__swap32md_v) 					\
-	     : "d" (__swap32md_x)); 					\
-    __swap32md_v; 							\
-})
-
-#endif
-#endif /* __ASSEMBLER__ */
-#endif	/* BYTE_ORDER */
-
-#ifdef __cplusplus
-}
-#endif
-
-#include <machine/endian.h>
-
-#endif /*_MIPS_ENDIAN_H_*/
+	REG_S	v0, LINKCTX_ID(a0)
+	jr
+END(_xpa_save)

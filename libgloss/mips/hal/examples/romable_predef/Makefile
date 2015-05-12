@@ -33,20 +33,23 @@
 ROMABLE = 1
 
 ifeq ($(CORE), P5600)
- DEFINES =  -DC0_CONFIG1_VALUE=0xFEA3519B
+ DEFINES =  -DC0_CONFIG0_VALUE=0xB6040483
+ DEFINES += -DC0_CONFIG1_VALUE=0xFEA3519B
  DEFINES += -DC0_CONFIG2_VALUE=0x80000000
+ DEFINES += -DC0_CONFIG3_VALUE=0xBF8032A8
  DEFINES += -DC0_CONFIG4_VALUE=0xc01c0000
  DEFINES += -DC0_CONFIG5_VALUE=0x10000038
  DEFINES += -DC0_WATCHHI_VALUE=0x00000000
  override ABI = 32
  override ENDIAN = EL
  override MIPS_TOOLCHAIN = mips-mti-elf
- FLASH_START = 0xBFC00000
  APP_START = 0x80000000
 else
  ifeq ($(CORE), I6400)
-  DEFINES =  -DC0_CONFIG1_VALUE=0x9EAB559B
+  DEFINES =  -DC0_CONFIG0_VALUE=0x80004A05
+  DEFINES += -DC0_CONFIG1_VALUE=0x9EAB559B
   DEFINES += -DC0_CONFIG2_VALUE=0x80000000
+  DEFINES += -DC0_CONFIG3_VALUE=0xFC8031E9
   DEFINES += -DC0_CONFIG4_VALUE=0xD0FC0227
   DEFINES += -DC0_CONFIG5_VALUE=0x00000098
   DEFINES += -DC0_WATCHHI_VALUE=0x80000000
@@ -56,7 +59,6 @@ else
   override ABI = 64
   override ENDIAN = EL
   override MIPS_TOOLCHAIN = mips-img-elf
-  FLASH_START = 0xFFFFFFFFBFC00000
   APP_START = 0xFFFFFFFF80000000
  else
   $(error Please specify a core using CORE=(P5600|I6400))
@@ -66,7 +68,8 @@ endif
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
 OBJS = romable_predef.o reset_predef.o init_caches_predef.o init_cp0_predef.o
-OBJS += init_l23caches_predef.o
+OBJS += init_l23caches_predef.o init_tlb_predef.o init_cm3l2_predef.o 
+OBJS += corecheck_predef.o
 APP = romable_predef.elf
 
 CFLAGS += -g $(DEFINES)

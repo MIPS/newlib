@@ -37,8 +37,7 @@
 /* Define MIPS64 user-level intrinsics */
 #include <mips/mips64.h>
 
-#ifdef __cplusplus
-}
-#endif
+/* MIPS64-specific MMU interface */
+#include <mips/m64tlb.h>
 
 #endif /* _M64C0_H_ */

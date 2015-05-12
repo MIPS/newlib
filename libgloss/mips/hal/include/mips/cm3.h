@@ -28,69 +28,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _MIPS_ENDIAN_H_
-#define _MIPS_ENDIAN_H_
+#ifndef _CM3_H_
+#define _CM3_H_
 
-#ifndef __ASSEMBLER__
-#include <stdint.h>	/* get compiler types */
-#include <sys/types.h>
-#endif
+#define CMGCR_BASE_ADDR_SHIFT	11
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define CMGCR_BASE_ADDR_LSHIFT	4
+/* Offsets of memory-mapped registers */
+#define GCR_L2_CONFIG		0x130
+#define GCR_L2_RAM_CONFIG	0x240
+#define GCR_TAG_ADDR		0x600
+#define GCR_TAG_STATE		0x608
+#define GCR_TAG_DATA		0x610
 
-#ifndef BYTE_ORDER
-/*
- * Definitions for byte order,
- * according to byte significance from low address to high.
- */
-#define LITTLE_ENDIAN   1234    /* least-significant byte first (vax) */
-#define BIG_ENDIAN      4321    /* most-significant byte first (IBM, net) */
+/* Contents of  L2 RAM field */
+#define GCR_L2_RAM_HCID_SHIFT	30
+#define GCR_L2_RAM_HCID_BITS	1
+#define GCR_L2_RAM_HCIS_SHIFT	29
+#define GCR_L2_RAM_HCIS_BITS	1
 
-#if defined(__MIPSEB__) || defined(MIPSEB)
-#define BYTE_ORDER      BIG_ENDIAN
-#elif defined(__MIPSEL__) || defined(MIPSEL)
-#define BYTE_ORDER      LITTLE_ENDIAN
-#else
-#error BYTE_ORDER
-#endif
+/* L2 Configuration Register */
+#define GCR_L2_REG_EXISTS_SHIFT	31
+#define GCR_L2_REG_EXISTS_BITS	1
+#define GCR_L2_LRU_WE_SHIFT	26
+#define GCR_L2_LRU_WE_BITS	1
+#define GCR_L2_TAG_WE_SHIFT	25
+#define GCR_L2_TAG_WE_BITS	1
+#define GCR_L2_ECC_WE_SHIFT	24
+#define GCR_L2_ECC_WE_BITS	1
+#define GCR_L2_BYPASS_SHIFT	20
+#define GCR_L2_BYPASS_BITS	1
+#define GCR_L2_SS_SHIFT		12
+#define GCR_L2_SS_BITS		4
+#define GCR_L2_SL_SHIFT		8
+#define GCR_L2_SL_BITS		4
+#define GCR_L2_SA_SHIFT		0
+#define GCR_L2_SA_BITS		8
 
-#ifndef __ASSEMBLER__
-
-#if __mips_isa_rev >= 2 && ! __mips16
-
-/* MIPS32r2 & MIPS64r2 can use the wsbh and rotate instructions, define
-   MD_SWAP so that <sys/endian.h> will use them. */
-
-#define MD_SWAP
-
-#define __swap16md(x) __extension__({					\
-    uint16_t __swap16md_x = (x);					\
-    uint16_t __swap16md_v;						\
-    __asm__ ("wsbh %0,%1" 						\
-	     : "=d" (__swap16md_v) 					\
-	     : "d" (__swap16md_x)); 					\
-    __swap16md_v; 							\
-})
-
-#define __swap32md(x) __extension__({					\
-    uint32_t __swap32md_x = (x);					\
-    uint32_t __swap32md_v;						\
-    __asm__ ("wsbh %0,%1; rotr %0,16" 					\
-	     : "=d" (__swap32md_v) 					\
-	     : "d" (__swap32md_x)); 					\
-    __swap32md_v; 							\
-})
-
-#endif
-#endif /* __ASSEMBLER__ */
-#endif	/* BYTE_ORDER */
-
-#ifdef __cplusplus
-}
-#endif
-
-#include <machine/endian.h>
-
-#endif /*_MIPS_ENDIAN_H_*/
+#endif /* _CM3_H_ */

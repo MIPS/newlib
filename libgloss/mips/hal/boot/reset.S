@@ -68,8 +68,14 @@ init_resources:
 
     # Initialise L2/L3 cache
     # This could be done from cached code if there is a cca override or similar
-    jal	  __init_l23cache
 
+    # Determine L2/L3 cache config.
+   
+    lui   a2, %hi(__init_l23cache)
+    addiu a2, a2, %lo(__init_l23cache)
+    jal	  a2
+
+init_ic:
     # Initialize the L1 instruction cache.
     jal	  __init_icache
 
@@ -83,8 +89,18 @@ init_resources:
     ins	  a2, a1, 29, 1		      # changed to KSEG1 address by setting bit 29
     jalr  a2
 
+    .weak __init_l23cache_cached
+    lui   a2, %hi(__init_l23cache_cached)
+    addiu a2, a2, %lo(__init_l23cache_cached)
+    beqz  a2, init_dc
+    jal   a2
+
+init_dc:
     # Initialize the L1 data cache
     jal	  __init_dcache
+
+    # Initialize the TLB.
+    jal	  __init_tlb
 
     # Allow everything else to be initialized via a hook.
     .weak __boot_init_hook
@@ -110,8 +126,8 @@ init_resources:
 $Lnext_ram_word:
     lw    a0, 0(a1)
     sw    a0, 0(a2)
-    addiu a2, 4
-    addiu a1, 4
+    addiu a2, a2, 4
+    addiu a1, a1, 4
     bne   a3, a2, $Lnext_ram_word
 $Lcopy_to_ram_done:
 

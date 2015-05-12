@@ -32,217 +32,229 @@
 #include <mips/regdef.h>
 #include <mips/m32c0.h>
 #include <mips/m32tlb.h>
+#include <mips/asm.h>
 
 /*
  * void mips_tlbwi2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask,
  *			unsigned idx)
+ *
+ * Writes hi,lo0,lo1 and msk in to the TLB entry specified by index.
+ *
  */
 LEAF(mips_tlbwi2)
-#if _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64
-	rmtc0	a0,$entryhi
-	mtc0	a1,$entrylo0
-	mtc0	a2,$entrylo1
-	mtc0	a3,$pagemask
-#elif _MIPS_SIM==_ABIO64
-	ld	ta0,32(sp)	# index
-	dmtc0	a0,$entryhi
-	mtc0	a1,$entrylo0
-	mtc0	a2,$entrylo1
-	mtc0	a3,$pagemask
-#else /* abi(32) */
-	lw	ta0,16(sp)	# index
-	rmtc0	a0,$entryhi
-	mtc0	a1,$entrylo0
-	mtc0	a2,$entrylo1
-	mtc0	a3,$pagemask
+#if _MIPS_SIM==_ABIO32
+	lw	ta0, 16(sp)
 #endif
-	mtc0	ta0,$index
-	ssnop
-	ehb
+	mtc0	a0, C0_ENTRYHI
+	mtc0	a1, C0_ENTRYLO0
+	mtc0	a2, C0_ENTRYLO1
+	mtc0	a3, C0_PAGEMASK
+	mtc0	ta0, C0_INDEX
+	ehb				# mtc0, Hazard on tlbwi
+
 	tlbwi
-	.set push
+	.set	push
 	.set	noreorder
 	jr.hb	ra
 	nop
-	.set pop
+	.set	pop
 END(mips_tlbwi2)
 
 
 /*
  * void mips_tlbwr2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask)
+ *
+ * Writes hi, lo0, lo1 and msk into the TLB entry specified by the 
+ * Random register.
+ *
  */
 LEAF(mips_tlbwr2)
-	rmtc0	a0,$entryhi
-	mtc0	a1,$entrylo0
-	mtc0	a2,$entrylo1
-	mtc0	a3,$pagemask
-	ssnop
-	ehb
+	mtc0	a0, C0_ENTRYHI
+	mtc0	a1, C0_ENTRYLO0
+	mtc0	a2, C0_ENTRYLO1
+	mtc0	a3, C0_PAGEMASK
+
+	ehb				# mtc0, hazard on tlbwr
 	tlbwr
-	.set push
-	.set noreorder
+	.set	push
+	.set	noreorder
 	jr.hb	ra
 	nop
-	.set pop
+	.set	pop
 END(mips_tlbwr2)
 
 /*
  * int mips_tlbrwr2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask)
  *
- * like tlbwr BUT if the entry exists rewrite that entry instead;
- * the safest way to update the tlb returns probe result
+ * Probes the TLB for an entry matching hi and if present rewrites that 
+ * entry, otherwise updates a random entry. A safe way to update the TLB.
  *
- * NOTE has side effect of setting entryhi
  */
 LEAF(mips_tlbrwr2)
-	rmtc0	a0,$entryhi
-	ssnop
-	ehb
-
+	mfc0	t0, C0_ENTRYHI
+	mtc0	a0, C0_ENTRYHI
+	ehb		# MTCO, hazard on tlbp
+	
 	tlbp
-	ssnop
-	ehb
+	ehb		# tlbp, hazard on MFCO C0_INDEX
 
-	mfc0	v0,$index
-	mtc0	a1,$entrylo0
-	mtc0	a2,$entrylo1
-	mtc0	a3,$pagemask
-	ssnop
-	ehb
-	bltz	v0,1f		/* doesnt exist */
+	mfc0	v0, C0_INDEX
+	mtc0	a1, C0_ENTRYLO0
+	mtc0	a2, C0_ENTRYLO1
+	mtc0	a3, C0_PAGEMASK
+
+	ehb		# mtc0, hazard on tlbwi
+	bltz	v0, 1f	# no matching entry
 
 	tlbwi
-	.set push
-	.set noreorder
+	mtc0	t0, C0_ENTRYHI
+	.set	push
+	.set	noreorder
 	jr.hb	ra
 	nop
-	.set pop
+	.set	pop
 
 1:	tlbwr
-	.set push
-	.set noreorder
+	mtc0	t0, C0_ENTRYHI
+	.set	push
+	.set	noreorder
 	jr.hb	ra
 	nop
-	.set pop
+	.set	pop
 END(mips_tlbrwr2)
 
 
 /*
  * void mips_tlbri2(tlbhi_t *hi, tlblo_t *lo0, tlblo_t *lo1, unsigned *mask,
  *		unsigned index)
+ *
+ * Reads the TLB entry with specified by index, and returns the EntryHi, EntryLo0, 
+ * EntryLo1 and PageMask parts in *phi, *plo0, *plo1 and *pmsk respectively.
+ *
  */
 LEAF(mips_tlbri2)
-	lw	t0,16(sp)
-	mtc0	t0,$index
-	ssnop
-	ehb
+#if _MIPS_SIM==_ABIO32
+        lw	ta0,16(sp)      	# index
+#endif
+	mtc0	ta0, C0_INDEX
+	ehb				# mtc0, hazard on tlbr
 
 	tlbr
-	ssnop; ssnop
-	ehb
+	ehb				# tlbr, hazard on entry*, pagemask
 
-	rmfc0	t0,$entryhi
-	mfc0	t1,$entrylo0
-	mfc0	t2,$entrylo1
-	mfc0	t3,$pagemask
-	sr	t0,0(a0)
-	sw	t1,0(a1)
-	sw	t2,0(a2)
-	sw	t3,0(a3)
+	mfc0	t0, C0_ENTRYHI
+	mfc0	t1, C0_ENTRYLO0
+	mfc0	t2, C0_ENTRYLO1
+	mfc0	t3, C0_PAGEMASK
+	sw	t0, 0(a1)
+	sw	t1, 0(a1)
+	sw	t2, 0(a2)
+	sw	t3, 0(a3)
 	jr	ra
 END(mips_tlbri2)
 
 
 /*
  * int mips_tlbprobe2(tlbhi_t hi, tlblo_t *lo0, tlblo_t *lo1,
- *			unsigned int *mask)
- * look for entry entryhi not zapped
+ * 	unsigned int *mask)
+ * 
+ * Probes the TLB for an entry matching hi and returns its index, or -1 if 
+ * not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the 
+ * entry are also returned in *plo0, *plo1 and *pmsk respectively.
+ *
  */
 LEAF(mips_tlbprobe2)
-	rmfc0	t0,$entryhi
-	rmtc0	a0,$entryhi
-	ssnop
-	ehb
+	mfc0	t0, C0_ENTRYHI
+	mtc0	a0, C0_ENTRYHI
+	ehb				# mtc0, hazard on tlbp
 
 	tlbp
-	ssnop
-	ehb
+	ehb				# tlpb, hazard on index.
 
-	mfc0	v0,$index
-	bltz	v0,1f
+	mfc0	v0, C0_INDEX
+	bltz	v0, 1f			# Return -1 if not found.
 
 	tlbr
-	ssnop; ssnop
-	ehb
+	ehb				# tlbr, hazard on entry*, pagemask
 
-	mfc0	v1,$entrylo0
-	mfc0	t1,$entrylo1
-	mfc0	t2,$pagemask
+	mfc0	v1, C0_ENTRYLO0
+	mfc0	t1, C0_ENTRYLO1
+	mfc0	t2, C0_PAGEMASK
 
-	rmtc0	t0,$entryhi	/* restore entry hi */
+	mtc0	t0, C0_ENTRYHI		# restore entry hi 
 
-	sw	v1,0(a1)
-	sw	t1,0(a2)
-	sw	t2,0(a3)
+	sw	v1, 0(a1)
+	sw	t1, 0(a2)
+	sw	t2, 0(a3)
+	.set	push
+	.set	noreorder
 	jr.hb	ra
+	nop
+	.set	pop
 
-1:	rmtc0	t0,$entryhi	/* restore entry hi */
-	li	v0,-1
+1:	mtc0	t0, C0_ENTRYHI		# restore entry hi 
+	li	v0, -1
+	.set	push
+	.set	noreorder
 	jr.hb	ra
+	nop
+	.set	pop
 END(mips_tlbprobe2)
 
 
 /*
  * void mips_tlbinval(tlbhi_t a0)
- * invalidate an entry entryhi is NOT changed
+ * 
+ * Probes the TLB for an entry matching hi, and if present invalidates it.
+ *
  */
 LEAF(mips_tlbinval)
-	rmfc0	t0,$entryhi	/* save old entry hi */
-	rmtc0	a0,$entryhi
-	ssnop
-	ehb
+	mfc0	t0, C0_ENTRYHI		# save old entry hi
+	mtc0	a0, C0_ENTRYHI
+	ehb				# mtc0, Hazard on tlbp
 
 	tlbp
-	ssnop
-	ehb
+	ehb				# tlbp, Hazard on index, entry*
 
-	mfc0	v0,$index
-	mtc0	zero,$entrylo0
-	mtc0	zero,$entrylo1
-	li	v1,KSEG1_BASE	/* replace with this */
-	rmtc0	v1,$entryhi
-	ehb
-	bltz	v0,1f
+	mfc0	v0, C0_INDEX
+	bltz	v0, 4f
+
+	mtc0	zero, C0_ENTRYLO0
+	mtc0	zero, C0_ENTRYLO1
+
+	mfc0	t1, C0_CONFIG4
+	ext	t1, t1, CFG4_IE_SHIFT, CFG4_IE_BITS
+	beqz	t1, 2f	
+	li	t1, C0_ENTRYHI_EHINV_MASK 
+	b	3f
+
+2:	li	t1, KSEG0_BASE
+3:	mtc0	t1, C0_ENTRYHI
+	ehb				# mtco, hazard on tlbwi
 
 	tlbwi
-	ssnop
-	ehb			/* tlbwi uses $entryhi late */
+	ehb				# tlbwi, hazard
 
-1:	rmtc0	t0,$entryhi	/* restore entry hi */
-	.set push
-	.set noreorder
+4:	mtc0	t0,C0_ENTRYHI		# restore entry hi 
+	.set	push
+	.set	noreorder
 	jr.hb	ra
 	nop
-	.set pop
+	.set	pop
+
 END(mips_tlbinval)
 
 /*
- * int mips_tlb_size();
+ * void mips_init_tlb()
  *
- * return number of entries in tlb
+ * Initialize the TLB
+ *
  */
-LEAF(mips_tlb_size)
-	/* first see if we've got a TLB */
-	mfc0	t0,$config,0
-	mfc0	t1,$config,1
-	move	v0,zero
+LEAF(mips_init_tlb)
 
-	and	t0,CFG0_MT_MASK
-	bne	t0,CFG0_MT_TLB,9f	/* this code doesn't support BAT */
+	move	v1, ra
+	jal	mips_tlbinvalall
+	move	ra, v1
 
-	and	v0,t1,CFG1_MMUS_MASK	/* get number of entries */
-	srl	v0,CFG1_MMUS_SHIFT
-	addiu	v0,1
-
-9:	jr	ra
-END(mips_tlb_size)
+	jr	ra
+END(mips_init_tlb)

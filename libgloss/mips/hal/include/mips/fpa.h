@@ -28,14 +28,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if __mips == 32 || __mips == 64
 #include <mips/m32c1.h>
-#endif
-
-#ifdef __cplusplus
-}
 #endif

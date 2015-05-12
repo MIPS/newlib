@@ -63,14 +63,20 @@ LEAF(__cpu_init)
     sdbbp 1			  # Invoke UHI operation
 
 $Lnot_nmi:
+
+#ifndef SKIP_CORE_CHECK
+    jal   __core_check
+#endif
+
     # Init CP0 Status, Count, Compare, Watch*, and Cause.
     jal	  __init_cp0
 
-#if (defined(SLINE_ENC) && SLINE_ENC != 0) || defined(MEM_MAPPED_L2C)
+#if (defined(SLINE_ENC) && SLINE_ENC != 0) || (defined(MEM_MAPPED_L2C) && MEM_MAPPED_L2C != 0)
     # Initialise L2/L3 cache
     # This could be done from cached code if there is a cca override or similar
     jal	  __init_l23cache
 #endif
+
 
 #if defined(ILINE_ENC) && ILINE_ENC != 0
     # Initialize the L1 instruction cache.
@@ -87,9 +93,18 @@ $Lnot_nmi:
     jalr  a2
 #endif
 
+#if (defined(SLINE_ENC) && SLINE_ENC != 0) || (defined(MEM_MAPPED_L2C) && MEM_MAPPED_L2C != 0)
+    jal	  __init_l23cache_cached
+#endif
+
 #if defined(DLINE_ENC) && DLINE_ENC != 0
     # Initialize the L1 data cache
     jal	  __init_dcache
+#endif
+
+#if defined(HAVE_TLB) && HAVE_TLB
+    # Initialize the TLB
+    jal	  __init_tlb
 #endif
 
     # Allow everything else to be initialized via a hook.
@@ -116,8 +131,8 @@ $Lnot_nmi:
 $Lnext_ram_word:
     lw    a0, 0(a1)
     sw    a0, 0(a2)
-    addiu a2, 4
-    addiu a1, 4
+    addiu a2, a2, 4
+    addiu a1, a1, 4
     bne   a3, a2, $Lnext_ram_word
 $Lcopy_to_ram_done:
 

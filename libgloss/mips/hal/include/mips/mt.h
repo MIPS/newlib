@@ -34,6 +34,10 @@
 #include <mips/m32c0.h>
 #include <mips/mips32.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * MIPS32 MVPControl Register (CP0 Register 0, Select 1)
  */
@@ -503,5 +507,9 @@ __extension__ ({						\
 })
 
 #endif /* __ASSEMBLER__ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MIPS_MT_H_ */

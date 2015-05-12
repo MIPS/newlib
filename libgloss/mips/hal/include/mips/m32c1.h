@@ -29,10 +29,11 @@
 */
 
 #ifndef _M32C1_H_
+#define _M32C1_H_
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define _M32C1_H_
 
 #ifndef __ASSEMBLER__
 
@@ -183,12 +184,16 @@ __extension__({ \
     __asm__ __volatile (".set push\n" \
 			".set fp=64\n" \
 			".set msa\n" \
-			"ctcmsa $1,%0" \
+			"ctcmsa $1,%0\n" \
 			".set pop": : "d" (__n)); \
     __o; \
 })
 
 #endif /* !ASSEMBLER */
+
+#ifdef __cplusplus
+}
+#endif
 
 /*
  * FCSR - FPU Control & Status Register
@@ -267,8 +272,5 @@ __extension__({ \
 	$fpa_sr  =	$31
 #endif
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /*_M32C1_H_*/

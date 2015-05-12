@@ -28,23 +28,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _M64R6CM3_H_
-#define _M64R6CM3_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define CMGCR_BASE_ADDR_SHIFT	11
-
-/* Offsets of memory-mapped registers */
-#define GCR_L2_CONFIG		0x130
-#define GCR_TAG_ADDR		0x600
-#define GCR_TAG_STATE		0x608
-#define GCR_TAG_DATA		0x610
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* _M64R6CM3_H_ */
+/* 
+ * libcm3.a - Create a reference to __cache_size_hook near the
+ * start of the link to include the actual implementation.
+ */
+EXTERN (__cache_size_hook);
+GROUP(-lcm3_impl);

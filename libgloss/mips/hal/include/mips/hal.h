@@ -201,12 +201,15 @@
 
 #define FPCTX_SIZE()	(mips_getsr() & SR_FR ? FP64CTX_SIZE : FP32CTX_SIZE)
 
+#define XPACTX_BADVADDR	((SZREG)*2)
+
 #define LINKCTX_TYPE_MSA        0x004D5341
 #define LINKCTX_TYPE_FP32       0x46503332
 #define LINKCTX_TYPE_FP64       0x46503634
 #define LINKCTX_TYPE_FMSA       0x463D5341
 #define LINKCTX_TYPE_DSP        0x00445350
 #define LINKCTX_TYPE_STKSWP     0x53574150
+#define LINKCTX_TYPE_XPA	0x00585041
 
 #define LINKCTX_ID      ((SZREG)*0)
 #define LINKCTX_NEXT    ((SZREG)*1)
@@ -219,6 +222,10 @@
 #ifndef __ASSEMBLER__
 
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct linkctx;
 
@@ -356,6 +363,14 @@ struct fp64ctx
 #define FP64CTX_SGL(CTX, N) (CTX)->s[((N) | 1) + (((N) & 1) << 5)]
 #endif
 
+struct xpa
+{
+  struct linkctx link;
+  reg64_t badvaddr;
+};
+
+extern reg_t _xpa_save (struct xpactx *ptr);
+
 extern reg_t _fpctx_save (struct fpctx *ptr);
 extern reg_t _fpctx_load (struct fpctx *ptr);
 extern reg_t _msactx_save (struct msactx *ptr);
@@ -390,4 +405,9 @@ extern int __chain_uhi_excpt (struct gpctx *) __attribute__((weak));
 extern int __exit (int);
 
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // _HAL_H

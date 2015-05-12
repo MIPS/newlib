@@ -4,7 +4,8 @@
  * support.
  */
 
-ENTRY(_start)
+__entry = DEFINED(__reset_vector) ? 0xbfc00000 : _start;
+ENTRY(__entry)
 OUTPUT_FORMAT("elf32-ntradlittlemips", "elf32-ntradbigmips", "elf32-ntradlittlemips")
 GROUP(-lc -luhi -lgcc -lhal)
 SEARCH_DIR(.)
@@ -80,7 +81,7 @@ PROVIDE (software_init_hook = 0);
 
 /* The default base address for application code is 0x80200000 which
    leaves 2M of space at the start of KSEG0 for a bootloader. */
-PROVIDE (__app_start = 0x80200000);
+PROVIDE (__app_start = DEFINED(__reset_vector) ? 0x80000000 : 0x80200000);
 /* Set default vector spacing to 32 bytes. */
 PROVIDE (__isr_vec_space = 32);
 /* Leave space for 9 vector entries by default. 8 entry points and one
@@ -91,7 +92,7 @@ PROVIDE (__isr_vec_count = 9);
  * the use of boot code will mean that application code is copied
  * from flash to RAM at runtime before being executed.
  */
-PROVIDE (__flash_start = __app_start);
+PROVIDE (__flash_start = DEFINED(__reset_vector) ? 0xbfc00000 : __app_start);
 
 SECTIONS
 {

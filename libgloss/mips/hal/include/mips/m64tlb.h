@@ -28,57 +28,63 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
- /*
-  * m32tlb.h: MIPS32 TLB support functions
-  */
-
-#ifndef _M32TLB_H_
-#define _M32TLB_H_
+/*
+ * m64tlb.h: MIPS64 / XPA TLB support functions
+*/
+#ifndef _M64TLB_H_
+#define _M64TLB_H_
 
 #if __mips != 32 && __mips != 64
 #error use -mips32 or -mips64 option with this file
 #endif
 
+#include <mips/asm.h>
+#include <mips/regdef.h>
+#include <mips/m32c0.h>
 #include <mips/notlb.h>
+
 #ifndef __ASSEMBLER__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef unsigned int tlbhi_t;
-typedef unsigned int tlblo_t;
-
+typedef unsigned long long tlbhi64_t;
+typedef unsigned long long tlblo64_t;
 // Returns the size of the TLB.
-int mips_tlb_size (void);
- // Probes the TLB for an entry matching hi, and if present invalidates it.
-void mips_tlbinval (tlbhi_t hi);
+int m64_tlb_size (void);
+
+// Probes the TLB for an entry matching hi, and if present invalidates it.
+void m64_tlbinval (tlbhi64_t hi);
 
 // Invalidate the whole TLB.
-void mips_tlbinvalall (void);
+void m64_tlbinvalall (void);
 
 // Reads the TLB entry with specified by index, and returns the EntryHi, 
 // EntryLo0, EntryLo1 and PageMask parts in *phi, *plo0, *plo1 and *pmsk 
 // respectively.
-void mips_tlbri2 (tlbhi_t *phi, tlblo_t *plo0, tlblo_t *plo1, unsigned *pmsk,
-       int index);
+void m64_tlbri2 (tlbhi64_t *phi, tlblo64_t *plo0, tlblo64_t *plo1, 
+	unsigned long long *pmsk, int index);
 
 // Writes hi, lo0, lo1 and msk into the TLB entry specified by index.
-void mips_tlbwi2 (tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned msk,
-        int index);
+void m64_tlbwi2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, 
+	unsigned long long msk, int index);
 
 // Writes hi, lo0, lo1 and msk into the TLB entry specified by the 
 // Random register.
-void mips_tlbwr2 (tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned msk);
+void m64_tlbwr2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, 
+	unsigned long long msk);
 
 // Probes the TLB for an entry matching hi and returns its index, or -1 if 
 // not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the 
 // entry are also returned in *plo0, *plo1 and *pmsk respectively
-int mips_tlbprobe2 (tlbhi_t hi, tlblo_t *plo0, tlblo_t *plo1, unsigned *pmsk);
+int m64_tlbprobe2 (tlbhi64_t hi, tlblo64_t *plo0, tlblo64_t *plo1, 
+	unsigned long long *pmsk);
 
 // Probes the TLB for an entry matching hi and if present rewrites that entry, 
 // otherwise updates a random entry. A safe way to update the TLB.
-int mips_tlbrwr2 (tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned msk);
+int m64_tlbrwr2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, 
+	unsigned long long  msk);
 
 #ifdef __cplusplus
 }
@@ -86,4 +92,4 @@ int mips_tlbrwr2 (tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned msk);
 
 #endif /* __ASSEMBLER__ */
 
-#endif /* _M32TLB_H_ */
+#endif /* _M64TLB_H_ */

@@ -1,6 +1,6 @@
 /*
  * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ *		         affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,69 +28,70 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _MIPS_ENDIAN_H_
-#define _MIPS_ENDIAN_H_
+#include "m32cache.h"
 
-#ifndef __ASSEMBLER__
-#include <stdint.h>	/* get compiler types */
-#include <sys/types.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef BYTE_ORDER
 /*
- * Definitions for byte order,
- * according to byte significance from low address to high.
+ * static void _size_cache()
+ *
+ * Internal routine to determine cache sizes by looking at config
+ * registers.  Sizes are returned in registers, as follows:
+ *
+ * Do not use tmp3 (reg a1) and tmp1 (reg v1) in this function.
  */
-#define LITTLE_ENDIAN   1234    /* least-significant byte first (vax) */
-#define BIG_ENDIAN      4321    /* most-significant byte first (IBM, net) */
+LEAF(__cache_size_hook)
 
-#if defined(__MIPSEB__) || defined(MIPSEB)
-#define BYTE_ORDER      BIG_ENDIAN
-#elif defined(__MIPSEL__) || defined(MIPSEL)
-#define BYTE_ORDER      LITTLE_ENDIAN
-#else
-#error BYTE_ORDER
-#endif
+	# If we are operating with a coherency manager, abort.
+	# Check if we have $config,3 register present
+	mfc0	tmp, C0_CONFIG4
+	ext	tmp, tmp, CFG4_M_SHIFT, 1
+	beqz	tmp, 1f
 
-#ifndef __ASSEMBLER__
+	# Do we have a memory mapped L2 cache config?
+	mfc0	tmp, C0_CONFIG5
+	ext	tmp, tmp, CFG5_L2C_SHIFT, 1
+	beqz	tmp, 2f
+	# Save registers we need.
+	move	t2, v0
+	move	t3, v1
+	move	t4, a0
+	move	t5, a1
+	# No CM3 code supplied but we have a memory mapped L2 config
+	# Report a Boot failure through UHI
+	li	t9, 23
+	# Reason - L2 cache config
+	li	v0, 1
+	# Trigger the UHI operation
+	syscall	1
+	# Restore registers
+	move	v0, t2
+	move	v1, t3
+	move	a0, t4
+	move	t1, t5
+	# Fallthrough if we somehow recover.
+	j	1f
 
-#if __mips_isa_rev >= 2 && ! __mips16
+2:	mfc0	cfg, C0_CONFIG2
 
-/* MIPS32r2 & MIPS64r2 can use the wsbh and rotate instructions, define
-   MD_SWAP so that <sys/endian.h> will use them. */
+	# Get scache line size (log2)
+	ext	tmp, cfg, CFG2_SL_SHIFT, CFG2_SL_BITS
+	beqz	tmp, 1f		# no s-cache
+	addiu	tmp, tmp, 1
 
-#define MD_SWAP
+	# Get number of scache ways
+	ext	sways, cfg, CFG2_SA_SHIFT, CFG2_SA_BITS
+	addiu	sways, sways, 1
+	move	scachesize, sways
 
-#define __swap16md(x) __extension__({					\
-    uint16_t __swap16md_x = (x);					\
-    uint16_t __swap16md_v;						\
-    __asm__ ("wsbh %0,%1" 						\
-	     : "=d" (__swap16md_v) 					\
-	     : "d" (__swap16md_x)); 					\
-    __swap16md_v; 							\
-})
+	# Total scache size = lines/way * linesize * ways
+	li	slinesize, 1
+	sllv	slinesize, slinesize, tmp
+	sllv	scachesize, scachesize, tmp
 
-#define __swap32md(x) __extension__({					\
-    uint32_t __swap32md_x = (x);					\
-    uint32_t __swap32md_v;						\
-    __asm__ ("wsbh %0,%1; rotr %0,16" 					\
-	     : "=d" (__swap32md_v) 					\
-	     : "d" (__swap32md_x)); 					\
-    __swap32md_v; 							\
-})
+	# Get scache lines per way
+	ext	tmp, cfg, CFG2_SS_SHIFT, CFG2_SS_BITS
+	addiu	tmp, tmp, 6
+	sllv	scachesize, scachesize, tmp
 
-#endif
-#endif /* __ASSEMBLER__ */
-#endif	/* BYTE_ORDER */
-
-#ifdef __cplusplus
-}
-#endif
-
-#include <machine/endian.h>
-
-#endif /*_MIPS_ENDIAN_H_*/
+1:	# Return
+	jr	ra
+END(__cache_size_hook)

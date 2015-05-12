@@ -27,9 +27,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
 */
+#ifndef C0_CONFIG0_VALUE
+#error "Static TLB initialisation decisions require C0_CONFIG0_VALUE"
+#endif
 
 #ifndef C0_CONFIG1_VALUE
-#error "Static cache initialisation decisions require C0_CONFIG1_VALUE"
+#error "Static TLB/cache initialisation decisions require C0_CONFIG1_VALUE"
 #endif
 
 #define ILINE_ENC     ((C0_CONFIG1_VALUE & CFG1_IL_MASK) >> CFG1_IL_SHIFT)
@@ -51,16 +54,23 @@
 # error "Static cache initialisation decisions require C0_CONFIG2_VALUE"
 #endif
 
+#ifndef C0_CONFIG3_VALUE
+# error "Static TLB initialisation decisions require C0_CONFIG3_VALUE"
+#endif
+
 #ifndef C0_CONFIG4_VALUE
-# error "Static cache initialisation decisions require C0_CONFIG4_VALUE"
+# error "Static TLB/cache initialisation decisions require C0_CONFIG4_VALUE"
 #endif
 
 #if (C0_CONFIG4_VALUE & CFG4_M) != 0
 # ifndef C0_CONFIG5_VALUE
 #  error "Static cache initialisation decisions require C0_CONFIG5_VALUE"
 # endif
-# if C0_CONFIG5_VALUE & CFG5_L2C != 0
+# if (C0_CONFIG5_VALUE & CFG5_L2C) != 0
 #  define MEM_MAPPED_L2C 1
+#  ifndef C0_CMGCRBASE_VALUE
+#    error "Static CM3 cache initialization decisions require C0_CMGCRBASE_VALUE"
+#  endif
 # endif
 #endif
 
@@ -79,3 +89,60 @@
 #define TASSOC_ENC   ((C0_CONFIG2_VALUE & CFG2_TA_MASK) >> CFG2_TA_SHIFT)
 #define TASSOC	      (TASSOC_ENC + 1)
 #define TTOTAL_BYTES (TLINE_SIZE * TSET_SIZE * TASSOC)
+
+/* TLB Macros */
+
+// TLB Type
+#define TLB_STANDARD	((C0_CONFIG0_VALUE & CFG0_MT_MASK) == CFG0_MT_TLB)
+#define TLB_DUAL	((C0_CONFIG0_VALUE & CFG0_MT_MASK) == CFG0_MT_DUAL)
+#define HAVE_TLB	(TLB_STANDARD || TLB_DUAL)
+
+// Size definitions.
+// FTLBs may be present.
+#define FTLB_SET_ENC	(C0_CONFIG4_VALUE & CFG4_FTLBS_MASK)
+#define FTLB_WAY_ENC	((C0_CONFIG4_VALUE & CFG4_FTLBW_MASK) >> CFG4_FTLBW_SHIFT)
+#if TLB_DUAL
+#define FTLB_SIZE	(2 + FTLB_WAY_ENC) << FTLB_SET_ENC
+#else
+#define FTLB_SIZE	0
+#endif
+
+// VTLB May be present
+#define VTLB_SIZE_ENC	((C0_CONFIG4_VALUE & CFG4_VTLBSEXT_MASK) \
+			>> CFG4_VTLBSEXT_SHIFT)
+#define VTLB_SIZE	(VTLB_SIZE_ENC << CFG1_MMUS_BITS)
+
+
+
+// Size
+#define TLB_SIZE	((C0_CONFIG1_VALUE & CFG1_MMUS_MASK) >> CFG1_MMUS_SHIFT)
+
+// ISA < 6 relys on CFG4 MMU Extension definition
+#if __mips_isa_rev < 6
+
+#if (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_FTLBVEXT
+#define MMU_SIZE	(FTLB_SIZE + VTLB_SIZE + TLB_SIZE + 1)
+#elif (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_SIZEEXT
+#define MMU_SIZE	(((C0_CONFIG4_VALUE & CFG4_MMUSE_MASK) << CFG1_MMUS_BITS) \
+			+ TLB_SIZE + 1)
+#elif (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_FTLB
+#define MMU_SIZE	(FTLB_SIZE + TLB_SIZE + 1)
+#elif (C0_CONFIG4_VALUE & CFG4_MMUED) == 0
+#define MMU_SIZE	(TLB_SIZE + 1)
+#endif /* C0_CONFIG4_VALUE & ...*/
+
+#else
+
+// ISA >= 6 always uses the FTLB + VTLB fields.
+#define MMU_SIZE	(FTLB_SIZE + VTLB_SIZE + TLB_SIZE + 1)
+
+#endif /* __mips_isa_rev < 6 */
+
+
+// Invalidation
+#define	HAVE_HW_TLB_WALK	((C0_CONFIG4_VALUE & CFG4_IE_MASK) == CFG4_IE_INVALL)
+#define HAVE_SW_TLB_WALK	((C0_CONFIG4_VALUE & CFG4_IE_MASK) == CFG4_IE_INV)
+#define HAVE_NO_INV		((C0_CONFIG4_VALUE & CFG4_IE_MASK) == 0)
+
+// LPA
+#define HAVE_LPA	(C0_CONFIG3_VALUE & CFG3_LPA)
