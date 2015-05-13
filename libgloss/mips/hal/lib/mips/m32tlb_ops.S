@@ -115,7 +115,7 @@ END(mips_tlbrwr2)
  *
  */
 LEAF(mips_tlbri2)
-#if _MIPS_SIM=_ABIO32
+#if _MIPS_SIM==_ABIO32
         lw	ta0,16(sp)      # index
 #endif
 	mtc0	ta0,$index

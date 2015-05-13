@@ -13,15 +13,16 @@
 
 
 /*
- * mips_xxtlb_ops.S: Generic MIPS TLB support functions
+ * init_tlb.S: Initialization of the TLB.
  *
  */
+#define _BOOTCODE
 #include <mips/m32c0.h>
 #include <mips/asm.h>
 #include <mips/regdef.h>
 
 /*
- * int m64_tlb_size();
+ * int __tlb_size();
  *
  * Return number of entries in TLB.
  *
@@ -222,7 +223,7 @@ LEAF(__init_tlb)
 	beqz    t2, 1f
 
 	move	v1, ra
-	jal	mips_tlbinvalall
+	jal	__tlbinvalall
 	move	ra, v1 
 	
 	PTR_MFC0 t0, $config, 3
