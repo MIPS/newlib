@@ -39,9 +39,26 @@ extern "C" {
 
 /* Offsets of memory-mapped registers */
 #define GCR_L2_CONFIG		0x130
+
+#define GCR_L2_RAM_CONFIG	0x240
 #define GCR_TAG_ADDR		0x600
 #define GCR_TAG_STATE		0x608
 #define GCR_TAG_DATA		0x610
+
+#define GCR_L2_RAM_HCID_SHIFT	30
+#define GCR_L2_RAM_HCID_BITS	1
+
+#define GCR_L2_RAM_HCIS_SHIFT   29
+#define GCR_L2_RAM_HCIS_BITS	1
+
+#define GCR_L2_SS_SHIFT		12
+#define GCR_L2_SS_BITS		4
+
+#define GCR_L2_SL_SHIFT		8
+#define GCR_L2_SL_BITS		4
+
+#define GCR_L2_SA_SHIFT		0
+#define	GCR_L2_SA_BITS		8
 
 #ifdef __cplusplus
 }

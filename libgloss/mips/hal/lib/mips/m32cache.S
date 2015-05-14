@@ -117,7 +117,7 @@ SLEAF(_size_cache)
 	addu	tmp,6
 	sll	dcachesize,tmp
 
-        # Stire dcache config
+        # Store dcache config
 	sw      dcachesize,mips_dcache_size
         sw      dlinesize,mips_dcache_linesize
         sw      dways,mips_dcache_ways
@@ -158,12 +158,12 @@ SLEAF(_size_cache)
 	sw      scachesize,mips_scache_size
         sw      slinesize,mips_scache_linesize
         sw      sways,mips_scache_ways
-
-
+1:
+#ifdef L2_CM3
 	# If we are operating with a coherency manager, the s-cache
 	# sizes we wrote may be incorrect, examine the coherency manger
 	# control registers.
-1:
+
 	# Check if we have $config,3 register present
 	and	tmp,cfg,CFG2_M
 	beqz	tmp,9f
@@ -174,47 +174,69 @@ SLEAF(_size_cache)
 	ext	tmp,tmp,CFG3_CMGCR_SHIFT,1
 	beqz	tmp,9f		# Return if not implemented
 
-	
-	.weak	__CMProbe
-	LA	tmp, __CMProbe
+	# Do we have a memory mapped L2 cache config?
+	mfc0	tmp, $config, 5
+	ext	tmp, tmp, CFG5_L2C_SHIFT, 1
 	beqz	tmp, 9f
+
+	
+	.weak	__size_cm3
+	LA	tmp, __size_cm3
+	beqz	tmp, 8f
 	move	tmp4, ra
 	jal	tmp
 	move	ra, tmp4
+	b	9f
 
+8:
+	# No CM3 code supplied but we have a memory mapped L2 config
+	# Report a Boot failure through UHI
+   	li	t9, 23
+	# Reason - L2 cache config
+	li	a0, 1
+	# Trigger the UHI operation
+    	sdbbp 1
+	# Fallthrough if we somehow recover.
+#endif
 9:	# Return
 	jr	ra
 SEND(_size_cache)
 
-WLEAF(__CMProbe)
+
+# Set the size of the l2 cache from the CM3 configuration
+#
+# Do not use tmp1 (v1), tmp3 (a1), tmp4 (a2)
+WLEAF(__size_cm3)
 
         # Read CMGCRBase to find CMGCR_BASE_ADDR
         PTR_MFC0 tmp,C0_CMGCRBASE
-        sll     tmp,4
+	sll	tmp, 4
         lui     tmp2,0xb000     # Make it virtual
-        or      tmp,tmp2
+        or      tmp, tmp2
 
         # Read GCR_L2_CONFIG
         PTR_L   tmp,GCR_L2_CONFIG(tmp)
-
-        ext     slinesize, tmp, 8, 4            # Extract line size
+	# Extract line size
+        ext     slinesize, tmp, GCR_L2_SL_SHIFT, GCR_L2_SL_BITS 
         li      tmp2, 2
-        sllv    slinesize, tmp2, slinesize      # Now have true L2 line size in bytes
-        ext     sways, tmp, 12, 4               # Extract sets/way
-        li      tmp2, 64
+        sllv    slinesize, tmp2, slinesize	# Now have true L2 line size
+	 # Extract sets/way
+        ext     sways, tmp, GCR_L2_SS_SHIFT, GCR_L2_SS_BITS        
+	li      tmp2, 64
         sllv    sways, tmp2, sways              # Now we have true L2 sets/way
-        ext     tmp, tmp, 0, 8          # Extract L2 associativity
-        addiu   tmp, tmp, 1
-        mul     tmp, tmp, sways         # Get total number of sets
+	# Extract L2 associativity
+        ext     tmp, tmp, GCR_L2_SA_SHIFT, GCR_L2_SA_BITS 
+        addiu   tmp, tmp, 1			
+        mul     tmp, tmp, sways         	# Get total number of sets
         mul     scachesize, slinesize, tmp      # L2 cache size
 
-	sw      scachesize,mips_scache_size
-	sw      slinesize,mips_scache_linesize
-	sw      sways,mips_scache_ways
+	sw      scachesize, mips_scache_size
+	sw      slinesize, mips_scache_linesize
+	sw      sways, mips_scache_ways
 	
 	# Return
 	jr	ra
-WEND(__CMProbe)
+WEND(__size_cm3)
 
 /*
  * void size_cache()

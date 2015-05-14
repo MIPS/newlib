@@ -66,11 +66,15 @@ $Lnot_nmi:
     # Init CP0 Status, Count, Compare, Watch*, and Cause.
     jal	  __init_cp0
 
-#if (defined(SLINE_ENC) && SLINE_ENC != 0) || defined(MEM_MAPPED_L2C)
+#if (defined(SLINE_ENC) && SLINE_ENC != 0)
     # Initialise L2/L3 cache
     # This could be done from cached code if there is a cca override or similar
     jal	  __init_l23cache
+#elsif (defined(MEM_MAPPED_L2C) && MEM_MAPPED_L2C != 0)
+    # Initialise L2 cache from CM3 details
+    jal   __init_cm3l2cache
 #endif
+
 
 #if defined(ILINE_ENC) && ILINE_ENC != 0
     # Initialize the L1 instruction cache.

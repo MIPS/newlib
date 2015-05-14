@@ -68,8 +68,39 @@ init_resources:
 
     # Initialise L2/L3 cache
     # This could be done from cached code if there is a cca override or similar
+
+    # Determine L2/L3 cache config.
+
+    # Check for memory mapped L2 cache config
+    mfc0  a3, C0_CONFIG4
+    ext   a3, a3, CFG4_M_SHIFT, 1
+    beqz  a3, l23_init
+    mfc0  a3, C0_CONFIG5
+    ext   a3, a3, CFG5_L2C_SHIFT, 1
+    beqz  a3, l23_init
+
+    .weak __init_cm3l2
+    lui   a2, %hi(__init_cm3l2)
+    addiu a2, %lo(__init_cm3l2)
+    bnez  a2, 1f
+
+    # No CM3 code supplied but we have a memory mapped L2 configuration
+    # Report a Boot failure through UHI
+    li    t9, 23
+    # Reason - L2 cache config
+    li    a0, 1
+    # Trigger the UHI operation
+    sdbbp 1
+    # In case a debugger corrects this failure
+    b     init_ic
+
+1:  jal   __init_cm3l2cache
+    b     init_ic
+
+l23_init:
     jal	  __init_l23cache
 
+init_ic:
     # Initialize the L1 instruction cache.
     jal	  __init_icache
 
