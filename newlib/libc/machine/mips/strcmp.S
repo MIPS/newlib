@@ -106,8 +106,14 @@ L(wordloop):
 	STRCMP32(16)
 	STRCMP32(20)
 	STRCMP32(24)
-	STRCMP32(28)
+	lw	v0, 28(a0)
+	lw	v1, 28(a1)
+	subu	t0, v0, t8
+	nor	t1, v0, t9
+	bne	v0, v1, L(worddiff)
+	and	t0, t0, t1
 	PTR_ADDIU a0, a0, 32
+	bne	t0, zero, L(returnzero)
 	PTR_ADDIU a1, a1, 32
 	b	L(wordloop)
 
@@ -197,20 +203,21 @@ L(wexit01):
    instructions so that the nop is not needed but testing showed that this
    code is actually faster (based on glibc strcmp test).  */
 #define BYTECMP01(OFFSET) \
-	lbu	v0, OFFSET(a0); \
 	lbu	v1, OFFSET(a1); \
 	nop; \
 	beq	v0, zero, L(bexit01); \
+	lbu	t8, OFFSET+1(a0); \
 	bne	v0, v1, L(bexit01)
 
 #define BYTECMP89(OFFSET) \
-	lbu	t8, OFFSET(a0); \
 	lbu	t9, OFFSET(a1); \
 	nop;	\
 	beq	t8, zero, L(bexit89); \
+	lbu	v0, OFFSET+1(a0); \
 	bne	t8, t9, L(bexit89)
 
 L(byteloop):
+	lbu	v0, 0(a0)
 	BYTECMP01(0)
 	BYTECMP89(1)
 	BYTECMP01(2)
@@ -218,8 +225,11 @@ L(byteloop):
 	BYTECMP01(4)
 	BYTECMP89(5)
 	BYTECMP01(6)
-	BYTECMP89(7)
+	lbu	t9, 7(a1)
+	nop
+	beq	t8, zero, L(bexit89)
 	PTR_ADDIU a0, a0, 8
+	bne	t8, t9, L(bexit89)
 	PTR_ADDIU a1, a1, 8
 	b	L(byteloop)
 
