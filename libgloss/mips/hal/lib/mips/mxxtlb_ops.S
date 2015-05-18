@@ -1,15 +1,32 @@
 /*
  * Copyright 2014-2015, Imagination Technologies Limited and/or its
  *                      affiliated group companies.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted under the terms of the MIPS Free To Use 1.0
- * license that you will have received with this package. If you haven't
- * received this file, please contact Imagination Technologies or see the
- * following URL for details.
- * http://codescape-mips-sdk.imgtec.com/license/IMG-free-to-use-on-MIPS-license
+ * modification, are permitted provided that the following conditions are met:
  *
- */
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+*/
 
 
 /*
@@ -23,6 +40,7 @@
 
 /*
  * int m64_tlb_size();
+ * int mips_tlb_size();
  *
  * Return number of entries in TLB.
  *
@@ -30,62 +48,70 @@
 LEAF(mips_tlb_size)
 AENT(m64_tlb_size)
 	/* first see if we've got a TLB */
-	mfc0	t0, $config, 0
-	mfc0	t1, $config, 1
-	move	v0,zero
+	mfc0	t0, C0_CONFIG
+	mfc0	t1, C0_CONFIG1
+	move	v0, zero
 
-	and	t0,CFG0_MT_MASK
+	ext	t0, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	#No MMU test, 0 entries
-	beqz	t0,9f		
+	beq	t0, zero, 9f		
 
-        # Fixed Address Translation, 0 entries 
-        beq     t0, CFG0_MT_FIXED, 9f
+	# Fixed Address Translation, 0 entries
+	li	t3, (CFG0_MT_FIXED >> CFG0_MT_SHIFT)
+	beq	t0, t3, 9f
 
-        # Block Address Translator, 0 entries
-        beq     t0,CFG0_MT_BAT,9f
+	# Block Address Translator, 0 entries
+	li	t3, (CFG0_MT_BAT >> CFG0_MT_SHIFT)
+	beq	t0, t3, 9f
 
-        # As per PRA, field holds No. of entries -1
-        # Standard TLBs and Dual TLBs have 
+	# As per PRA, field holds No. of entries -1
+	# Standard TLBs and Dual TLBs have
 	# extension fields.
-	and     v0,t1,CFG1_MMUS_MASK
-        srl     v0,CFG1_MMUS_SHIFT
-        addiu   v0,1
+	ext	v0, t1,CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
+	addiu	v0, 1
 
 	# Compute VTLB size	
 	# If not using a TLB or VFTLB
-	mfc0	t1,$config,4
-	and	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) #ConfigMT 1 or 4
-	beqz	t2, 9f
+	mfc0	t1, C0_CONFIG4
+	ext	t2, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
+	li	t3, (CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT
+	and	t2, t0, t3			#ConfigMT 1 or 4
+	beq	t2, zero, 9f
 
 #if __mips_isa_rev < 6
-	and     t3, t1, CFG4_MMUED
-	beq	t3, CFG4_MMUED_FTLBVEXT, 8f	# FTLB + VTLBExt
-	beq	t3, CFG4_MMUED_SIZEEXT, 7f	# SizeExt for VTLBEXT
-	beq	t3, 0, 9f			# Reserved, nothing more to do
+	ext	t3, t1, CFG4_MMUED_SHIFT, CFG4_MMUED_BITS
+
+	li	t2, (CFG4_MMUED_FTLBVEXT >> CFG4_MMUED_SHIFT)
+	beq	t3, t2, 8f			# FTLB + VTLBExt
+
+	li	t2, (CFG4_MMUED_SIZEEXT >> CFG4_MMUED_SHIFT)
+	beq	t3, t2, 7f			# SizeExt for VTLBEXT
+
+	beq	t3, zero, 9f			# Reserved, nothing more to do
+
 	b	10f				# FTLB Size
 7:
-	and	t3, t1, CFG4_MMUSE_MASK
+	ext	t3, t1, CFG4_MMUSE_SHIFT, CFG4_MMUSE_BITS
 	sll	t2, t3, CFG1_MMUS_BITS
 	add	v0, v0, t2
 	b	9f
 #endif /* __mips_isa_rev < 6 */
 8:
-	and	t2, t3, CFG4_VTLBSEXT_MASK
-	srl     t2, t2, CFG4_VTLBSEXT_SHIFT - CFG1_MMUS_BITS
+	ext	t2, t1, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
+	srl     t2, t2, CFG1_MMUS_BITS
 	add	v0, v0, t2
 10:
 	# Skip FTLB size calc if Config MT != 4
-	and	t2, t0, CFG0_MT_DUAL
-	beqz	t2, 9f
+	li	t3, (CFG0_MT_DUAL >> CFG0_MT_SHIFT)
+	bne	t0, t3, 9f
 	
 	# Ways
 	li	t2, 2
-	and	t3, t1, CFG4_FTLBW_MASK
-	srl	t3, CFG4_FTLBW_SHIFT
+	ext	t3, t1, CFG4_FTLBW_SHIFT, CFG4_FTLBW_BITS
 	add	t2, t3
 
 	# Sets per way
-	and	t3, t1, CFG4_FTLBS_MASK
+	ext	t3, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
 	sll	t2, t3
 	add	v0, v0, t2
 
@@ -94,33 +120,37 @@ END(mips_tlb_size)
 
 /*
  * void m64_tlbinval()
+ * void mips_tlbinval()
  *
  * Invalidate the TLB.
  */
 LEAF(mips_tlbinvalall)
 AENT(m64_tlbinvalall)
 	
-	mfc0	t0, $config, 0
-	and     t1, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) 	#Config[MT] 1 or 4
-	beqz	t1,11f					# Not sTLB or DTLB.
+	mfc0	t0, C0_CONFIG
+	ext	t1, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
+	li	t2, ((CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT)
+	and     t1, t0, t2				# Config[MT] 1 or 4
+	beq	t1, zero, 11f				# Not sTLB or DTLB.
 
 	PTR_MTC0 zero, C0_ENTRYLO0
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
 
-	mfc0	t0, $config, 4			#Config4[IE] = 0, do old method for
-	and	t2, t0, CFG4_IE_MASK		# invalidation
-	beqz	t2, 9f
+	mfc0	t0, C0_CONFIG4			# Config4[IE] = 0, do old method for
+						# invalidation
+	ext	t2, t0, CFG4_IE_SHIFT, CFG4_IE_BITS
+	and	t2, t0, (CFG4_IE_MASK >> CFG4_IE_SHIFT)
+	beq	t2, zero, 9f
 
-
-	li	t0, CFG0_MT_TLB			#Config[MT] = 1, one instruction required
+	li	t0, CFG0_MT_TLB			# Config[MT] = 1, one instruction required
 	beq	t1, t0, 7f
 
-	mfc0	t0, $config, 4			#Config4[IE] = 3, one instruction required
+	mfc0	t0, C0_CONFIG4			# Config4[IE] = 3, one instruction required
 	and	t1, t0, CFG4_IE_MASK
 	beq	t1, CFG4_IE_INVALL, 7f
 
-	b	8f				#Config4[IE] = 2
+	b	8f				# Config4[IE] = 2
 
 7:	# TLB walk done by hardware, Config4[IE] = 3 or Config[MT] = 1
 	li	t1, C0_ENTRYHI_EHINV_MASK
@@ -149,20 +179,19 @@ AENT(m64_tlbinvalall)
 	 * Flush, increment, repeat while finger != end pointer.
 	 */
 	
-	mfc0	t0, $config, 4
-	and	t1, t0, CFG4_FTLBS_MASK
+	mfc0	t0, C0_CONFIG4
+	ext	t1, t0, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
 	li	t2, 1
 	sll	t2, t2, t1				# FTLB Sets
 
-	and	t3, t0, CFG4_VTLBSEXT_MASK
-	srl	t3, CFG4_VTLBSEXT_SHIFT - CFG1_MMUS_BITS
+	ext	t3, t0, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
+	sll	t3, CFG1_MMUS_BITS
 	
-	mfc0	t0, $config, 0
-	and	t1, t0, CFG1_MMUS_MASK
-	srl	t1, CFG1_MMUS_SHIFT
+	mfc0	t0, C0_CONFIG1
+	ext	t1, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
 	or	t1, t1, t3			# VTLB Size, set ptr
 
-	addu	t2, t2, 1
+	addiu	t2, t2, 1
 	addu	t2, t2, t1			# VTLB Size + FTLB Sets, end ptr
 	
 	mtc0	zero, C0_INDEX
@@ -180,7 +209,7 @@ AENT(m64_tlbinvalall)
 	.set	mips32r3
 	tlbinvf
 	.set	pop
-	addu	t1, t1, 1
+	addiu	t1, t1, 1
 	bne	t1, t2, 12b
 	
 	b	11f	
@@ -195,13 +224,13 @@ AENT(m64_tlbinvalall)
 
 	# If large physical addressing is enabled, load 0xFFFFFFFF
 	# into the top half of EntryHi.
-	PTR_MFC0 t1, $config, 3
+	mfc0	t1, C0_CONFIG3
 	and	t1, t1, CFG3_LPA
-	beqz	t1, 10f
+	beq	t1, zero, 10f
 
-	PTR_MFC0 t1, C0_PAGEGRAIN
-	and	t1, t1, PAGEGRAIN_ELPA
-	bnez	t1, 10f
+	mfc0	t1, C0_PAGEGRAIN
+	ext	t1, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
+	bne	t1, zero, 10f
 
 	li	t0, -1
 	.set	push
@@ -214,14 +243,15 @@ AENT(m64_tlbinvalall)
 
 10:	li	t1, KSEG0_BASE
 
-12:	PTR_MTC0 t1,C0_ENTRYHI
+12:	PTR_MTC0 t1, C0_ENTRYHI
 	addu	v0, v0, -1
-	mtc0	v0,C0_INDEX
+	mtc0	v0, C0_INDEX
 	ehb					# mtc0, hazard on tlbwi
+	
 	tlbwi
 	addu	t1, t1, (2<<13)
-	bnez	v0, 12b
+	bne	v0, zero, 12b
 
-11:	mtc0	zero,C0_ENTRYHI			# Unset EntryHI
+11:	mtc0	zero, C0_ENTRYHI			# Unset EntryHI
 	jr.hb	ra
 END(mips_tlbinvalall)

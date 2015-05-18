@@ -612,6 +612,9 @@ extern "C" {
 
 /* MIPS32r2 PageGrain  Register (CP0 Register 5, Select 1) */
 #define PAGEGRAIN_ELPA	0x20000000	/* Enable large physical addresses */
+#define PAGEGRAIN_ELPA_SHIFT	29
+#define PAGEGRAIN_ELPA_BITS	1
+
 #define PAGEGRAIN_ESP	0x10000000	/* Enable small (1KB) page support */
 
 /* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */

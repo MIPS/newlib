@@ -33,6 +33,7 @@
 #include <mips/m32c0.h>
 #include <mips/m32tlb.h>
 #include <mips/asm.h>
+
 /*
  * void mips_tlbwi2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask,
  *			unsigned idx)
@@ -44,14 +45,16 @@ LEAF(mips_tlbwi2)
 #if _MIPS_SIM==_ABIO32
 	lw	ta0, 16(sp)
 #endif
-	mtc0	a0, $entryhi
-	mtc0	a1, $entrylo0
-	mtc0	a2, $entrylo1
-	mtc0	a3, $pagemask
-	mtc0	ta0, $index
-	ehb			# Hazard barrier on execution
+	mtc0	a0, C0_ENTRYHI
+	mtc0	a1, C0_ENTRYLO0
+	mtc0	a2, C0_ENTRYLO1
+	mtc0	a3, C0_PAGEMASK
+	mtc0	ta0, C0_INDEX
+	ehb				# mtc0, Hazard on tlbwi
+
 	tlbwi
 	jr.hb	ra
+
 END(mips_tlbwi2)
 
 
@@ -63,12 +66,12 @@ END(mips_tlbwi2)
  *
  */
 LEAF(mips_tlbwr2)
-	mtc0	a0,$entryhi
-	mtc0	a1,$entrylo0
-	mtc0	a2,$entrylo1
-	mtc0	a3,$pagemask
-	
-	ehb
+	mtc0	a0, C0_ENTRYHI
+	mtc0	a1, C0_ENTRYLO0
+	mtc0	a2, C0_ENTRYLO1
+	mtc0	a3, C0_PAGEMASK
+
+	ehb				# mtc0, hazard on tlbwr
 	tlbwr
 	jr.hb	ra
 END(mips_tlbwr2)
@@ -81,27 +84,27 @@ END(mips_tlbwr2)
  *
  */
 LEAF(mips_tlbrwr2)
-	mfc0	t0,$entryhi
-	mtc0	a0,$entryhi
+	mfc0	t0, C0_ENTRYHI
+	mtc0	a0, C0_ENTRYHI
 	ehb		# MTCO, hazard on tlbp
 	
 	tlbp
-	ehb		# tlbp, hazard on MFCO $index
+	ehb		# tlbp, hazard on MFCO C0_INDEX
 
-	mfc0	v0,$index
-	mtc0	a1,$entrylo0
-	mtc0	a2,$entrylo1
-	mtc0	a3,$pagemask
+	mfc0	v0, C0_INDEX
+	mtc0	a1, C0_ENTRYLO0
+	mtc0	a2, C0_ENTRYLO1
+	mtc0	a3, C0_PAGEMASK
 
 	ehb		# mtc0, hazard on tlbwi
-	bltz	v0,1f	# no matching entry
+	bltz	v0, 1f	# no matching entry
 
 	tlbwi
-	mtc0	t0, $entryhi
+	mtc0	t0, C0_ENTRYHI
 	jr.hb	ra
 
 1:	tlbwr
-	mtc0	t0, $entryhi
+	mtc0	t0, C0_ENTRYHI
 	jr.hb	ra
 END(mips_tlbrwr2)
 
@@ -116,22 +119,22 @@ END(mips_tlbrwr2)
  */
 LEAF(mips_tlbri2)
 #if _MIPS_SIM==_ABIO32
-        lw	ta0,16(sp)      # index
+        lw	ta0,16(sp)      	# index
 #endif
-	mtc0	ta0,$index
-	ehb			# mtc0, hazard on tlbr
+	mtc0	ta0, C0_INDEX
+	ehb				# mtc0, hazard on tlbr
 
 	tlbr
-	ehb			# tlbr, hazard on entry*, pagemask
+	ehb				# tlbr, hazard on entry*, pagemask
 
-	mfc0	t0,$entryhi
-	mfc0	t1,$entrylo0
-	mfc0	t2,$entrylo1
-	mfc0	t3,$pagemask
-	sw	t0,0(a1)
-	sw	t1,0(a1)
-	sw	t2,0(a2)
-	sw	t3,0(a3)
+	mfc0	t0, C0_ENTRYHI
+	mfc0	t1, C0_ENTRYLO0
+	mfc0	t2, C0_ENTRYLO1
+	mfc0	t3, C0_PAGEMASK
+	sw	t0, 0(a1)
+	sw	t1, 0(a1)
+	sw	t2, 0(a2)
+	sw	t3, 0(a3)
 	jr	ra
 END(mips_tlbri2)
 
@@ -146,32 +149,32 @@ END(mips_tlbri2)
  *
  */
 LEAF(mips_tlbprobe2)
-	mfc0	t0,$entryhi
-	mtc0	a0,$entryhi
-	ehb			# mtc0, hazard on tlbp
+	mfc0	t0, C0_ENTRYHI
+	mtc0	a0, C0_ENTRYHI
+	ehb				# mtc0, hazard on tlbp
 
 	tlbp
-	ehb			# tlpb, hazard on index.
+	ehb				# tlpb, hazard on index.
 
-	mfc0	v0,$index
-	bltz	v0,1f		# Return -1 if not found.
+	mfc0	v0, C0_INDEX
+	bltz	v0, 1f			# Return -1 if not found.
 
 	tlbr
-	ehb			# tlbr, hazard on entry*, pagemask
+	ehb				# tlbr, hazard on entry*, pagemask
 
-	mfc0	v1,$entrylo0
-	mfc0	t1,$entrylo1
-	mfc0	t2,$pagemask
+	mfc0	v1, C0_ENTRYLO0
+	mfc0	t1, C0_ENTRYLO1
+	mfc0	t2, C0_PAGEMASK
 
-	mtc0	t0,$entryhi	# restore entry hi 
+	mtc0	t0, C0_ENTRYHI		# restore entry hi 
 
-	sw	v1,0(a1)
-	sw	t1,0(a2)
-	sw	t2,0(a3)
+	sw	v1, 0(a1)
+	sw	t1, 0(a2)
+	sw	t2, 0(a3)
 	jr.hb	ra
 
-1:	mtc0	t0,$entryhi	# restore entry hi 
-	li	v0,-1
+1:	mtc0	t0, C0_ENTRYHI		# restore entry hi 
+	li	v0, -1
 	jr.hb	ra
 END(mips_tlbprobe2)
 
@@ -183,36 +186,43 @@ END(mips_tlbprobe2)
  *
  */
 LEAF(mips_tlbinval)
-	mfc0	t0, $entryhi	# save old entry hi
-	mtc0	a0, $entryhi
-	ehb			# mtc0, Hazard on tlbp
+	mfc0	t0, C0_ENTRYHI		# save old entry hi
+	mtc0	a0, C0_ENTRYHI
+	ehb				# mtc0, Hazard on tlbp
 
 	tlbp
-	ehb			# tlbp, Hazard on index, entry*
+	ehb				# tlbp, Hazard on index, entry*
 
-	mfc0	v0, $index
+	mfc0	v0, C0_INDEX
 	bltz	v0, 4f
 
-	mtc0	zero, $entrylo0
-	mtc0	zero, $entrylo1
+	mtc0	zero, C0_ENTRYLO0
+	mtc0	zero, C0_ENTRYLO1
 
-	mfc0	t1, $config, 4
-	and	t1, t1, CFG4_IE_INV
-	beqz	t1, 2f	
+	mfc0	t1, C0_CONFIG4
+	ext	t1, t1, CFG4_IE_SHIFT, CFG4_IE_BITS
+	beq	t1, zero, 2f	
 	li	t1, C0_ENTRYHI_EHINV_MASK 
 	b	3f
 
 2:	li	t1, KSEG0_BASE
-3:	mtc0	t1, $entryhi
-	ehb			# mtco, hazard on tlbwi
+3:	mtc0	t1, C0_ENTRYHI
+	ehb				# mtco, hazard on tlbwi
 
 	tlbwi
-	ehb			# tlbwi uses $entryhi late 
+	ehb				# tlbwi, hazard
 
-4:	mtc0	t0,$entryhi	# restore entry hi 
+4:	mtc0	t0,C0_ENTRYHI		# restore entry hi 
 	jr.hb	ra
 
 END(mips_tlbinval)
+
+/*
+ * void mips_init_tlb()
+ *
+ * Initialize the TLB
+ *
+ */
 
 LEAF(mips_init_tlb)
 
