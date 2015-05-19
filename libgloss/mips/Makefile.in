@@ -89,10 +89,14 @@ YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
 HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb_ops.o \
   m64tlb_ops.o mxxtlb_ops.o mips_excpt_entry.o mips_excpt_handler.o \
   mips_excpt_handler_quiet.o mips_excpt_register.o mips_excpt_boot.o \
-  mips_excpt_isr.o 
+  mips_excpt_isr.o mips_l2size.o 
 
 HALINCLUDE = -I $(srcdir)/hal/include
-BOOTOBJ = reset.o init_cp0.o init_caches.o init_l23caches.o init_tlb.o
+BOOTOBJ = reset.o init_cp0.o init_caches.o init_tlb.o init_l23caches.o
+
+CM3OBJ_IMPL = mips_cm3_l2size.o init_cm3l2.o
+
+CM3AR = libcm3.a
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
@@ -172,6 +176,10 @@ libhal.a: $(HALOBJ) $(BOOTOBJ)
 	${AR} ${ARFLAGS} $@ $^
 	${RANLIB} $@
 
+libcm3_impl.a: $(CM3OBJ_IMPL)
+	${AR} ${ARFLAGS} $@ $^
+	${RANLIB} $@
+
 # nullmon.a , This is what you want if you want crt0 but NO mon services
 # Supports GDB sim testing, board bringups, ICE operation.
 libnullmon.a: $(NULLMONOBJS)
@@ -237,6 +245,7 @@ install:
 	@for file in $(CRT0) $(PCRT0) $(BSP); do \
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$${file}; \
 	done
+	$(INSTALL_DATA) ${srcdir}/hal/lib/mips/libcm3.a $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/libcm3.a
 	@for script in ${SCRIPTS}; do\
 	  $(INSTALL_DATA) ${srcdir}/$${script}.ld $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$${script}.ld; \
 	done

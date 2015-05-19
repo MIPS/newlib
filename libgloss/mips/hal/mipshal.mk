@@ -96,12 +96,7 @@ else
 endif
 
 ifdef ROMABLE
-  MIPS_HAL_LDFLAGS += -Wl,-u,__reset_vector
-  ifeq ($(ABI), 64)
-    ELF_ENTRY ?= 0xFFFFFFFFBFC00000
-  else
-    ELF_ENTRY ?= 0xBFC00000
-  endif
+  MIPS_HAL_LDFLAGS += -T bootcode.ld
 endif
 
 ifdef ELF_ENTRY

@@ -36,11 +36,9 @@ ABI ?= 32
 
 # Set up a 1:1 mapping for physical to virtual addresses
 ifeq ($(ABI), 64)
-  FLASH_START = 0xFFFFFFFFBFC00000
   APP_START = 0xFFFFFFFF80000000
   LDSCRIPT = minimal64_64.ld
 else
-  FLASH_START = 0xBFC00000
   APP_START = 0x80000000
   ifeq ($(ABI), n32)
      LDSCRIPT = minimal64_n32.ld

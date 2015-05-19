@@ -70,9 +70,10 @@ $Lnot_nmi:
     # Initialise L2/L3 cache
     # This could be done from cached code if there is a cca override or similar
     jal	  __init_l23cache
-#elsif (defined(MEM_MAPPED_L2C) && MEM_MAPPED_L2C != 0)
+#endif
+#if (defined(MEM_MAPPED_L2C) && MEM_MAPPED_L2C != 0)
     # Initialise L2 cache from CM3 details
-    jal   __init_cm3l2cache
+    jal	  __init_l23cache
 #endif
 
 
@@ -91,6 +92,10 @@ $Lnot_nmi:
     jalr  a2
 #endif
 
+#if (defined(MEM_MAPPED_L2C) && MEM_MAPPED_L2C != 0)
+    jal	  __init_l23cache_cached
+#endif
+
 #if defined(DLINE_ENC) && DLINE_ENC != 0
     # Initialize the L1 data cache
     jal	  __init_dcache
@@ -98,7 +103,7 @@ $Lnot_nmi:
 
 #if defined(HAVE_TLB) && HAVE_TLB
     # Initialize the TLB
-    jal   __init_tlb
+    jal	  __init_tlb
 #endif
 
     # Allow everything else to be initialized via a hook.

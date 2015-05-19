@@ -4,7 +4,8 @@
  * support.
  */
 
-ENTRY(_start)
+__entry = DEFINED(__reset_vector) ? 0xbfc00000 : _start;
+ENTRY(__entry)
 OUTPUT_FORMAT("elf32-tradlittlemips", "elf32-tradbigmips", "elf32-tradlittlemips")
 GROUP(-lc -luhi -lgcc -lhal)
 SEARCH_DIR(.)
@@ -91,7 +92,7 @@ PROVIDE (__isr_vec_count = 9);
  * the use of boot code will mean that application code is copied
  * from flash to RAM at runtime before being executed.
  */
-PROVIDE (__flash_start = __app_start);
+PROVIDE (__flash_start = DEFINED(__reset_vector) ? 0xbfc00000 : __app_start);
 
 SECTIONS
 {

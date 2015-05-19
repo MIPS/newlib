@@ -28,6 +28,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "m32cache.h"
+/*
+ * void size_cache()
+ *
+ * Work out size of I, D & S caches (assume already initialised)
+ */
+LEAF(m32_size_cache)
+	lw	t0, mips_icache_size
+	move	tmp3, ra
+	bgtz	t0, 8f				# already known?
+
+	bal	_size_cache
+	move	ra, tmp3
+
+8:	# Return
+	jr	ra
+END(m32_size_cache)
+
+/*
+ * void m32_clean_icache (unsigned kva, size_t n)
+ *
+ * Writeback and invalidate address range in instruction caches
+ */
+LEAF(m32_clean_icache)
+	SIZE_CACHE(a2, mips_icache_linesize)
+	vcacheop(a0,a1,a2,Hit_Invalidate_I)
+
+	lw	a2, mips_scache_linesize
+	blez	a2, 9f
+	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
+	sync
+
+9:	jr.hb	ra
+END(m32_clean_icache)
+
+
 #if defined(__mips_isa_rev) && __mips_isa_rev >= 6
 #define L2_CM3 1
 #else
@@ -47,227 +83,100 @@
  *
  * Do not use tmp3 (reg a1) and tmp1 (reg v1) in this function.
  */
-SLEAF(_size_cache)
-	# Read $config,0 to check presence of $config,1
-	mfc0	cfg,$config,0
+LEAF(_size_cache)
+	# Read $config, 0 to check presence of $config, 1
+	mfc0	cfg, C0_CONFIG
 
 	# Clear temporaries
-	li	icachesize,0
-	li	ilinesize,0
-	li	dcachesize,0
-	li	dlinesize,0
-	li	scachesize,0
-	li	slinesize,0
+	li	icachesize, 0
+	li	ilinesize, 0
+	li	dcachesize, 0
+	li	dlinesize, 0
+	li	scachesize, 0
+	li	slinesize, 0
 
-	# Check if we have $config,1 register
-	and	tmp,cfg,CFG0_M
-	beqz	tmp,9f
+	# Check if we have $config, 1 register
+	and	tmp, cfg, CFG0_M
+	beqz	tmp, 9f
 
-	# Read $config,1
-	mfc0	cfg,$config,1
+	# Read Configuration register, select 1
+	mfc0	cfg, C0_CONFIG1
 
 	# Get I-cache line size
-	and	tmp,cfg,CFG1_IL_MASK
-	srl	tmp,CFG1_IL_SHIFT
-	beqz	tmp,8f		# No I-cache
+	ext	tmp, cfg, CFG1_IL_SHIFT, CFG1_IL_BITS
+	beqz	tmp, 8f		# No I-cache
 
 	# Get number of I-cache ways
-	and	iways,cfg,CFG1_IA_MASK
-	srl	iways,CFG1_IA_SHIFT
-	addu	iways,1
+	ext	iways, cfg, CFG1_IA_SHIFT, CFG1_IA_BITS
+	addu	iways, 1
 	move	icachesize,iways
 	
 	# Total icache size = lines/way * linesize * ways
-	li	ilinesize,1
-	addu	tmp,1
-	sll	ilinesize,tmp
-        sll     icachesize,tmp
+	li	ilinesize, 1
+	addu	tmp, 1
+	sll	ilinesize, tmp
+	sll	icachesize, tmp
 
 	# Get I-cache lines per way
-	and	tmp,cfg,CFG1_IS_MASK
-	srl	tmp,CFG1_IS_SHIFT
-	addu	tmp,6
-	sll	icachesize,tmp
+	ext	tmp, cfg, CFG1_IS_SHIFT, CFG1_IS_BITS
+	addu	tmp, 6
+	sll	icachesize, tmp
 
 	# Store icache config
-        sw      icachesize,mips_icache_size
-        sw      ilinesize,mips_icache_linesize
-        sw      iways,mips_icache_ways
+	sw	icachesize, mips_icache_size
+	sw	ilinesize, mips_icache_linesize
+	sw	iways, mips_icache_ways
 
 8:	# No I-cache, check for D-cache
-	and	tmp,cfg,CFG1_DL_MASK
-	srl	tmp,CFG1_DL_SHIFT
-	beqz	tmp,8f		# No D-cache
+	ext	tmp, cfg, CFG1_DL_SHIFT, CFG1_DL_BITS
+	beq	tmp, zero, 9f				# No D-cache
 
 	# Get number of dcache ways
-	and	dways,cfg,CFG1_DA_MASK
-	srl	dways,CFG1_DA_SHIFT
-	addu	dways,1
+	ext	dways, cfg, CFG1_DA_SHIFT, CFG1_DA_BITS
+	addu	dways, 1
 	move	dcachesize,dways
 
 	# Total dcache size = lines/way * linesize * ways
-	li	dlinesize,1
-	addu	tmp,1
-	sll	dlinesize,tmp
-	sll	dcachesize,tmp
+	li	dlinesize, 1
+	addu	tmp, 1
+	sll	dlinesize, tmp
+	sll	dcachesize, tmp
 
 	# Get dcache lines per way
-	and	tmp,cfg,CFG1_DS_MASK
-	srl	tmp,CFG1_DS_SHIFT
-	addu	tmp,6
-	sll	dcachesize,tmp
+	ext	tmp, cfg, CFG1_DS_SHIFT, CFG1_DS_BITS
+	addu	tmp, 6
+	sll	dcachesize, tmp
 
-        # Store dcache config
-	sw      dcachesize,mips_dcache_size
-        sw      dlinesize,mips_dcache_linesize
-        sw      dways,mips_dcache_ways
+	# Store dcache config
+	sw	dcachesize, mips_dcache_size
+	sw	dlinesize, mips_dcache_linesize
+	sw	dways, mips_dcache_ways
 
-
-8:	# No D-cache, check for L2 cache
-
-	# Check if we have $config,2 register present
-	and	tmp,cfg,CFG1_M
-	beqz	tmp,9f
-
-	mfc0	cfg,$config,2
-
-	# Get scache line size (log2) #
-	and	tmp,cfg,CFG2_SL_MASK
-	srl	tmp,CFG2_SL_SHIFT
-	beqz	tmp,1f		# no s-cache
-	addu	tmp,1
-
-	# Get number of scache ways 
-	and	sways,cfg,CFG2_SA_MASK
-	srl	sways,CFG2_SA_SHIFT
-	addu	sways,1
-	move	scachesize,sways
-
-	# Total scache size = lines/way * linesize * ways 
-	li	slinesize,1
-	sll	slinesize,tmp
-	sll	scachesize,tmp
-
-	# Get scache lines per way 
-	and	tmp,cfg,CFG2_SS_MASK
-	srl	tmp,CFG2_SS_SHIFT
-	addu	tmp,6
-	sll	scachesize,tmp
-
-	# Store scache config.
-	sw      scachesize,mips_scache_size
-        sw      slinesize,mips_scache_linesize
-        sw      sways,mips_scache_ways
-1:
-#ifdef L2_CM3
-	# If we are operating with a coherency manager, the s-cache
-	# sizes we wrote may be incorrect, examine the coherency manger
-	# control registers.
-
-	# Check if we have $config,3 register present
-	and	tmp,cfg,CFG2_M
-	beqz	tmp,9f
-
-	# Check if Coherency Manager memory-mapped
-	# Global Configuration Register Space is implemented.
-	mfc0	tmp,$config,3
-	ext	tmp,tmp,CFG3_CMGCR_SHIFT,1
-	beqz	tmp,9f		# Return if not implemented
-
-	# Do we have a memory mapped L2 cache config?
-	mfc0	tmp, $config, 5
-	ext	tmp, tmp, CFG5_L2C_SHIFT, 1
-	beqz	tmp, 9f
-
-	
-	.weak	__size_cm3
-	LA	tmp, __size_cm3
-	beqz	tmp, 8f
+9:	# scachesize, slinesize, sways will have the appropiate
+	# values after we call the hook.
+	LA	tmp, __cache_size_hook
+	beq	tmp, zero, 11f
 	move	tmp4, ra
 	jal	tmp
 	move	ra, tmp4
-	b	9f
 
-8:
-	# No CM3 code supplied but we have a memory mapped L2 config
+	beqz	slinesize, 12f
+
+	sw	scachesize, mips_scache_size
+	sw	slinesize, mips_scache_linesize
+	sw	sways, mips_scache_ways
+
+	b	12f
+
+11:	# No L2 sizing code supplied but we have a memory mapped L2 config
 	# Report a Boot failure through UHI
-   	li	t9, 23
+	li	t9, 23
 	# Reason - L2 cache config
 	li	a0, 1
 	# Trigger the UHI operation
-    	sdbbp 1
+	sdbbp	1
 	# Fallthrough if we somehow recover.
-#endif
-9:	# Return
+
+12:	# Return
 	jr	ra
-SEND(_size_cache)
-
-
-# Set the size of the l2 cache from the CM3 configuration
-#
-# Do not use tmp1 (v1), tmp3 (a1), tmp4 (a2)
-WLEAF(__size_cm3)
-
-        # Read CMGCRBase to find CMGCR_BASE_ADDR
-        PTR_MFC0 tmp,C0_CMGCRBASE
-	sll	tmp, 4
-        lui     tmp2,0xb000     # Make it virtual
-        or      tmp, tmp2
-
-        # Read GCR_L2_CONFIG
-        PTR_L   tmp,GCR_L2_CONFIG(tmp)
-	# Extract line size
-        ext     slinesize, tmp, GCR_L2_SL_SHIFT, GCR_L2_SL_BITS 
-        li      tmp2, 2
-        sllv    slinesize, tmp2, slinesize	# Now have true L2 line size
-	 # Extract sets/way
-        ext     sways, tmp, GCR_L2_SS_SHIFT, GCR_L2_SS_BITS        
-	li      tmp2, 64
-        sllv    sways, tmp2, sways              # Now we have true L2 sets/way
-	# Extract L2 associativity
-        ext     tmp, tmp, GCR_L2_SA_SHIFT, GCR_L2_SA_BITS 
-        addiu   tmp, tmp, 1			
-        mul     tmp, tmp, sways         	# Get total number of sets
-        mul     scachesize, slinesize, tmp      # L2 cache size
-
-	sw      scachesize, mips_scache_size
-	sw      slinesize, mips_scache_linesize
-	sw      sways, mips_scache_ways
-	
-	# Return
-	jr	ra
-WEND(__size_cm3)
-
-/*
- * void size_cache()
- *
- * Work out size of I, D & S caches (assume already initialised)
- */
-LEAF(m32_size_cache)
-	lw	t0,mips_icache_size
-	move	tmp3,ra
-	bgtz	t0,8f				# already known?
-
-	bal	_size_cache
-	move	ra,tmp3
-
-8:	# Return
-	jr	ra
-END(m32_size_cache)
-
-/*
- * void m32_clean_icache (unsigned kva, size_t n)
- *
- * Writeback and invalidate address range in instruction caches
- */
-LEAF(m32_clean_icache)
-	SIZE_CACHE(a2,mips_icache_linesize)
-	vcacheop(a0,a1,a2,Hit_Invalidate_I)
-
-	lw	a2,mips_scache_linesize
-	blez	a2,9f
-	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
-	sync
-
-9:	jr.hb	ra
-END(m32_clean_icache)
+END(_size_cache)

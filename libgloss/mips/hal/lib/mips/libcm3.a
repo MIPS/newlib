@@ -1,0 +1,2 @@
+EXTERN (__cache_size_hook);
+GROUP(-lcm3_impl);

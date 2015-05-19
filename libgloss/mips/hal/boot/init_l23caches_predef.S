@@ -33,7 +33,6 @@
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>
-#include <mipsm64r6cm3.h>
 #include "predef.h"
 
 // Depending on the range of the displacement field of the CACHE instruction
@@ -148,64 +147,3 @@ $Ldone_tcache:
 END(__init_l23cache)
 
 #endif // SLINE_ENC != 0
-
-#ifdef MEM_MAPPED_L2C
-#define CM3_BASE	v0
-WLEAF(__init_cm3l2)
-
-        # Read CMGCRBase to find CMGCR_BASE_ADDR
-        PTR_MFC0 v1,C0_CMGCRBASE
-	sll	v1, 4
-        lui     CM3_BASE, 0xb000     			# Make it virtual
-        or      CM3_BASE, v1
-
-        # Read GCR_L2_CONFIG
-        PTR_L   v0, GCR_L2_CONFIG(CM3_BASE)
-	ext	v1, v0, GCR_L2_SL_SHIFT, GCR_L2_SL_BITS
-	beqz	v1, done_cm3l2cache		# No L2 cache
-
-	# Unusual case, hardware cache initialization support & finished.
-	PTR_L	t1, GCR_L2_RAM_CONFIG(CM3_BASE)
-	ext	t0, t1, GCR_L2_RAM_HCIS_SHIFT, 2
-	li	t1, 3
-	beq	t0, t1, done_cm3l2cache
-
-        li      a2, 2
-        sllv    a1, a2, v1      		# Now have true L2 line size
-
-	ext	a0, v0, GCR_L2_SS_SHIFT, GCR_L2_SS_BITS
-        li      a2, 64
-        sllv    a0, a2, a0			# Now we have true L2 sets/way
-	
-	ext	v1, v0, GCR_L2_SA_SHIFT, GCR_L2_SA_BITS
-        addiu   v1, v1, 1			# Set associativity
-        mul     a0, v1, a0			# Get total number of sets
-
-	sd	zero, GCR_TAG_ADDR(CM3_BASE)
-	sd	zero, GCR_TAG_STATE(CM3_BASE)
-	sd	zero, GCR_TAG_DATA(CM3_BASE)
-	
-	li	t0, 0x8000FFFF			# Reg exists, L2 cache does
-						# TAG/DATA ECC.
-	and	v0, t0
-	li	t0, 0x04000000			# LRU is updated on store tag
-						# operation
-	or	v0, t0
-	sd	v0, GCR_L2_CONFIG(CM3_BASE)
-	sync					# Memory hazard
-
-	lui	a2, 0x8000
-	
-next_cm3l2cache_tag:
-	cache	Index_Store_Tag_S, 0(a2)
-	addiu	a0, -1
-	addu	a2, a1
-	bne	a0, zero, next_cm3l2cache_tag
-	
-done_cm3l2cache:
-
-	# Return
-	jr	ra
-WEND(__init_cm3l2)
-#endif // CM3_BASE
-

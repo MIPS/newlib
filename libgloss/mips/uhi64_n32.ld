@@ -4,7 +4,8 @@
  * support.
  */
 
-ENTRY(_start)
+__entry = DEFINED(__reset_vector) ? 0xbfc00000 : _start;
+ENTRY(__entry)
 OUTPUT_FORMAT("elf32-ntradlittlemips", "elf32-ntradbigmips", "elf32-ntradlittlemips")
 GROUP(-lc -luhi -lgcc -lhal)
 SEARCH_DIR(.)
@@ -24,6 +25,21 @@ EXTERN(__exception_handle_verbose)
 EXTERN(__isr_vec)
 /* Require the UHI getargs support */
 EXTERN(__getargs)
+
+/*
+ * Allow the l2 cache init to be replaced easily. 
+ * (-l<archive with __init_l23cache>)
+ */
+EXTERN (__init_l23cache);
+PROVIDE (__init_l23cache = 0);
+
+/*
+ * Allow the boot hook to be included easily. 
+ * (-l<archive with __boot_hook_init>)
+ */
+EXTERN (__boot_hook_init);
+PROVIDE (__boot_hook_init = 0);
+
 
 /*
  * Set the location of the top of the stack.  A value of 0 means
@@ -91,7 +107,7 @@ PROVIDE (__isr_vec_count = 9);
  * the use of boot code will mean that application code is copied
  * from flash to RAM at runtime before being executed.
  */
-PROVIDE (__flash_start = __app_start);
+PROVIDE (__flash_start = DEFINED(__reset_vector) ? 0xbfc00000 : __app_start);
 
 SECTIONS
 {

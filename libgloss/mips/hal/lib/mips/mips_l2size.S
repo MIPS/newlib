@@ -1,6 +1,6 @@
 /*
  * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ *		         affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,52 +28,73 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _M64R6CM3_H_
-#define _M64R6CM3_H_
-
-#ifdef __cplusplus
-extern "C" {
+#if defined(__mips_isa_rev) && __mips_isa_rev >= 6
+#define L2_CM3 1
+#else
+#define L2_SCACHE 1
 #endif
 
-#define CMGCR_BASE_ADDR_SHIFT	11
-
-/* Offsets of memory-mapped registers */
-#define GCR_L2_CONFIG		0x130
-
-#define GCR_L2_RAM_CONFIG	0x240
-#define GCR_TAG_ADDR		0x600
-#define GCR_TAG_STATE		0x608
-#define GCR_TAG_DATA		0x610
-
-
-/* Contents of  L2 RAM field */
-#define GCR_L2_RAM_HCID_SHIFT	30
-#define GCR_L2_RAM_HCID_BITS	1
-
-#define GCR_L2_RAM_HCIS_SHIFT   29
-#define GCR_L2_RAM_HCIS_BITS	1
-
-
-/* L2 Configuration Register */
-#define GCR_L2_REG_EXISTS_SHIFT	31
-#define GCR_L2_REG_EXISTS_BITS	1
-#define GCR_L2_LRU_WE_SHIFT	26
-#define GCR_L2_LRU_WE_BITS	1
-#define GCR_L2_TAG_WE_SHIFT	25
-#define GCR_L2_TAG_WE_BITS	1
-#define GCR_L2_ECC_WE_SHIFT	24
-#define GCR_L2_ECC_WE_BITS	1
-#define GCR_L2_BYPASS_SHIFT	20
-#define GCR_L2_BYPASS_BITS	1
-#define GCR_L2_SS_SHIFT		12
-#define GCR_L2_SS_BITS		4
-#define GCR_L2_SL_SHIFT		8
-#define GCR_L2_SL_BITS		4
-#define GCR_L2_SA_SHIFT		0
-#define	GCR_L2_SA_BITS		8
-
-#ifdef __cplusplus
-}
+#include "m32cache.h"
+#ifdef L2_CM3
+#include <mips/m64r6cm3.h>
 #endif
 
-#endif /* _M64R6CM3_H_ */
+/*
+ * static void _size_cache()
+ *
+ * Internal routine to determine cache sizes by looking at config
+ * registers.  Sizes are returned in registers, as follows:
+ *
+ * Do not use tmp3 (reg a1) and tmp1 (reg v1) in this function.
+ */
+LEAF(__cache_size_hook)
+
+	# If we are operating with a coherency manager, abort.
+
+
+	# Check if we have $config,3 register present
+	mfc0	tmp, C0_CONFIG4
+	ext	tmp, tmp, CFG4_M_SHIFT, 1
+	beq	tmp, zero, 1f
+
+	# Do we have a memory mapped L2 cache config?
+	mfc0	tmp, C0_CONFIG5
+	ext	tmp, tmp, CFG5_L2C_SHIFT, 1
+	beq	tmp, zero, 2f
+
+	# No CM3 code supplied but we have a memory mapped L2 config
+	# Report a Boot failure through UHI
+	li	t9, 23
+	# Reason - L2 cache config
+	li	a0, 1
+	# Trigger the UHI operation
+	sdbbp	1
+	# Fallthrough if we somehow recover.
+
+
+2:
+	mfc0	cfg, C0_CONFIG2
+
+	# Get scache line size (log2)
+	ext	tmp, cfg, CFG2_SL_SHIFT, CFG2_SL_BITS
+	beqz	tmp, 1f		# no s-cache
+	addu	tmp, 1
+
+	# Get number of scache ways
+	ext	sways, cfg, CFG2_SA_SHIFT, CFG2_SA_BITS
+	addu	sways, 1
+	move	scachesize,sways
+
+	# Total scache size = lines/way * linesize * ways
+	li	slinesize, 1
+	sll	slinesize, tmp
+	sll	scachesize, tmp
+
+	# Get scache lines per way
+	ext	tmp, cfg, CFG2_SS_SHIFT, CFG2_SS_BITS
+	addu	tmp, 6
+	sll	scachesize, tmp
+
+1:	# Return
+	jr	ra
+END(__cache_size_hook)
