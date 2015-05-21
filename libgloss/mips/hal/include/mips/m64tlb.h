@@ -15,7 +15,7 @@
 /*
  * m64_xpatlb.h: MIPS XPA TLB support functions
 */
-#ifndef _M64TLB_H__
+#ifndef _M64TLB_H_
 #define _M64TLB_H_
 
 #if __mips != 32 && __mips != 64

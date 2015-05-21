@@ -29,30 +29,30 @@
  */
 SLEAF(__tlb_size)
 	/* first see if we've got a TLB */
-	mfc0	t0, $config, 0
-	mfc0	t1, $config, 1
+	mfc0	t0, C0_CONFIG
+	mfc0	t1, C0_CONFIG1
 	move	v0,zero
 
 	and	t0,CFG0_MT_MASK
 	#No MMU test, 0 entries
 	beqz	t0,9f		
 
-        # Fixed Address Translation, 0 entries 
-        beq     t0, CFG0_MT_FIXED, 9f
+	# Fixed Address Translation, 0 entries
+beq	t0, CFG0_MT_FIXED, 9f
 
-        # Block Address Translator, 0 entries
-        beq     t0,CFG0_MT_BAT,9f
+	# Block Address Translator, 0 entries
+	beq	t0,CFG0_MT_BAT,9f
 
-        # As per PRA, field holds No. of entries -1
-        # Standard TLBs and Dual TLBs have 
+	# As per PRA, field holds No. of entries -1
+	# Standard TLBs and Dual TLBs have
 	# extension fields.
-	and     v0,t1,CFG1_MMUS_MASK
-        srl     v0,CFG1_MMUS_SHIFT
-        addiu   v0,1
+	and	v0,t1,CFG1_MMUS_MASK
+	srl	v0,CFG1_MMUS_SHIFT
+	addiu	v0,1
 
 	# Compute VTLB size	
 	# If not using a TLB or VFTLB
-	mfc0	t1,$config,4
+	mfc0	t1, C0_CONFIG4
 	and	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) #ConfigMT 1 or 4
 	beqz	t2, 9f
 
@@ -98,23 +98,23 @@ SEND(__tlb_size)
  */
 SLEAF(__tlbinvalall)
 	
-	mfc0	t0, $config, 0
-	and     t1, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) 	#Config[MT] 1 or 4
-	beqz	t1,11f					# Not sTLB or DTLB.
+	mfc0	t0, C0_CONFIG
+	and     t1, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) 	# Config[MT] 1 or 4
+	beqz	t1, 11f					# Not sTLB or DTLB.
 
 	PTR_MTC0 zero, C0_ENTRYLO0
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
 
-	mfc0	t0, $config, 4			#Config4[IE] = 0, do old method for
-	and	t2, t0, CFG4_IE_MASK		# invalidation
+	mfc0	t0, C0_CONFIG4			# Config4[IE] = 0, do old method
+	and	t2, t0, CFG4_IE_MASK		# for invalidation
 	beqz	t2, 9f
 
 
 	li	t0, CFG0_MT_TLB			#Config[MT] = 1, one instruction required
 	beq	t1, t0, 7f
 
-	mfc0	t0, $config, 4			#Config4[IE] = 3, one instruction required
+	mfc0	t0, C0_CONFIG4			#Config4[IE] = 3, one instruction required
 	and	t1, t0, CFG4_IE_MASK
 	beq	t1, CFG4_IE_INVALL, 7f
 
@@ -141,15 +141,15 @@ SLEAF(__tlbinvalall)
 	 *
 	 */
 	
-	mfc0	t0, $config, 4
-	and	t1, t0, CFG4_FTLBS_MASK
+	mfc0	t0, C0_CONFIG4
+	ext	t1, t0, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
 	li	t2, 1
 	sll	t2, t2, t1				# FTLB Sets
 
 	and	t3, t0, CFG4_VTLBSEXT_MASK
 	srl	t3, CFG4_VTLBSEXT_SHIFT - CFG1_MMUS_BITS
 	
-	mfc0	t0, $config, 0
+	mfc0	t0, C0_CONFIG1
 	and	t1, t0, CFG1_MMUS_MASK
 	srl	t1, CFG1_MMUS_SHIFT
 	or	t1, t1, t3			# VTLB Size, set ptr
@@ -185,11 +185,11 @@ SLEAF(__tlbinvalall)
 
 	# If large physical addressing is enabled, load 0xFFFFFFFF
 	# into the top half of EntryHi.
-	PTR_MFC0 t1, $config, 3
+	mfc0	t1, C0_CONFIG3
 	and	t1, t1, CFG3_LPA
 	beqz	t1, 10f
 
-	PTR_MFC0 t1, C0_PAGEGRAIN
+	mfc0	t1, C0_PAGEGRAIN
 	and	t1, t1, PAGEGRAIN_ELPA
 	bnez	t1, 10f
 
@@ -218,20 +218,20 @@ SEND(__tlbinvalall)
 
 LEAF(__init_tlb)
 
-	mfc0	t0, $config, 4
-	and     t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) #ConfigMT 1 or 4
-	beqz    t2, 1f
+	mfc0	t0, C0_CONFIG
+	and	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) #ConfigMT 1 or 4
+	beqz	t2, 1f
 
 	move	v1, ra
 	jal	__tlbinvalall
 	move	ra, v1 
 	
-	PTR_MFC0 t0, $config, 3
+	mfc0	t0, C0_CONFIG3
 	and	t0, t0, CFG3_LPA
 	beqz	t0, 1f
 	
 	li	t0, PAGEGRAIN_ELPA
-	PTR_MTC0 t0, C0_PAGEGRAIN
+	mtc0	t0, C0_PAGEGRAIN
 #if _MIPS_SIM==_ABIO32
 	.set	push
 	.set	nomicromips

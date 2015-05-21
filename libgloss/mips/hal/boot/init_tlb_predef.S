@@ -27,7 +27,7 @@
 LEAF(__init_tlb)	
 #if HAVE_LPA
 	li	t0, PAGEGRAIN_ELPA
-	PTR_MTC0 t0, C0_PAGEGRAIN
+	mtc0	t0, C0_PAGEGRAIN
 #endif
 #if HAVE_LPA && _MIPS_SIM==_ABIO32
 	mthc0	zero, C0_PAGEMASK
@@ -100,7 +100,7 @@ LEAF(__init_tlb)
 	# If large physical addressing is enabled, load 0xFFFFFFFF
 	# into the top half of EntryHi.
 #if HAVE_LPA
-	PTR_MFC0 t1, C0_PAGEGRAIN
+	mfc0	t1, C0_PAGEGRAIN
 	and	t1, t1, PAGEGRAIN_ELPA
 	bnez	t1, 10f
 	
