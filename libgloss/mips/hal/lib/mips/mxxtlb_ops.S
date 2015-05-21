@@ -147,8 +147,9 @@ AENT(m64_tlbinvalall)
 	beq	t1, t0, 7f
 
 	mfc0	t0, C0_CONFIG4			# Config4[IE] = 3, one instruction required
-	and	t1, t0, CFG4_IE_MASK
-	beq	t1, CFG4_IE_INVALL, 7f
+	ext	t1, t0, CFG4_IE_SHIFT, CFG4_IE_BITS
+	li	t2, (CFG4_IE_MASK >> CFG4_IE_SHIFT)
+	beq	t1, t2, 7f
 
 	b	8f				# Config4[IE] = 2
 
