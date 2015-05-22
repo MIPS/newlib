@@ -63,6 +63,11 @@ LEAF(__cpu_init)
     sdbbp 1			  # Invoke UHI operation
 
 $Lnot_nmi:
+
+#ifndef SKIP_CORE_CHECK
+    jal   __core_check
+#endif
+
     # Init CP0 Status, Count, Compare, Watch*, and Cause.
     jal	  __init_cp0
 
@@ -130,8 +135,8 @@ $Lnot_nmi:
 $Lnext_ram_word:
     lw    a0, 0(a1)
     sw    a0, 0(a2)
-    addiu a2, 4
-    addiu a1, 4
+    addiu a2, a2, 4
+    addiu a1, a1, 4
     bne   a3, a2, $Lnext_ram_word
 $Lcopy_to_ram_done:
 

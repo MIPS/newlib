@@ -202,7 +202,7 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	addiu	a0, ADJ
 
 	# Shift exception number down into expected range
-	srl	a1, 2
+	srl	a1, a1, 2
 
 	# Call the handler, indirect through t9 albeit not for any specific
 	# reason

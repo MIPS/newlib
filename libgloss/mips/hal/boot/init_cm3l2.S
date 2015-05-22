@@ -62,9 +62,9 @@ LEAF(__init_l23cache)
 disable_cache:
 	# Read CMGCRBase to find CMGCR_BASE_ADDR
 	PTR_MFC0 v1,C0_CMGCRBASE
-	sll	v1, 4
-	lui	CM3_BASE, 0xb000     			# Make it virtual
-	or	CM3_BASE, v1
+	sll	v1, v1, 4
+	lui	CM3_BASE, 0xb000		# Make it virtual
+	or	CM3_BASE, CM3_BASE, v1
 
 	# Read GCR_L2_CONFIG
 	PTR_L	v0, GCR_L2_CONFIG(CM3_BASE)
@@ -78,9 +78,9 @@ END(__init_l23cache)
 LEAF(__init_l23cache_cached)
 	# Read CMGCRBase to find CMGCR_BASE_ADDR
 	PTR_MFC0 v1,C0_CMGCRBASE
-	sll	v1, 4
-	lui	CM3_BASE, 0xb000     			# Make it virtual
-	or	CM3_BASE, v1
+	sll	v1, v1, 4
+	lui	CM3_BASE, 0xb000		# Make it virtual
+	or	CM3_BASE, CM3_BASE, v1
 
 	# Read GCR_L2_CONFIG
 	PTR_L	v0, GCR_L2_CONFIG(CM3_BASE)
@@ -94,7 +94,7 @@ LEAF(__init_l23cache_cached)
 	beq	t0, t1, done_cm3l2cache
 
 	li	a2, 2
-	sllv	a1, a2, v1      		# Now have true L2 line size
+	sllv	a1, a2, v1			# Now have true L2 line size
 
 	ext	a0, v0, GCR_L2_SS_SHIFT, GCR_L2_SS_BITS
 	li	a2, 64
@@ -110,10 +110,10 @@ LEAF(__init_l23cache_cached)
 	
 	li	t0, 0x8000FFFF			# Reg exists, L2 cache does
 						# TAG/DATA ECC.
-	and	v0, t0
+	and	v0, v0, t0
 	li	t0, (1<<GCR_L2_LRU_WE_SHIFT)	# LRU is updated on store tag
 						# operation
-	or	v0, t0
+	or	v0, v0, t0
 	sd	v0, GCR_L2_CONFIG(CM3_BASE)
 	sync					# Memory hazard
 
@@ -121,14 +121,14 @@ LEAF(__init_l23cache_cached)
 	
 next_cm3l2cache_tag:
 	cache	Index_Store_Tag_S, 0(a2)
-	addiu	a0, -1
-	addu	a2, a1
-	bne	a0, zero, next_cm3l2cache_tag
+	addiu	a0, a0, -1
+	addu	a2, a2, a1
+	bnez	a0, next_cm3l2cache_tag
 	
 done_cm3l2cache:
 	li	a2, 0
 	PTR_L	v0, GCR_L2_CONFIG(CM3_BASE)
-	ins	v0, a2, 20, 1
+	ins	v0, a2, GCR_L2_BYPASS_SHIFT, GCR_L2_BYPASS_BITS
 	PTR_S	v0, GCR_L2_CONFIG(CM3_BASE)
 
 	# Return

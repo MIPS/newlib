@@ -383,7 +383,7 @@ LEAF(m64_tlbinval)
 
 	mfc0	v1, C0_CONFIG4
 	ext	v1, v1, CFG4_IE_SHIFT, CFG4_IE_BITS
-	beq	v1, zero, 2f
+	beqz	v1, 2f
 
 	li	v1, C0_ENTRYHI_EHINV_MASK
 	b	3f
@@ -425,7 +425,7 @@ LEAF(m64_init_tlb)
 	
 	mfc0	t0, C0_CONFIG3
 	and	t0, t0, CFG3_LPA
-	beq	t0, zero, 1f
+	beqz	t0, 1f
 	
 	li	t0, PAGEGRAIN_ELPA
 	mtc0	t0, C0_PAGEGRAIN

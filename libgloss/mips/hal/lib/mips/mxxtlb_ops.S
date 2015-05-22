@@ -54,7 +54,7 @@ AENT(m64_tlb_size)
 
 	ext	t0, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	#No MMU test, 0 entries
-	beq	t0, zero, 9f		
+	beqz	t0, 9f		
 
 	# Fixed Address Translation, 0 entries
 	li	t3, (CFG0_MT_FIXED >> CFG0_MT_SHIFT)
@@ -68,15 +68,15 @@ AENT(m64_tlb_size)
 	# Standard TLBs and Dual TLBs have
 	# extension fields.
 	ext	v0, t1,CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
-	addiu	v0, 1
+	addiu	v0, v0, 1
 
 	# Compute VTLB size	
 	# If not using a TLB or VFTLB
-	mfc0	t1, C0_CONFIG4
+	mfc0	t1, C0_CONFIG
 	ext	t2, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	li	t3, (CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT
 	and	t2, t0, t3			#ConfigMT 1 or 4
-	beq	t2, zero, 9f
+	beqz	t2, 9f
 
 #if __mips_isa_rev < 6
 	ext	t3, t1, CFG4_MMUED_SHIFT, CFG4_MMUED_BITS
@@ -87,7 +87,7 @@ AENT(m64_tlb_size)
 	li	t2, (CFG4_MMUED_SIZEEXT >> CFG4_MMUED_SHIFT)
 	beq	t3, t2, 7f			# SizeExt for VTLBEXT
 
-	beq	t3, zero, 9f			# Reserved, nothing more to do
+	beqz	t3, 9f				# Reserved, nothing more to do
 
 	b	10f				# FTLB Size
 7:
@@ -97,8 +97,9 @@ AENT(m64_tlb_size)
 	b	9f
 #endif /* __mips_isa_rev < 6 */
 8:
+	mfc0	t1, C0_CONFIG4
 	ext	t2, t1, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
-	srl     t2, t2, CFG1_MMUS_BITS
+	sll     t2, t2, CFG1_MMUS_BITS
 	add	v0, v0, t2
 10:
 	# Skip FTLB size calc if Config MT != 4
@@ -108,11 +109,11 @@ AENT(m64_tlb_size)
 	# Ways
 	li	t2, 2
 	ext	t3, t1, CFG4_FTLBW_SHIFT, CFG4_FTLBW_BITS
-	add	t2, t3
+	add	t2, t2, t3
 
 	# Sets per way
 	ext	t3, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
-	sll	t2, t3
+	sllv	t2, t2, t3
 	add	v0, v0, t2
 
 9:	jr	ra
@@ -131,7 +132,7 @@ AENT(m64_tlbinvalall)
 	ext	t1, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	li	t2, ((CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT)
 	and     t1, t0, t2				# Config[MT] 1 or 4
-	beq	t1, zero, 11f				# Not sTLB or DTLB.
+	beqz	t1, 11f					# Not sTLB or DTLB.
 
 	PTR_MTC0 zero, C0_ENTRYLO0
 	PTR_MTC0 zero, C0_ENTRYLO1
@@ -141,7 +142,7 @@ AENT(m64_tlbinvalall)
 						# invalidation
 	ext	t2, t0, CFG4_IE_SHIFT, CFG4_IE_BITS
 	and	t2, t0, (CFG4_IE_MASK >> CFG4_IE_SHIFT)
-	beq	t2, zero, 9f
+	beqz	t2, 9f
 
 	li	t0, CFG0_MT_TLB			# Config[MT] = 1, one instruction required
 	beq	t1, t0, 7f
@@ -183,7 +184,7 @@ AENT(m64_tlbinvalall)
 	mfc0	t0, C0_CONFIG4
 	ext	t1, t0, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
 	li	t2, 1
-	sll	t2, t2, t1				# FTLB Sets
+	sllv	t2, t2, t1				# FTLB Sets
 
 	ext	t3, t0, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
 	sll	t3, CFG1_MMUS_BITS
@@ -227,11 +228,11 @@ AENT(m64_tlbinvalall)
 	# into the top half of EntryHi.
 	mfc0	t1, C0_CONFIG3
 	and	t1, t1, CFG3_LPA
-	beq	t1, zero, 10f
+	beqz	t1, 10f
 
 	mfc0	t1, C0_PAGEGRAIN
 	ext	t1, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
-	bne	t1, zero, 10f
+	bnez	t1, 10f
 
 	li	t0, -1
 	.set	push
@@ -243,15 +244,15 @@ AENT(m64_tlbinvalall)
 	.set	pop
 
 10:	li	t1, KSEG0_BASE
-
+	li	t2, (2<<13)
 12:	PTR_MTC0 t1, C0_ENTRYHI
-	addu	v0, v0, -1
+	addiu	v0, v0, -1
 	mtc0	v0, C0_INDEX
 	ehb					# mtc0, hazard on tlbwi
 	
 	tlbwi
-	addu	t1, t1, (2<<13)
-	bne	v0, zero, 12b
+	addu	t1, t1, t2
+	bnez	v0, 12b
 
 11:	mtc0	zero, C0_ENTRYHI			# Unset EntryHI
 	jr.hb	ra

@@ -55,12 +55,12 @@ LEAF(__cache_size_hook)
 	# Check if we have $config,3 register present
 	mfc0	tmp, C0_CONFIG4
 	ext	tmp, tmp, CFG4_M_SHIFT, 1
-	beq	tmp, zero, 1f
+	beqz	tmp, 1f
 
 	# Do we have a memory mapped L2 cache config?
 	mfc0	tmp, C0_CONFIG5
 	ext	tmp, tmp, CFG5_L2C_SHIFT, 1
-	beq	tmp, zero, 2f
+	beqz	tmp, 2f
 
 	# No CM3 code supplied but we have a memory mapped L2 config
 	# Report a Boot failure through UHI
@@ -78,22 +78,22 @@ LEAF(__cache_size_hook)
 	# Get scache line size (log2)
 	ext	tmp, cfg, CFG2_SL_SHIFT, CFG2_SL_BITS
 	beqz	tmp, 1f		# no s-cache
-	addu	tmp, 1
+	addiu	tmp, tmp, 1
 
 	# Get number of scache ways
 	ext	sways, cfg, CFG2_SA_SHIFT, CFG2_SA_BITS
-	addu	sways, 1
+	addiu	sways, sways, 1
 	move	scachesize,sways
 
 	# Total scache size = lines/way * linesize * ways
 	li	slinesize, 1
-	sll	slinesize, tmp
-	sll	scachesize, tmp
+	sllv	slinesize, slinesize, tmp
+	sllv	scachesize, scachesize, tmp
 
 	# Get scache lines per way
 	ext	tmp, cfg, CFG2_SS_SHIFT, CFG2_SS_BITS
-	addu	tmp, 6
-	sll	scachesize, tmp
+	addiu	tmp, tmp, 6
+	sllv	scachesize, scachesize, tmp
 
 1:	# Return
 	jr	ra

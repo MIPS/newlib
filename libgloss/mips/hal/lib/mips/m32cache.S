@@ -108,19 +108,19 @@ LEAF(_size_cache)
 
 	# Get number of I-cache ways
 	ext	iways, cfg, CFG1_IA_SHIFT, CFG1_IA_BITS
-	addu	iways, 1
+	addiu	iways, iways, 1
 	move	icachesize,iways
 	
 	# Total icache size = lines/way * linesize * ways
 	li	ilinesize, 1
-	addu	tmp, 1
-	sll	ilinesize, tmp
-	sll	icachesize, tmp
+	addiu	tmp, tmp, 1
+	sllv	ilinesize, ilinesize, tmp
+	sllv	icachesize, icachesize, tmp
 
 	# Get I-cache lines per way
 	ext	tmp, cfg, CFG1_IS_SHIFT, CFG1_IS_BITS
-	addu	tmp, 6
-	sll	icachesize, tmp
+	addiu	tmp, tmp, 6
+	sllv	icachesize, icachesize, tmp
 
 	# Store icache config
 	sw	icachesize, mips_icache_size
@@ -129,23 +129,23 @@ LEAF(_size_cache)
 
 8:	# No I-cache, check for D-cache
 	ext	tmp, cfg, CFG1_DL_SHIFT, CFG1_DL_BITS
-	beq	tmp, zero, 9f				# No D-cache
+	beqz	tmp, 9f					# No D-cache
 
 	# Get number of dcache ways
 	ext	dways, cfg, CFG1_DA_SHIFT, CFG1_DA_BITS
-	addu	dways, 1
+	addiu	dways, dways, 1
 	move	dcachesize,dways
 
 	# Total dcache size = lines/way * linesize * ways
 	li	dlinesize, 1
-	addu	tmp, 1
-	sll	dlinesize, tmp
-	sll	dcachesize, tmp
+	addiu	tmp, tmp, 1
+	sllv	dlinesize, dlinesize, tmp
+	sllv	dcachesize, dcachesize, tmp
 
 	# Get dcache lines per way
 	ext	tmp, cfg, CFG1_DS_SHIFT, CFG1_DS_BITS
-	addu	tmp, 6
-	sll	dcachesize, tmp
+	addiu	tmp, tmp, 6
+	sllv	dcachesize, dcachesize, tmp
 
 	# Store dcache config
 	sw	dcachesize, mips_dcache_size
@@ -155,7 +155,7 @@ LEAF(_size_cache)
 9:	# scachesize, slinesize, sways will have the appropiate
 	# values after we call the hook.
 	LA	tmp, __cache_size_hook
-	beq	tmp, zero, 11f
+	beqz	tmp, 11f
 	move	tmp4, ra
 	jal	tmp
 	move	ra, tmp4

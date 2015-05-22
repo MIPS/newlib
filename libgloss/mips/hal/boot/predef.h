@@ -55,7 +55,7 @@
 #endif
 
 #ifndef C0_CONFIG3_VALUE
-# error "Static tlb initialisation decisions require C0_CONFIG3_VALUE"
+# error "Static TLB initialisation decisions require C0_CONFIG3_VALUE"
 #endif
 
 #ifndef C0_CONFIG4_VALUE

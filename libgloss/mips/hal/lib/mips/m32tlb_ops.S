@@ -201,7 +201,7 @@ LEAF(mips_tlbinval)
 
 	mfc0	t1, C0_CONFIG4
 	ext	t1, t1, CFG4_IE_SHIFT, CFG4_IE_BITS
-	beq	t1, zero, 2f	
+	beqz	t1, 2f	
 	li	t1, C0_ENTRYHI_EHINV_MASK 
 	b	3f
 

@@ -81,9 +81,9 @@ LEAF(__cache_size_hook)
 8:
 	# Read CMGCRBase to find CMGCR_BASE_ADDR
 	PTR_MFC0 tmp,C0_CMGCRBASE
-	sll	tmp, 4
+	sll	tmp, tmp, 4
 	lui	tmp2, 0xb000	 # Make it virtual
-	or	tmp, tmp2
+	or	tmp, tmp, tmp2
 
 	# Read GCR_L2_CONFIG
 	PTR_L	tmp, GCR_L2_CONFIG(tmp)
