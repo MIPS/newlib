@@ -218,7 +218,6 @@ LEAF(__core_check)
 	# Trigger the UHI operation
 	sdbbp	1
 	# In case a debugger corrects this failure
-	jr	ra
 
 2:
 	jr	ra

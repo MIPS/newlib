@@ -70,7 +70,7 @@ LEAF(__init_tlb)
 	
 
 	addu	t2, t2, t1			
-	addiu	t2, t2, 1			# VTLB Size + FTLB Sets, end ptr
+	addu	t2, t2, 1			# VTLB Size + FTLB Sets, end ptr
 	
 	mtc0	zero, C0_INDEX
 	li	t0, C0_ENTRYHI_EHINV_MASK
@@ -87,7 +87,7 @@ LEAF(__init_tlb)
 	.set	mips32r3
 	tlbinvf
 	.set	pop
-	addiu	t1, t1, 1
+	addu	t1, t1, 1
 	bne	t1, t2, 12b
 #endif 
 
@@ -116,11 +116,11 @@ LEAF(__init_tlb)
 10:	li	t1, KSEG0_BASE
 
 12:	PTR_MTC0 t1,C0_ENTRYHI
-	addiu	v0, v0, -1
+	addu	v0, v0, -1
 	mtc0	v0,C0_INDEX
 	ehb					# mtc0, hazard on tlbwi
 	tlbwi
-	addiu	t1, t1, (2<<13)
+	addu	t1, t1, (2<<13)
 	bnez	v0, 12b
 #endif
 

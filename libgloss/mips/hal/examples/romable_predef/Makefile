@@ -68,7 +68,8 @@ endif
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
 OBJS = romable_predef.o reset_predef.o init_caches_predef.o init_cp0_predef.o
-OBJS += init_l23caches_predef.o init_tlb_predef.o init_cm3l2_predef.o
+OBJS += init_l23caches_predef.o init_tlb_predef.o init_cm3l2_predef.o 
+OBJS += corecheck_predef.o
 APP = romable_predef.elf
 
 CFLAGS += -g $(DEFINES)

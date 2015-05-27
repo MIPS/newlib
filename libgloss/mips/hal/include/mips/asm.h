@@ -209,7 +209,7 @@ name:
 #define WLEAF(name) 			\
 	_TEXT_SECTION_NAMED(name);	\
 	.balign	4; 			\
-	.weak name; 			\
+	.weakext name; 			\
 	.ent	name; 			\
 name:
 
@@ -217,7 +217,7 @@ name:
 #define ALEAF(name,alias) 		\
 	_TEXT_SECTION_NAMED(name);	\
 	.balign	4; 			\
-	.weak alias,name; 		\
+	.weakext alias,name; 		\
 	.ent	name; 			\
 name:
 
@@ -264,7 +264,7 @@ name:
 #define WNESTED(name, framesz, rareg)	\
 	_TEXT_SECTION_NAMED(name);	\
 	.balign	4; 			\
-	.weak name; 			\
+	.weakext name; 			\
 	.ent	name; 			\
 	.frame	sp, framesz, rareg;	\
 name:
@@ -273,7 +273,7 @@ name:
 #define ANESTED(name, alias, framesz, rareg) \
 	_TEXT_SECTION_NAMED(name);	\
 	.balign	4; 			\
-	.weak alias, name;		\
+	.weakext alias, name;		\
 	.ent	name; 			\
 	.frame	sp, framesz, rareg;	\
 name:
@@ -311,7 +311,7 @@ name:
  * Weak data declaration with size.
  */
 #define WEXPORT(name,sz) 		\
-	.weak name; 			\
+	.weakext name; 			\
 	.type name,@object; 		\
 	.size name,sz; 			\
 name:
