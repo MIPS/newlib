@@ -924,7 +924,11 @@ __extension__ ({ \
 
 #define _m32c0_mtc0(reg, sel, val) \
 do { \
-    __asm__ __volatile ("%(mtc0 %z0,$%1,%2; ehb%)" \
+    __asm__ __volatile (".set push \n"\
+			".set noreorder\n"\
+			"mtc0 %z0,$%1,%2\n"\
+			"ehb\n" \
+			".set pop" \
 			: \
 			: "dJ" ((reg32_t)(val)), "JK" (reg), "JK" (sel) \
 			: "memory"); \

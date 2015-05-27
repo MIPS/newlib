@@ -183,7 +183,7 @@ __extension__({ \
     __asm__ __volatile (".set push\n" \
 			".set fp=64\n" \
 			".set msa\n" \
-			"ctcmsa $1,%0" \
+			"ctcmsa $1,%0\n" \
 			".set pop": : "d" (__n)); \
     __o; \
 })

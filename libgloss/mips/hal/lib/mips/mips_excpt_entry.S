@@ -199,7 +199,7 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEADJ, zero)
 	and	a1, e_CR, CR_XMASK
 
 	# Finish computing the address of the context for a0
-	addiu	a0, ADJ
+	addiu	a0, a0, ADJ
 
 	# Shift exception number down into expected range
 	srl	a1, a1, 2
