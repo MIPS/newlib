@@ -66,13 +66,13 @@ SLEAF(__tlb_size)
 7:
 	and	t3, t1, CFG4_MMUSE_MASK
 	sll	t2, t3, CFG1_MMUS_BITS
-	add	v0, v0, t2
+	addu	v0, v0, t2
 	b	9f
 #endif /* __mips_isa_rev < 6 */
 8:
 	and	t2, t1, CFG4_VTLBSEXT_MASK
 	srl     t2, t2, CFG4_VTLBSEXT_SHIFT - CFG1_MMUS_BITS
-	add	v0, v0, t2
+	addu	v0, v0, t2
 10:
 	# Skip FTLB size calc if Config MT != 4
 	li	t3, (CFG0_MT_DUAL >> CFG0_MT_SHIFT)
@@ -87,7 +87,7 @@ SLEAF(__tlb_size)
 	# Sets per way
 	ext	t3, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
 	sllv	t2, t2, t3
-	add	v0, v0, t2
+	addu	v0, v0, t2
 
 9:	jr	ra
 SEND(__tlb_size)
@@ -155,8 +155,7 @@ SLEAF(__tlbinvalall)
 	sll	t3, t3, CFG1_MMUS_BITS
 	
 	mfc0	t0, C0_CONFIG1
-	and	t1, t0, CFG1_MMUS_MASK
-	srl	t1, t1, CFG1_MMUS_SHIFT
+	ext	t1, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
 	or	t1, t1, t3			# VTLB Size, set ptr
 
 	addu	t2, t2, t1			# VTLB Size + FTLB Sets, end ptr
@@ -191,11 +190,11 @@ SLEAF(__tlbinvalall)
 	# If large physical addressing is enabled, load 0xFFFFFFFF
 	# into the top half of EntryHi.
 	mfc0	t1, C0_CONFIG3
-	and	t1, t1, CFG3_LPA
+	andi	t1, t1, CFG3_LPA
 	beqz	t1, 10f
 
 	mfc0	t1, C0_PAGEGRAIN
-	and	t1, t1, PAGEGRAIN_ELPA
+	andi	t1, t1, PAGEGRAIN_ELPA
 	bnez	t1, 10f
 
 	li	t0, -1
@@ -224,7 +223,7 @@ SEND(__tlbinvalall)
 LEAF(__init_tlb)
 
 	mfc0	t0, C0_CONFIG
-	and	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) #ConfigMT 1 or 4
+	andi	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) #ConfigMT 1 or 4
 	beqz	t2, 1f
 
 	move	v1, ra
@@ -232,7 +231,7 @@ LEAF(__init_tlb)
 	move	ra, v1 
 	
 	mfc0	t0, C0_CONFIG3
-	and	t0, t0, CFG3_LPA
+	andi	t0, t0, CFG3_LPA
 	beqz	t0, 1f
 	
 	li	t0, PAGEGRAIN_ELPA
