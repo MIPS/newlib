@@ -1,6 +1,6 @@
 /*
 * Copyright 2015, Imagination Technologies Limited and/or its
-*			 affiliated group companies.
+*                 affiliated group companies.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ LEAF(__init_l23cache)
 	li	a2, v1, 1
 	ins	v0, a2, GCR_L2_BYPASS_SHIFT, GCR_L2_BYPASS_BITS
 	PTR_S	v0, GCR_L2_CONFIG(CM3_BASE)
-	
+
 	jr	ra
 END(__init_l23cache)
 
@@ -80,7 +80,7 @@ LEAF(__init_l23cache_cached)
 	ext	a0, v0, GCR_L2_SS_SHIFT, GCR_L2_SS_BITS
 	li	a2, 64
 	sllv	a0, a2, a0			# Now have L2 sets/way
-	
+
 	ext	v1, v0, GCR_L2_SA_SHIFT, GCR_L2_SA_BITS
 	addiu	v1, v1, 1			# Set associativity
 	mul	a0, v1, a0			# Get total number of sets
@@ -88,7 +88,7 @@ LEAF(__init_l23cache_cached)
 	sd	zero, GCR_TAG_ADDR(CM3_BASE)
 	sd	zero, GCR_TAG_STATE(CM3_BASE)
 	sd	zero, GCR_TAG_DATA(CM3_BASE)
-	
+
 	li	t0, 0x8000FFFF			# Reg exists, L2 cache does
 						# TAG/DATA ECC.
 	and	v0, v0, t0
@@ -99,17 +99,17 @@ LEAF(__init_l23cache_cached)
 	sync					# Memory hazard
 
 	lui	a2, 0x8000
-	
+
 next_cm3l2cache_tag:
 	cache	Index_Store_Tag_S, 0(a2)
 	addiu	a0, a0, -1
 	addu	a2, a2, a1
 	bnez	a0, next_cm3l2cache_tag
-	
+
 done_cm3l2cache:
 	move	a2, zero
 	PTR_L	v0, GCR_L2_CONFIG(CM3_BASE)
-	ins	v0, a2, GCR_L2_BYPASS_SHIFT, GCR_L2_BYPASS_BITS 
+	ins	v0, a2, GCR_L2_BYPASS_SHIFT, GCR_L2_BYPASS_BITS
 	PTR_S	v0, GCR_L2_CONFIG(CM3_BASE)
 
 	# Return

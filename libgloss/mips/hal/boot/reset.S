@@ -70,7 +70,7 @@ init_resources:
     # This could be done from cached code if there is a cca override or similar
 
     # Determine L2/L3 cache config.
-   
+
     lui   a2, %hi(__init_l23cache)
     addiu a2, a2, %lo(__init_l23cache)
     jal	  a2

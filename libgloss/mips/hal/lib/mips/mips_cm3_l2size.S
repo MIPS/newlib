@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *				affiliated group companies.
+ * Copyright 2015, Imagination Technologies Limited and/or its
+ *                 affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,7 +117,7 @@ LEAF(__cache_size_hook)
 	addiu	tmp, tmp, 1
 	mul	tmp, tmp, sways			# Get total number of sets
 	mul	scachesize, slinesize, tmp	# L2 cache size
-	
+
 9:	# Return
 	jr	ra
 END(__cache_size_hook)

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ * Copyright 2015, Imagination Technologies Limited and/or its
+ *                 affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ LEAF(m64_tlbwi2)
 #if _MIPS_SIM==_ABIO32
 	PTR_XO32_MTC0(a0, a1, C0_ENTRYHI)
 	PTR_XO32_MTC0(a2, a3, C0_ENTRYLO0)
-	
+
 	PTR_L	t1, 20(sp)
 	PTR_L	t2, 16(sp)
 	PTR_XO32_MTC0(t2, t1, C0_ENTRYLO1)
@@ -118,7 +118,7 @@ END(m64_tlbwi2)
 /*
  * void m64_tlbwr2(tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, unsigned long long mask)
  *
- * Writes hi, lo0, lo1 and msk into the TLB entry specified by the 
+ * Writes hi, lo0, lo1 and msk into the TLB entry specified by the
  * Random register.
  *
  */
@@ -139,7 +139,7 @@ LEAF(m64_tlbwr2)
 	PTR_MTC0 a1, C0_ENTRYLO0
 	PTR_MTC0 a2, C0_ENTRYLO1
 	PTR_MTC0 a3, C0_PAGEMASK
-#endif	
+#endif
 	ehb
 	tlbwr
 	.set	push
@@ -153,7 +153,7 @@ END(m64_tlbwr2)
 /*
  * int m64_tlbrwr2(tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, unsigned long long mask)
  *
- * Probes the TLB for an entry matching hi and if present rewrites that 
+ * Probes the TLB for an entry matching hi and if present rewrites that
  * entry, otherwise updates a random entry. A safe way to update the TLB.
  *
  */
@@ -166,7 +166,7 @@ LEAF(m64_tlbrwr2)
 	PTR_MTC0 a0, C0_ENTRYHI
 #endif /* _MIPS_SIM==_ABIO32 */
 	ehb		# MTCO, hazard on tlbp
-	
+
 	tlbp
 	ehb		# tlbp, hazard on MFCO $index
 
@@ -225,7 +225,7 @@ END(m64_tlbrwr2)
  */
 LEAF(m64_tlbri2)
 #if _MIPS_SIM==_ABIO32
-        PTR_L   ta0, 16(sp)	# index
+	PTR_L   ta0, 16(sp)	# index
 #endif /* _MIPS_SIM==_ABIO32 */
 	mtc0	ta0, C0_INDEX
 	ehb			# mtc0, hazard on tlbr
@@ -261,9 +261,9 @@ END(m64_tlbri2)
 /*
  * int m64_tlbprobe2(tlbhi64_t hi, tlblo64_t *lo0, tlblo64_t *lo1,
  * 	unsigned int *mask)
- * 
- * Probes the TLB for an entry matching hi and returns its index, or -1 if 
- * not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the 
+ *
+ * Probes the TLB for an entry matching hi and returns its index, or -1 if
+ * not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the
  * entry are also returned in *plo0, *plo1 and *pmsk respectively.
  *
  */
@@ -336,7 +336,7 @@ END(m64_tlbprobe2)
 
 /*
  * void m64_tlbinval(tlbhi64_t a0)
- * 
+ *
  * Probes the TLB for an entry matching hi, and if present invalidates it.
  *
  */
@@ -376,8 +376,8 @@ LEAF(m64_tlbinval)
 2:	li	v0, -1
 	li	v1, KSEG0_BASE
 3:	PTR_XO32_MTC0(v0, v1, C0_ENTRYHI)
-#else	
-2:	li	v1, KSEG0_BASE	# replace with this, plus 
+#else
+2:	li	v1, KSEG0_BASE	# replace with this, plus
 3:	PTR_MTC0 v1, C0_ENTRYHI
 #endif
 	ehb			# mtco, hazard on tlbwi

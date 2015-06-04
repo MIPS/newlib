@@ -1,6 +1,6 @@
 /*
 * Copyright 2015, Imagination Technologies Limited and/or its
-*                      affiliated group companies.
+*                 affiliated group companies.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ SLEAF(__tlb_size)
 
 	ext	t0, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	# No MMU test, 0 entries
-	beqz	t0, 9f		
+	beqz	t0, 9f
 
 	# Fixed Address Translation, 0 entries
 	li	t2, (CFG0_MT_FIXED >> CFG0_MT_SHIFT)
@@ -97,7 +97,7 @@ SLEAF(__tlb_size)
 	# Skip FTLB size calc if Config MT != 4
 	li	t3, (CFG0_MT_DUAL >> CFG0_MT_SHIFT)
 	bne	t3, t0, 9f
-	
+
 	# Ways
 	li	t2, 2
 	ext	t3, t1, CFG4_FTLBW_SHIFT, CFG4_FTLBW_BITS
@@ -117,7 +117,7 @@ SEND(__tlb_size)
  * Invalidate the TLB.
  */
 SLEAF(__tlbinvalall)
-	
+
 	mfc0	t0, C0_CONFIG
 	ext	t3, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	andi	t1, t3, ((CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT)
@@ -128,7 +128,7 @@ SLEAF(__tlbinvalall)
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
 
-	mfc0	t9, C0_CONFIG4			# Config4[IE] = 0, do old method for 
+	mfc0	t9, C0_CONFIG4			# Config4[IE] = 0, do old method for
 						# invalidation
 	ext     t2, t9, CFG4_IE_SHIFT, CFG4_IE_BITS
 	beqz	t2, 9f
@@ -136,7 +136,7 @@ SLEAF(__tlbinvalall)
 	li	t0, (CFG0_MT_TLB >> CFG0_MT_SHIFT)
 	beq	t3, t0, 7f		#Config[MT] = 1, one instruction required
 
-			
+
 	li	t1, (CFG4_IE_INVALL >> CFG4_IE_SHIFT)
 	beq	t1, t2, 7f		#Config4[IE] = 3, one instruction required
 
@@ -162,7 +162,7 @@ SLEAF(__tlbinvalall)
 	 * but not add the 1. This will give us a finger that points
 	 * at the last VTLB entry.
 	 */
-	
+
 	# FTLB Ways
 	li	t2, 2
 	ext	t3, t9, CFG4_FTLBW_SHIFT, CFG4_FTLBW_BITS
@@ -171,10 +171,10 @@ SLEAF(__tlbinvalall)
 	# FTLB Sets per way
 	ext	t3, t9, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
 	sllv	t2, t2, t3
-	
+
 	ext	t3, t9, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
 	sll	t3, t3, CFG1_MMUS_BITS
-	
+
 	mfc0	t0, C0_CONFIG1
 	ext	t1, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
 	or	t1, t1, t3			# VTLB Size, set ptr, points at last
@@ -191,10 +191,10 @@ SLEAF(__tlbinvalall)
 	.set	pop
 	addiu	t1, t1, 1
 	bne	t1, t2, 12b
-	
-	b	11f	
 
-9:	# Clean invalidate TLB for R1 onwards by loading 
+	b	11f
+
+9:	# Clean invalidate TLB for R1 onwards by loading
 	# 0x(FFFFFFFF)KSEG0_BASE into EntryHi and writing it into index 0
 	# incrementing by a pagesize, writing into index 1, etc.
 	move	t8, ra
@@ -224,7 +224,7 @@ SLEAF(__tlbinvalall)
 12:	addiu	t1, t1, (2<<13)
 	PTR_MTC0 t1, C0_ENTRYHI
 
-#if ENABLE_LPA	
+#if ENABLE_LPA
 	beqz	t0, 13f
 	mthc0   t0, C0_ENTRYHI		# Store 0xFFFFFFFF to upper half of EntryHI
 #endif
@@ -261,17 +261,17 @@ LEAF(__init_tlb)
 
 	move	v1, ra
 	jal	__tlbinvalall
-	move	ra, v1 
+	move	ra, v1
 #if ENABLE_LPA
 	mfc0	t0, C0_CONFIG3
 	and	t0, t0, CFG3_LPA
 	beqz	t0, 1f
-	
+
 	li	t1, 1
 	mfc0	t0, PAGEGRAIN_ELPA
 	ins	t0, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
 	mtc0	t0, C0_PAGEGRAIN
-#endif 
+#endif
 
 	PTR_MTC0 zero, C0_PAGEMASK
 1:	jr	ra

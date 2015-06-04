@@ -64,7 +64,7 @@ END(mips_tlbwi2)
 /*
  * void mips_tlbwr2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask)
  *
- * Writes hi, lo0, lo1 and msk into the TLB entry specified by the 
+ * Writes hi, lo0, lo1 and msk into the TLB entry specified by the
  * Random register.
  *
  */
@@ -86,7 +86,7 @@ END(mips_tlbwr2)
 /*
  * int mips_tlbrwr2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask)
  *
- * Probes the TLB for an entry matching hi and if present rewrites that 
+ * Probes the TLB for an entry matching hi and if present rewrites that
  * entry, otherwise updates a random entry. A safe way to update the TLB.
  *
  */
@@ -94,7 +94,7 @@ LEAF(mips_tlbrwr2)
 	mfc0	t0, C0_ENTRYHI
 	mtc0	a0, C0_ENTRYHI
 	ehb		# MTCO, hazard on tlbp
-	
+
 	tlbp
 	ehb		# tlbp, hazard on MFCO C0_INDEX
 
@@ -128,13 +128,13 @@ END(mips_tlbrwr2)
  * void mips_tlbri2(tlbhi_t *hi, tlblo_t *lo0, tlblo_t *lo1, unsigned *mask,
  *		unsigned index)
  *
- * Reads the TLB entry with specified by index, and returns the EntryHi, EntryLo0, 
+ * Reads the TLB entry with specified by index, and returns the EntryHi, EntryLo0,
  * EntryLo1 and PageMask parts in *phi, *plo0, *plo1 and *pmsk respectively.
  *
  */
 LEAF(mips_tlbri2)
 #if _MIPS_SIM==_ABIO32
-        lw	ta0,16(sp)      	# index
+	lw	ta0,16(sp)      	# index
 #endif
 	mtc0	ta0, C0_INDEX
 	ehb				# mtc0, hazard on tlbr
@@ -157,9 +157,9 @@ END(mips_tlbri2)
 /*
  * int mips_tlbprobe2(tlbhi_t hi, tlblo_t *lo0, tlblo_t *lo1,
  * 	unsigned int *mask)
- * 
- * Probes the TLB for an entry matching hi and returns its index, or -1 if 
- * not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the 
+ *
+ * Probes the TLB for an entry matching hi and returns its index, or -1 if
+ * not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the
  * entry are also returned in *plo0, *plo1 and *pmsk respectively.
  *
  */
@@ -181,7 +181,7 @@ LEAF(mips_tlbprobe2)
 	mfc0	t1, C0_ENTRYLO1
 	mfc0	t2, C0_PAGEMASK
 
-	mtc0	t0, C0_ENTRYHI		# restore entry hi 
+	mtc0	t0, C0_ENTRYHI		# restore entry hi
 
 	sw	v1, 0(a1)
 	sw	t1, 0(a2)
@@ -192,7 +192,7 @@ LEAF(mips_tlbprobe2)
 	nop
 	.set	pop
 
-1:	mtc0	t0, C0_ENTRYHI		# restore entry hi 
+1:	mtc0	t0, C0_ENTRYHI		# restore entry hi
 	li	v0, -1
 	.set	push
 	.set	noreorder
@@ -204,7 +204,7 @@ END(mips_tlbprobe2)
 
 /*
  * void mips_tlbinval(tlbhi_t a0)
- * 
+ *
  * Probes the TLB for an entry matching hi, and if present invalidates it.
  *
  */
@@ -224,8 +224,8 @@ LEAF(mips_tlbinval)
 
 	mfc0	t1, C0_CONFIG4
 	ext	t1, t1, CFG4_IE_SHIFT, CFG4_IE_BITS
-	beqz	t1, 2f	
-	li	t1, C0_ENTRYHI_EHINV_MASK 
+	beqz	t1, 2f
+	li	t1, C0_ENTRYHI_EHINV_MASK
 	b	3f
 
 2:	li	t1, KSEG0_BASE
@@ -235,7 +235,7 @@ LEAF(mips_tlbinval)
 	tlbwi
 	ehb				# tlbwi, hazard
 
-4:	mtc0	t0,C0_ENTRYHI		# restore entry hi 
+4:	mtc0	t0,C0_ENTRYHI		# restore entry hi
 	.set	push
 	.set	noreorder
 	jr.hb	ra

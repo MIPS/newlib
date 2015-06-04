@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ * Copyright 2015, Imagination Technologies Limited and/or its
+ *                 affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ AENT(m64_tlb_size)
 
 	ext	t0, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	# No MMU test, 0 entries
-	beqz	t0, 9f		
+	beqz	t0, 9f
 
 	# Fixed Address Translation, 0 entries
 	li	t3, (CFG0_MT_FIXED >> CFG0_MT_SHIFT)
@@ -66,7 +66,7 @@ AENT(m64_tlb_size)
 
 	# (D)TLB or not ?
 	andi	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT
-	beqz	t2, 9f			
+	beqz	t2, 9f
 
 	# As per PRA, field holds No. of entries -1
 	# Standard TLBs and Dual TLBs have extension fields.
@@ -100,7 +100,7 @@ AENT(m64_tlb_size)
 	# Skip FTLB size calc if Config MT != 4
 	li	t3, (CFG0_MT_DUAL >> CFG0_MT_SHIFT)
 	bne	t0, t3, 9f
-	
+
 	# Ways
 	li	t2, 2
 	ext	t3, t1, CFG4_FTLBW_SHIFT, CFG4_FTLBW_BITS
@@ -122,11 +122,11 @@ END(mips_tlb_size)
  */
 LEAF(mips_tlbinvalall)
 AENT(m64_tlbinvalall)
-	
+
 	mfc0	t0, C0_CONFIG
 	ext	t3, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	andi	t1, t3, ((CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT)
-						 	# Config[MT] 1 or 4
+							# Config[MT] 1 or 4
 	beqz	t1, 11f					# Not sTLB or DTLB.
 
 	PTR_MTC0 zero, C0_ENTRYLO0
@@ -168,9 +168,9 @@ AENT(m64_tlbinvalall)
 	 * We'll clean out the TLB by computing the Size of the VTLB
 	 * but not add the 1. This will give us a finger that points
 	 * at the last VTLB entry.
-	 * 
+	 *
 	 */
-	
+
 	# FTLB Ways
 	li	t2, 2
 	ext	t3, t1, CFG4_FTLBW_SHIFT, CFG4_FTLBW_BITS
@@ -179,10 +179,10 @@ AENT(m64_tlbinvalall)
 	# FTLB Sets per way
 	ext	t3, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
 	sllv	t2, t2, t3
-	
+
 	ext	t3, t0, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
 	sll	t3, t3, CFG1_MMUS_BITS
-	
+
 	mfc0	t0, C0_CONFIG1
 	ext	t1, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
 	or	t1, t1, t3			# VTLB Size, set ptr, points at last
@@ -190,7 +190,7 @@ AENT(m64_tlbinvalall)
 
 	addu	t2, t2, t1			# VTLB Size + FTLB Sets, end ptr
 	addiu	t2, t2, 1
-	
+
 12:	mtc0	t1, C0_INDEX
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
@@ -199,10 +199,10 @@ AENT(m64_tlbinvalall)
 	.set	pop
 	addiu	t1, t1, 1
 	bne	t1, t2, 12b
-	
-	b	11f	
 
-9:	/* Clean invalidate TLB for R1 onwards by loading 
+	b	11f
+
+9:	/* Clean invalidate TLB for R1 onwards by loading
 	 * 0x(FFFFFFFF)KSEG0_BASE into EntryHi and writing it into index 0
 	 * incrementing by a pagesize, writing into index 1, etc.
 	 */
@@ -248,10 +248,10 @@ AENT(m64_tlbinvalall)
 	addiu	v1, v1, 1
 	bne	v0, v1, 12b
 
-11:	PTR_MTC0 zero,C0_ENTRYHI	# Unset EntryHI, Upper half is 
+11:	PTR_MTC0 zero,C0_ENTRYHI	# Unset EntryHI, Upper half is
 					# cleared automatically.
 	.set	push
-	.set	noreorder	
+	.set	noreorder
 	jr.hb	ra
 	nop
 	.set	pop

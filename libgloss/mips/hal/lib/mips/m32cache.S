@@ -98,7 +98,7 @@ LEAF(_size_cache)
 	ext	iways, cfg, CFG1_IA_SHIFT, CFG1_IA_BITS
 	addiu	iways, iways, 1
 	move	icachesize,iways
-	
+
 	# Total icache size = lines/way * linesize * ways
 	li	ilinesize, 1
 	addiu	tmp, tmp, 1
@@ -136,7 +136,7 @@ LEAF(_size_cache)
 	ext	tmp, cfg, CFG1_DS_SHIFT, CFG1_DS_BITS
 	addiu	tmp, tmp, 1
 	andi	tmp, tmp, 7
-	addiu	tmp, tmp, 5 
+	addiu	tmp, tmp, 5
 	sllv	dcachesize, dcachesize, tmp
 
 	# Store dcache config

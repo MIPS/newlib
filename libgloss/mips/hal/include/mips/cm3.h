@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ * Copyright 2015, Imagination Technologies Limited and/or its
+ *                 affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

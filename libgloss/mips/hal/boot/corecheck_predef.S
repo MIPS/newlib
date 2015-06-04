@@ -1,6 +1,6 @@
 /*
  * Copyright 2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ *                 affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -170,7 +170,7 @@ LEAF(__core_check)
 #if defined(C0_WATCHHI_VALUE)
 	mfc0	t0, C0_WATCHHI, 0
 	ext	t0, t0, WATCHHI_M_SHIFT, 1
-	
+
 	li	t1, ((C0_WATCHHI_VALUE & WATCHHI_M) >> WATCHHI_M_SHIFT)
 	bne	t0, t1, 1f
 #endif
@@ -178,7 +178,7 @@ LEAF(__core_check)
 #if defined(C0_WATCHHI1_VALUE)
 	mfc0	t0, C0_WATCHHI, 1
 	ext	t0, t0, WATCHHI_M_SHIFT, 1
-	
+
 	li	t1, ((C0_WATCHHI1_VALUE & WATCHHI_M) >> WATCHHI_M_SHIFT)
 	bne	t0, t1, 1f
 #endif
@@ -186,7 +186,7 @@ LEAF(__core_check)
 #if defined(C0_WATCHHI2_VALUE)
 	mfc0	t0, C0_WATCHHI, 2
 	ext	t0, t0, WATCHHI_M_SHIFT, 1
-	
+
 	li	t1, ((C0_WATCHHI2_VALUE & WATCHHI_M) >> WATCHHI_M_SHIFT)
 	bne	t0, t1, 1f
 #endif
@@ -194,7 +194,7 @@ LEAF(__core_check)
 #if defined(C0_WATCHHI3_VALUE)
 	mfc0	t0, C0_WATCHHI, 3
 	ext	t0, t0, WATCHHI_M_SHIFT, 1
-	
+
 	li	t1, ((C0_WATCHHI3_VALUE & WATCHHI_M) >> WATCHHI_M_SHIFT)
 	bne	t0, t1, 1f
 #endif
@@ -202,7 +202,7 @@ LEAF(__core_check)
 #if defined(C0_WATCHHI4_VALUE)
 	mfc0	t0, C0_WATCHHI, 4
 	ext	t0, t0, WATCHHI_M_SHIFT, 1
-	
+
 	li	t1, ((C0_WATCHHI4_VALUE & WATCHHI_M) >> WATCHHI_M_SHIFT)
 	bne	t0, t1, 1f
 #endif
@@ -210,7 +210,7 @@ LEAF(__core_check)
 #if defined(C0_WATCHHI5_VALUE)
 	mfc0	t0, C0_WATCHHI, 5
 	ext	t0, t0, WATCHHI_M_SHIFT, 1
-	
+
 	li	t1, ((C0_WATCHHI5_VALUE & WATCHHI_M) >> WATCHHI_M_SHIFT)
 	bne	t0, t1, 1f
 #endif
@@ -218,7 +218,7 @@ LEAF(__core_check)
 #if defined(C0_WATCHHI6_VALUE)
 	mfc0	t0, C0_WATCHHI, 6
 	ext	t0, t0, WATCHHI_M_SHIFT, 1
-	
+
 	li	t1, ((C0_WATCHHI6_VALUE & WATCHHI_M) >> WATCHHI_M_SHIFT)
 	bne	t0, t1, 1f
 #endif

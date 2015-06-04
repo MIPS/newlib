@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ * Copyright 2015, Imagination Technologies Limited and/or its
+ *                 affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,31 +60,31 @@ void m64_tlbinval (tlbhi64_t hi);
 // Invalidate the whole TLB.
 void m64_tlbinvalall (void);
 
-// Reads the TLB entry with specified by index, and returns the EntryHi, 
-// EntryLo0, EntryLo1 and PageMask parts in *phi, *plo0, *plo1 and *pmsk 
+// Reads the TLB entry with specified by index, and returns the EntryHi,
+// EntryLo0, EntryLo1 and PageMask parts in *phi, *plo0, *plo1 and *pmsk
 // respectively.
-void m64_tlbri2 (tlbhi64_t *phi, tlblo64_t *plo0, tlblo64_t *plo1, 
-	unsigned long long *pmsk, int index);
+void m64_tlbri2 (tlbhi64_t *phi, tlblo64_t *plo0, tlblo64_t *plo1,
+		 unsigned long long *pmsk, int index);
 
 // Writes hi, lo0, lo1 and msk into the TLB entry specified by index.
-void m64_tlbwi2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, 
-	unsigned long long msk, int index);
+void m64_tlbwi2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1,
+		 unsigned long long msk, int index);
 
-// Writes hi, lo0, lo1 and msk into the TLB entry specified by the 
+// Writes hi, lo0, lo1 and msk into the TLB entry specified by the
 // Random register.
-void m64_tlbwr2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, 
-	unsigned long long msk);
+void m64_tlbwr2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1,
+		 unsigned long long msk);
 
-// Probes the TLB for an entry matching hi and returns its index, or -1 if 
-// not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the 
+// Probes the TLB for an entry matching hi and returns its index, or -1 if
+// not found. If found, then the EntryLo0, EntryLo1 and PageMask parts of the
 // entry are also returned in *plo0, *plo1 and *pmsk respectively
-int m64_tlbprobe2 (tlbhi64_t hi, tlblo64_t *plo0, tlblo64_t *plo1, 
-	unsigned long long *pmsk);
+int m64_tlbprobe2 (tlbhi64_t hi, tlblo64_t *plo0, tlblo64_t *plo1,
+		   unsigned long long *pmsk);
 
-// Probes the TLB for an entry matching hi and if present rewrites that entry, 
+// Probes the TLB for an entry matching hi and if present rewrites that entry,
 // otherwise updates a random entry. A safe way to update the TLB.
-int m64_tlbrwr2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, 
-	unsigned long long  msk);
+int m64_tlbrwr2 (tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1,
+		 unsigned long long  msk);
 
 #ifdef __cplusplus
 }

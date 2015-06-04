@@ -1,6 +1,6 @@
 /*
 * Copyright 2015, Imagination Technologies Limited and/or its
-*                      affiliated group companies.
+*                 affiliated group companies.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
  * Initialize the TLB.
  */
 
-LEAF(__init_tlb)	
+LEAF(__init_tlb)
 #if HAVE_LPA && ENABLE_LPA
 	mfc0	t0, C0_PAGEGRAIN
 	li	t1, 1
@@ -61,7 +61,7 @@ LEAF(__init_tlb)
 	.set	mips32r3
 	tlbinvf
 	.set	pop
-#endif 
+#endif
 
 
 #if HAVE_SW_TLB_WALK
@@ -84,10 +84,10 @@ LEAF(__init_tlb)
 	.set	pop
 	addu	t1, t1, 1
 	bne	t1, t2, 12b
-#endif 
+#endif
 
 #if HAVE_NO_INV
-9:	# Clean invalidate TLB for R1 onwards by loading 
+9:	# Clean invalidate TLB for R1 onwards by loading
 	# 0x(FFFFFFFF)KSEG0_BASE into EntryHi and writing it into index MAX
 	# incrementing EntryHi by a pagesize, writing into index MAX-1, etc.
 	li	v0, MMU_SIZE
