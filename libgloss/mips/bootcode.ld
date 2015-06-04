@@ -1,3 +1,8 @@
+/* This script forces the inclusion of boot code by creating references
+   to all the initialisation functions.  These early references also
+   ensure custom versions of code are pulled out of user supplied
+   objects and libraries before default implementations.  */
+
 EXTERN (__reset_vector);
 EXTERN (__init_cp0);
 EXTERN (__init_l23cache);
