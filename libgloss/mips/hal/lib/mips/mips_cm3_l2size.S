@@ -78,8 +78,8 @@ LEAF(__cache_size_hook)
 	# Save registers we need.
 	move	t2, v0
 	move	t3, v1
-	move	t4, a0
-	move	t5, a1
+	move	ta1, a0
+	move	ta2, a1
 	# CM3 L2 code supplied but we have a L2 config stored in
 	# C0_CONFIG2
 	# Report a Boot failure through UHI
@@ -91,8 +91,8 @@ LEAF(__cache_size_hook)
 	# Restore registers
 	move	v0, t2
 	move	v1, t3
-	move	a0, t4
-	move	t1, t5
+	move	a0, ta1
+	move	t1, ta2
 	# Fallthrough if we somehow recover.
 	j	9f
 8:

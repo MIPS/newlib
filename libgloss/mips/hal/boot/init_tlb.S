@@ -262,12 +262,14 @@ LEAF(__init_tlb)
 	move	v1, ra
 	jal	__tlbinvalall
 	move	ra, v1 
-#ifdef ENABLE_LPA
+#if ENABLE_LPA
 	mfc0	t0, C0_CONFIG3
 	and	t0, t0, CFG3_LPA
 	beqz	t0, 1f
 	
-	li	t0, PAGEGRAIN_ELPA
+	li	t1, 1
+	mfc0	t0, PAGEGRAIN_ELPA
+	ins	t0, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
 	mtc0	t0, C0_PAGEGRAIN
 #endif 
 
