@@ -37,6 +37,9 @@
 LEAF(__init_l23cache)
     // L2 Cache initialization routine
     # Check for memory mapped L2 cache config
+    mfc0    a3, C0_CONFIG3
+    ext     a3, a3, CFG3_M_SHIFT, 1
+    beqz    a3, l23_init
     mfc0    a3, C0_CONFIG4
     ext     a3, a3, CFG4_M_SHIFT, 1
     beqz    a3, l23_init

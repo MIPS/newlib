@@ -38,10 +38,15 @@
  *
  * Do not use tmp3 (reg a1), tmp1 (reg v1) or tmp4 (a2) in this function.
  */
+.global __def_cache_size_hook
 ALEAF(__def_cache_size_hook, __cache_size_hook)
 
 	# If we are operating with a coherency manager, abort.
 	# Check if we have config 5 register present
+	mfc0	tmp, C0_CONFIG3
+	ext	tmp, tmp, CFG3_M_SHIFT, 1
+	beqz	tmp, 2f
+
 	mfc0	tmp, C0_CONFIG4
 	ext	tmp, tmp, CFG4_M_SHIFT, 1
 	beqz	tmp, 2f

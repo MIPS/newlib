@@ -74,7 +74,7 @@ OBJS += init_l23caches_predef.o init_tlb_predef.o init_cm3l2_predef.o
 OBJS += corecheck_predef.o
 APP = romable_predef.elf
 
-CFLAGS += -g $(DEFINES)
+CFLAGS += -g -O1 $(DEFINES)
 LDFLAGS += -g
 
 all: $(APP)

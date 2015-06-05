@@ -72,6 +72,10 @@ SLEAF(__tlb_size)
 	ext	v0, t1, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
 	addiu	v0, v0, 1
 
+	mfc0	t1, C0_CONFIG3
+	ext	t1, t1, CFG3_M_SHIFT, 1
+	beqz	t1, 9f
+
 	mfc0	t1, C0_CONFIG4
 #if __mips_isa_rev < 6
 	ext	t3, t1, CFG4_MMUED_SHIFT, CFG4_MMUED_BITS
@@ -85,13 +89,8 @@ SLEAF(__tlb_size)
 	li	t2, (CFG4_MMUED_FTLB >> CFG4_MMUED_SHIFT)
 	beq	t3, t2, 10f			# FTLB Size
 
-	# CFG4_MMUED == 0, Reserved.
-	# Reserved value in CFG4_MMUED, report a boot failure
-	li	t9, 29
-	# Reason - Core configuration reports impossible values
-	li	a0, 3
-	# Trigger the UHI operation
-	sdbbp	1
+	# No extension
+	b	9f
 
 7:
 	ext	t3, t1, CFG4_MMUSE_SHIFT, CFG4_MMUSE_BITS
@@ -141,6 +140,11 @@ SLEAF(__tlbinvalall)
 	PTR_MTC0 zero, C0_ENTRYLO0
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
+
+	// If Config4 does not exist then use old method for invalidation
+	mfc0	t1, C0_CONFIG3
+	ext	t1, t1, CFG3_M_SHIFT, 1
+	beqz	t1, 9f
 
 	// If Config4[IE] = 0, use old method for invalidation
 	mfc0	t9, C0_CONFIG4
@@ -201,7 +205,7 @@ SLEAF(__tlbinvalall)
 	mul	v1, v1, t9
 	subu	t2, v0, v1			# End pointer
 
-12:	subu	v0, v0, t0
+12:	subu	v0, v0, t9
 	mtc0	v0, C0_INDEX
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
@@ -253,7 +257,7 @@ SLEAF(__tlbinvalall)
 	mfc0	t8, C0_INDEX
 	bgez	t8, 12b			# Skip this address if it exists.
 
-	mtc0	v0, C0_INDEX
+	mtc0	v1, C0_INDEX
 	ehb				# mtc0, hazard on tlbwi
 
 	tlbwi

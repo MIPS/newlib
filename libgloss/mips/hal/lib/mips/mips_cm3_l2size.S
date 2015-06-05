@@ -56,6 +56,10 @@ LEAF(__cache_size_hook)
 
 	# Check if Coherency Manager memory-mapped
 	# Global Configuration Register Space is implemented.
+	mfc0	tmp, C0_CONFIG3
+	ext	tmp, tmp, CFG3_M_SHIFT, 1
+	beqz	tmp, 1f		# Fall back to config2 based L2
+
 	mfc0	tmp, C0_CONFIG4
 	ext	tmp, tmp, CFG4_M_SHIFT, 1
 	beqz	tmp, 1f		# Fall back to config2 based L2

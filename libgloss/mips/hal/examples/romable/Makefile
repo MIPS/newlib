@@ -43,7 +43,7 @@ endif
 
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
-CFLAGS += -g
+CFLAGS += -g -O1
 LDFLAGS += -g
 OBJS = romable.o
 APP = romable.elf

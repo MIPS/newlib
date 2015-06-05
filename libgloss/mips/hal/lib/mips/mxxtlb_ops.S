@@ -74,6 +74,10 @@ AENT(m64_tlb_size)
 	ext	v0, t1, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
 	addiu	v0, v0, 1
 
+	mfc0	t1, C0_CONFIG3
+	ext	t1, t1, CFG3_M_SHIFT, 1
+	beqz	t1, 9f
+
 	mfc0	t1, C0_CONFIG4
 #if __mips_isa_rev < 6
 	ext	t3, t1, CFG4_MMUED_SHIFT, CFG4_MMUED_BITS
@@ -138,6 +142,10 @@ AENT(mips_init_tlb)
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
 
+	mfc0	t9, C0_CONFIG3
+	ext	t9, t9, CFG3_M_SHIFT, 1
+	beqz	t9, 9f
+
 	// If Config4[IE] = 0, use old method for invalidation
 	mfc0	t9, C0_CONFIG4
 	ext     t2, t9, CFG4_IE_SHIFT, CFG4_IE_BITS
@@ -197,7 +205,7 @@ AENT(mips_init_tlb)
 	mul	v1, v1, t9
 	subu	t2, v0, v1			# End pointer
 
-12:	subu	v0, v0, t0
+12:	subu	v0, v0, t9
 	mtc0	v0, C0_INDEX
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
@@ -249,7 +257,7 @@ AENT(mips_init_tlb)
 	mfc0	t8, C0_INDEX
 	bgez	t8, 12b			# Skip this address if it exists.
 
-	mtc0	v0, C0_INDEX
+	mtc0	v1, C0_INDEX
 	ehb				# mtc0, hazard on tlbwi
 
 	tlbwi

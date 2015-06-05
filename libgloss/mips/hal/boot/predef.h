@@ -58,16 +58,17 @@
 # error "Static TLB initialisation decisions require C0_CONFIG3_VALUE"
 #endif
 
-#ifndef C0_CONFIG4_VALUE
-# error "Static TLB/cache initialisation decisions require C0_CONFIG4_VALUE"
-#endif
-
-#if (C0_CONFIG4_VALUE & CFG4_M) != 0
-# ifndef C0_CONFIG5_VALUE
-#  error "Static cache initialisation decisions require C0_CONFIG5_VALUE"
+#if (C0_CONFIG3_VALUE & CFG4_M) != 0
+# ifndef C0_CONFIG4_VALUE
+#  error "Static TLB/cache initialisation decisions require C0_CONFIG4_VALUE"
 # endif
-# if (C0_CONFIG5_VALUE & CFG5_L2C) != 0
-#  define MEM_MAPPED_L2C 1
+# if (C0_CONFIG4_VALUE & CFG4_M) != 0
+#  ifndef C0_CONFIG5_VALUE
+#   error "Static cache initialisation decisions require C0_CONFIG5_VALUE"
+#  endif
+#  if (C0_CONFIG5_VALUE & CFG5_L2C) != 0
+#   define MEM_MAPPED_L2C 1
+#  endif
 # endif
 #endif
 
@@ -97,21 +98,21 @@
 
 // Size definitions.
 // FTLBs may be present.
-#define FTLB_SET_ENC	(C0_CONFIG4_VALUE & CFG4_FTLBS_MASK) >> (CFG4_FTLBS_SHIFT)
-#define FTLB_WAY_ENC	((C0_CONFIG4_VALUE & CFG4_FTLBW_MASK) >> CFG4_FTLBW_SHIFT)
-#if TLB_DUAL
-#define FTLB_SETS	(1 << FTLB_SET_ENC)
-#define FTLB_SIZE	(2 + FTLB_WAY_ENC) * FTLB_SETS
-#else
-#define FTLB_SIZE	0
-#endif
+#ifdef C0_CONFIG4_VALUE
+# define FTLB_SET_ENC	(C0_CONFIG4_VALUE & CFG4_FTLBS_MASK) >> (CFG4_FTLBS_SHIFT)
+# define FTLB_WAY_ENC	((C0_CONFIG4_VALUE & CFG4_FTLBW_MASK) >> CFG4_FTLBW_SHIFT)
+# if TLB_DUAL
+#  define FTLB_SETS	(1 << FTLB_SET_ENC)
+#  define FTLB_SIZE	(2 + FTLB_WAY_ENC) * FTLB_SETS
+# else
+#  define FTLB_SIZE	0
+# endif
 
 // VTLB May be present
-#define VTLB_SIZE_ENC	((C0_CONFIG4_VALUE & CFG4_VTLBSEXT_MASK) \
+# define VTLB_SIZE_ENC	((C0_CONFIG4_VALUE & CFG4_VTLBSEXT_MASK) \
 			>> CFG4_VTLBSEXT_SHIFT)
-#define VTLB_SIZE	(VTLB_SIZE_ENC << CFG1_MMUS_BITS)
-
-
+# define VTLB_SIZE	(VTLB_SIZE_ENC << CFG1_MMUS_BITS)
+#endif
 
 // Size
 #define TLB_SIZE	((C0_CONFIG1_VALUE & CFG1_MMUS_MASK) >> CFG1_MMUS_SHIFT)
@@ -119,16 +120,16 @@
 // ISA < 6 relys on CFG4 MMU Extension definition
 #if __mips_isa_rev < 6
 
-#if (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_FTLBVEXT
-#define MMU_SIZE	(FTLB_SIZE + VTLB_SIZE + TLB_SIZE + 1)
+#if !defined(C0_CONFIG4_VALUE) || (C0_CONFIG4_VALUE & CFG4_MMUED) == 0
+# define MMU_SIZE	(TLB_SIZE + 1)
+#elif (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_FTLBVEXT
+# define MMU_SIZE	(FTLB_SIZE + VTLB_SIZE + TLB_SIZE + 1)
 #elif (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_SIZEEXT
-#define MMUSE_ENC	(C0_CONFIG4_VALUE & CFG4_MMUSE_MASK) >> CFG4_MMUSE_SHIFT
-#define TLB_EXT_SIZE	(MMUSE_ENC << CFG1_MMUS_BITS)
-#define MMU_SIZE	(TLB_EXT_SIZE + TLB_SIZE + 1)
+# define MMUSE_ENC	(C0_CONFIG4_VALUE & CFG4_MMUSE_MASK) >> CFG4_MMUSE_SHIFT
+# define TLB_EXT_SIZE	(MMUSE_ENC << CFG1_MMUS_BITS)
+# define MMU_SIZE	(TLB_EXT_SIZE + TLB_SIZE + 1)
 #elif (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_FTLB
-#define MMU_SIZE	(FTLB_SIZE + TLB_SIZE + 1)
-#elif (C0_CONFIG4_VALUE & CFG4_MMUED) == 0
-#define MMU_SIZE	(TLB_SIZE + 1)
+# define MMU_SIZE	(FTLB_SIZE + TLB_SIZE + 1)
 #endif /* C0_CONFIG4_VALUE & ...*/
 
 #else
@@ -140,9 +141,13 @@
 
 
 // Invalidation
-#define	HAVE_HW_TLB_WALK	((C0_CONFIG4_VALUE & CFG4_IE_MASK) == CFG4_IE_INVALL)
-#define HAVE_SW_TLB_WALK	((C0_CONFIG4_VALUE & CFG4_IE_MASK) == CFG4_IE_INV)
-#define HAVE_NO_INV		((C0_CONFIG4_VALUE & CFG4_IE_MASK) == 0)
+#ifdef C0_CONFIG4_VALUE
+# define HAVE_HW_TLB_WALK	((C0_CONFIG4_VALUE & CFG4_IE_MASK) == CFG4_IE_INVALL)
+# define HAVE_SW_TLB_WALK	((C0_CONFIG4_VALUE & CFG4_IE_MASK) == CFG4_IE_INV)
+# define HAVE_NO_INV		((C0_CONFIG4_VALUE & CFG4_IE_MASK) == 0)
+#else
+# define HAVE_NO_INV 1
+#endif
 
 // LPA
 #define HAVE_LPA	(C0_CONFIG3_VALUE & CFG3_LPA)

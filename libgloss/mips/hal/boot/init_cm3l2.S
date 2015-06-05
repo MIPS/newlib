@@ -38,6 +38,10 @@
 #define CM3_BASE	t8
 LEAF(__init_l23cache)
 	# Check for memory mapped L2 cache config
+	mfc0	t0, C0_CONFIG3
+	ext	t1, t0, CFG3_M_SHIFT, 1
+	beqz	t1, err
+
 	mfc0	t0, C0_CONFIG4
 	ext	t1, t0, CFG4_M_SHIFT, 1
 	beqz	t1, err

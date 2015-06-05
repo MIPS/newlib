@@ -361,6 +361,10 @@ LEAF(m64_tlbinval)
 	PTR_MTC0 zero, C0_ENTRYLO1
 #endif /* _MIPS_SIM==_ABIO32 */
 
+	mfc0	v1, C0_CONFIG3
+	ext	v1, v1, CFG3_M_SHIFT, 1
+	beqz	v1, 2f
+
 	mfc0	v1, C0_CONFIG4
 	ext	v1, v1, CFG4_IE_SHIFT, CFG4_IE_BITS
 	beqz	v1, 2f
