@@ -69,25 +69,11 @@
 # if (C0_CONFIG5_VALUE & CFG5_L2C) != 0
 #  define MEM_MAPPED_L2C 1
 # endif
-# ifndef C0_CMGCRBASE_VALUE
-#  error "Static CM3 cache initialization decisions require C0_CMGCRBASE_VALUE"
-# else
-#  define C0_CMGCRBASE_ADDR ((C0_CMGCRBASE_VALUE << 4) | (0xb << 28))
-# endif
-# ifndef GCR_L2_CONFIG_VALUE
-#  error "Static CM3 cache initialization decisions require GCR_L2_CONFIG_VALUE"
-# endif
 #endif
 
-#ifndef GCR_L2_CONFIG_VALUE
 #define SLINE_ENC    ((C0_CONFIG2_VALUE & CFG2_SL_MASK) >> CFG2_SL_SHIFT)
 #define SSET_ENC     ((C0_CONFIG2_VALUE & CFG2_SS_MASK) >> CFG2_SS_SHIFT)
 #define SASSOC_ENC   ((C0_CONFIG2_VALUE & CFG2_SA_MASK) >> CFG2_SA_SHIFT)
-#else
-#define SLINE_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SL_MASK) >> GCRL2_CFG_SL_SHIFT)
-#define SSET_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SS_MASK) >> GCRL2_CFG_SS_SHIFT)
-#define SASOC_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SA_MASK) >> GCRL2_CFG_SA_SHIFT)
-#endif
 
 #define SLINE_SIZE   (2 << SLINE_ENC)
 #define SSET_SIZE    (64 << SSET_ENC)

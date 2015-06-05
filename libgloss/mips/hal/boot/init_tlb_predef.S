@@ -59,10 +59,10 @@ LEAF(__init_tlb)
 	ehb
 	.set	push
 	.set	mips32r3
+	.set	eva
 	tlbinvf
 	.set	pop
 #endif
-
 
 #if HAVE_SW_TLB_WALK
 8:	/* TLB walk done by software, Config4[IE] = 2, Config[MT] = 4
@@ -74,14 +74,17 @@ LEAF(__init_tlb)
 	 *
 	 */
 	li	t2, MMU_SIZE			# Start pointer/finger
-	li	t1, MMU_SIZE - FTLB_SETS	# End pointer
+	li	t8, FTLB_SETS
 	li	t9, %hi(__tlb_stride_length)
 	addiu	t9, %lo(__tlb_stride_length)
+	mul	t8, t8, t9
+	subu	t1, t2, t8			# End pointer
 
 	mtc0	zero, C0_INDEX
 	ehb
 	.set	push
 	.set	mips32r3
+	.set	eva
 	tlbinvf
 	.set	pop
 
@@ -90,6 +93,7 @@ LEAF(__init_tlb)
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
 	.set	mips32r3
+	.set	eva
 	tlbinvf
 	.set	pop
 	bne	t1, t2, 12b

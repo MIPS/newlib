@@ -33,6 +33,7 @@
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>
+#include <mips/cm3.h>
 #include "predef.h"
 
 // Config 0 has some RO fields.
@@ -74,6 +75,7 @@
 #endif
 
 #if defined(C0_CMGCRBASE_VALUE)
+#define C0_CMGCRBASE_ADDR ((C0_CMGCRBASE_VALUE << 4) | (0xb << 28))
 #define C0_CMGCRBASE_RO	(0xffffffff)
 #define C0_CMGCRBASE_EXP C0_CMGCRBASE_VALUE
 #endif

@@ -171,7 +171,7 @@ SLEAF(__tlbinvalall)
 	 * one TLBINVF is executed with an index in VTLB range to
 	 * invalidate all VTLB entries.
 	 *
-	 * One TLBINVF is executed per FTLB entry.
+	 * One TLBINVF is executed per FTLB set.
 	 *
 	 * We'll clean out the TLB by computing the Size of the VTLB
 	 * but not add the 1. This will give us a finger that points
@@ -193,13 +193,14 @@ SLEAF(__tlbinvalall)
 
 	# v0 contains number of TLB entries
 	# v1 contains number of sets per way
-	subu	t2, v0, v1			# t2 holds end index
-						# v0 holds start index
-	lui	t0, %hi(__tlb_stride_length)	# Fetch the tlb stride for
-	addiu	t0, %lo(__tlb_stride_length)	# stepping through FTLB sets.
+	lui	t9, %hi(__tlb_stride_length)	# Fetch the tlb stride for
+	addiu	t9, %lo(__tlb_stride_length)	# stepping through FTLB sets.
+	mul	v1, v1, t9
+	subu	t2, v0, t9			# End pointer
+
 
 12:	subu	v0, v0, t0
-	mtc0	t1, C0_INDEX
+	mtc0	v0, C0_INDEX
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
 	.set	mips32r3

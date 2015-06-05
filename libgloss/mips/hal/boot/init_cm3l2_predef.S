@@ -37,6 +37,25 @@
 #include "predef.h"
 
 #define CM3_BASE	a3
+
+# ifndef C0_CMGCRBASE_VALUE
+#  error "Static CM3 cache initialization decisions require C0_CMGCRBASE_VALUE"
+# else
+#  define C0_CMGCRBASE_ADDR ((C0_CMGCRBASE_VALUE << 4) | (0xb << 28))
+#  ifndef GCR_L2_CONFIG_VALUE
+#   error "Static CM3 cache initialization decisions require GCR_L2_CONFIG_VALUE"
+#  endif
+# endif
+
+#undef SLINE_ENC
+#undef SSET_ENC
+#undef SASOC_ENC
+
+#define SLINE_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SL_MASK) >> GCRL2_CFG_SL_SHIFT)
+#define SSET_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SS_MASK) >> GCRL2_CFG_SS_SHIFT)
+#define SASOC_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SA_MASK) >> GCRL2_CFG_SA_SHIFT)
+
+
 LEAF(__init_l23cache)
 	li	CM3_BASE, C0_CMGCRBASE_ADDR
 	# Disable L2 cache
@@ -61,7 +80,7 @@ LEAF(__init_l23cache_cached)
 
 	# Compute L2 cache size
 	li	a1, SLINE_SIZE
-	li	a0, SSET_SIZE
+	li	a0, SSET_SIZE * SASSOC
 
 	sw	zero, GCR_TAG_ADDR(CM3_BASE)
 	sw	zero, (GCR_TAG_ADDR+4)(CM3_BASE)
