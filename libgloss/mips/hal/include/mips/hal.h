@@ -363,7 +363,7 @@ struct fp64ctx
 #define FP64CTX_SGL(CTX, N) (CTX)->s[((N) | 1) + (((N) & 1) << 5)]
 #endif
 
-struct xpa
+struct xpactx
 {
   struct linkctx link;
   reg64_t badvaddr;

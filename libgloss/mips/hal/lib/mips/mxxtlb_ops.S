@@ -154,6 +154,7 @@ AENT(m64_tlbinvalall)
 	ehb
 	.set	push
 	.set	mips32r3
+	.set	eva
 	tlbinvf
 	.set	pop
 	b	11f
@@ -195,6 +196,7 @@ AENT(m64_tlbinvalall)
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
 	.set	mips32r3
+	.set	eva
 	tlbinvf
 	.set	pop
 	addiu	t1, t1, 1

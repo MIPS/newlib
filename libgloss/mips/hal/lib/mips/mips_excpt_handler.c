@@ -127,6 +127,26 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
 	     is 0 at startup.
 	 2 = Always use exception handler present in boot.   */
 
+      /* Special handling for boot/low level failures.  */
+      if (ctx->t2[1] == __MIPS_UHI_BOOTFAIL)
+	{
+	  switch (ctx->a[0])
+	    {
+	    case __MIPS_UHI_BF_CACHE:
+	      WRITE ("L2 cache configuration error\n");
+	      break;
+	    default:
+	      WRITE ("Unknown boot failure error\n");
+	      break;
+	    }
+
+	  /* These are unrecoverable.  Abort.  */
+	  ctx->epc = (sreg_t)(long)&__exit;
+	  /* Exit code of 255 */
+	  ctx->a[0] = 0xff;
+	  return;
+	}
+
       if (((long) __use_excpt_boot == 2
 	   || ((long) __use_excpt_boot == 1
 	       && __get_startup_BEV

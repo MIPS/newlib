@@ -31,50 +31,44 @@
 #include "m32cache.h"
 
 /*
- * static void _size_cache()
+ * static void __cache_size_hook()
  *
  * Internal routine to determine cache sizes by looking at config
- * registers.  Sizes are returned in registers, as follows:
+ * registers.  Sizing information is stored directly to memory.
  *
- * Do not use tmp3 (reg a1) and tmp1 (reg v1) in this function.
+ * Do not use tmp3 (reg a1), tmp1 (reg v1) or tmp4 (a2) in this function.
  */
-LEAF(__cache_size_hook)
+ALEAF(__def_cache_size_hook, __cache_size_hook)
 
 	# If we are operating with a coherency manager, abort.
-	# Check if we have $config,3 register present
+	# Check if we have config 5 register present
 	mfc0	tmp, C0_CONFIG4
 	ext	tmp, tmp, CFG4_M_SHIFT, 1
-	beqz	tmp, 1f
+	beqz	tmp, 2f
 
 	# Do we have a memory mapped L2 cache config?
 	mfc0	tmp, C0_CONFIG5
 	ext	tmp, tmp, CFG5_L2C_SHIFT, 1
 	beqz	tmp, 2f
-	# Save registers we need.
-	move	t2, v0
-	move	t3, v1
-	move	ta1, a0
-	move	ta2, a1
+
 	# No CM3 code supplied but we have a memory mapped L2 config
 	# Report a Boot failure through UHI
 	li	t9, 23
 	# Reason - L2 cache config
+	li	a0, 1
+	# Syscall number
 	li	v0, 1
 	# Trigger the UHI operation
 	syscall	1
-	# Restore registers
-	move	v0, t2
-	move	v1, t3
-	move	a0, ta1
-	move	t1, ta2
-	# Fallthrough if we somehow recover.
-	j	1f
+	# Should never return
+1:
+	b	1b
 
 2:	mfc0	cfg, C0_CONFIG2
 
 	# Get scache line size (log2)
 	ext	tmp, cfg, CFG2_SL_SHIFT, CFG2_SL_BITS
-	beqz	tmp, 1f		# no s-cache
+	beqz	tmp, 3f		# no s-cache
 	addiu	tmp, tmp, 1
 
 	# Get number of scache ways
@@ -92,6 +86,10 @@ LEAF(__cache_size_hook)
 	addiu	tmp, tmp, 6
 	sllv	scachesize, scachesize, tmp
 
-1:	# Return
+	sw	scachesize, mips_scache_size
+	sw	slinesize, mips_scache_linesize
+	sw	sways, mips_scache_ways
+3:
+	# Return
 	jr	ra
-END(__cache_size_hook)
+END(__def_cache_size_hook)

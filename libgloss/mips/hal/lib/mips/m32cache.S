@@ -30,7 +30,7 @@
 
 #include "m32cache.h"
 /*
- * void size_cache()
+ * void m32_size_cache()
  *
  * Work out size of I, D & S caches (assume already initialised)
  */
@@ -74,18 +74,6 @@ END(m32_clean_icache)
 LEAF(_size_cache)
 	# Read $config, 0 to check presence of $config, 1
 	mfc0	cfg, C0_CONFIG
-
-	# Clear temporaries
-	li	icachesize, 0
-	li	ilinesize, 0
-	li	dcachesize, 0
-	li	dlinesize, 0
-	li	scachesize, 0
-	li	slinesize, 0
-
-	# Check if we have $config, 1 register
-	and	tmp, cfg, CFG0_M
-	beqz	tmp, 9f
 
 	# Read Configuration register, select 1
 	mfc0	cfg, C0_CONFIG1
@@ -143,20 +131,12 @@ LEAF(_size_cache)
 	sw	dcachesize, mips_dcache_size
 	sw	dlinesize, mips_dcache_linesize
 	sw	dways, mips_dcache_ways
-
-9:	# scachesize, slinesize, sways will have the appropiate
-	# values after we call the hook.
+9:
 	LA	tmp, __cache_size_hook
 	move	tmp4, ra
 	jal	tmp
 	move	ra, tmp4
 
-	beqz	slinesize, 12f
-
-	sw	scachesize, mips_scache_size
-	sw	slinesize, mips_scache_linesize
-	sw	sways, mips_scache_ways
-
-12:	# Return
+	# Return
 	jr	ra
 END(_size_cache)

@@ -50,6 +50,9 @@
 #define __MIPS_UHI_PREAD       19
 #define __MIPS_UHI_PWRITE      20
 #define __MIPS_UHI_LINK        22
+#define __MIPS_UHI_BOOTFAIL    23
+
+#define __MIPS_UHI_BF_CACHE    1
 
 #define __xstr(s) __str(s)
 #define __str(s) #s

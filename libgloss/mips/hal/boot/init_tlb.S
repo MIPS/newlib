@@ -159,6 +159,7 @@ SLEAF(__tlbinvalall)
 	ehb
 	.set	push
 	.set	mips32r3
+	.set	eva
 	tlbinvf
 	.set	pop
 	b	11f
@@ -184,6 +185,7 @@ SLEAF(__tlbinvalall)
 	ehb
 	.set	push
 	.set	mips32r3
+	.set	eva
 	tlbinvf
 	.set	pop
 
@@ -199,6 +201,7 @@ SLEAF(__tlbinvalall)
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
 	.set	mips32r3
+	.set	eva
 	tlbinvf
 	.set	pop
 	bne	v0, t2, 12b

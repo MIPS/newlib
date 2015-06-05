@@ -45,10 +45,10 @@
 #			CTX_*:	Type of conext stored
 #
 LEAF(_xpa_save)
-	PTR_S	zero, LINKCTX_NEXT(a)
+	PTR_S	zero, LINKCTX_NEXT(a0)
 	# Test for LPA support
 	mfc0	t0, C0_CONFIG3
-	ext	t0, t0, CFG3_LPA, 1
+	ext	t0, t0, CFG3_LPA_SHIFT, 1
 	beqz	t0, 1f
 	# Test for LPA enabled
 	mfc0	t0, C0_PAGEGRAIN
@@ -61,9 +61,13 @@ LEAF(_xpa_save)
 	jr	ra
 
 2:	lui	v0, %hi(LINKCTX_TYPE_XPA)
-	oru	v0, v0, %lo(LINKCTX_TYPE_XPA)
+	addiu	v0, v0, %lo(LINKCTX_TYPE_XPA)
 	mfc0	t0, C0_BADVADDR
+	.set push
+	.set mips32r5
+	.set xpa
 	mfhc0	t1, C0_BADVADDR
+	.set pop
 #if BYTE_ORDER == BIG_ENDIAN
 	sw	t0, XPACTX_BADVADDR(a0)
 	sw	t1, (XPACTX_BADVADDR+4)(a0)
@@ -72,5 +76,5 @@ LEAF(_xpa_save)
 	sw	t0, (XPACTX_BADVADDR+4)(a0)
 #endif
 	REG_S	v0, LINKCTX_ID(a0)
-	jr
+	jr ra
 END(_xpa_save)
