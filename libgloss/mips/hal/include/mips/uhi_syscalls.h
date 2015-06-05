@@ -28,6 +28,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+
+#ifndef _UHI_SYSCALLS_
+#define _UHI_SYSCALLS_
+
 #define __MIPS_UHI_EXIT        1
 #define __MIPS_UHI_OPEN        2
 #define __MIPS_UHI_CLOSE       3
@@ -46,6 +50,9 @@
 #define __MIPS_UHI_PREAD       19
 #define __MIPS_UHI_PWRITE      20
 #define __MIPS_UHI_LINK        22
+#define __MIPS_UHI_BOOTFAIL    23
+
+#define __MIPS_UHI_BF_CACHE    1
 
 #define __xstr(s) __str(s)
 #define __str(s) #s
@@ -58,3 +65,5 @@
 	#define SYSCALL(NUM) "\tsyscall " __xstr (NUM)
 	#define ASM_SYSCALL(NUM) syscall NUM
 #endif
+
+#endif // _UHI_SYSCALLS_

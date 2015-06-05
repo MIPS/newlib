@@ -33,10 +33,6 @@
 
 #include <mips/mips32.h>
 
-#if __mips_isa_rev >= 6
-#include <mips/m64r6cm3.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -105,7 +101,7 @@ extern "C" {
 
 #endif /* __mips == 64 && ! __mips16 */
 
-#endif /* __ASSEMBLER__ */
+#endif /* !__ASSEMBLER__ */
 
 #ifdef __cplusplus
 }

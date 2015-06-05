@@ -36,25 +36,28 @@
 
 LEAF(__init_l23cache)
     // L2 Cache initialization routine
-
-    // Check for memory mapped L2 cache config
+    # Check for memory mapped L2 cache config
+    mfc0    a3, C0_CONFIG3
+    ext     a3, a3, CFG3_M_SHIFT, 1
+    beqz    a3, l23_init
     mfc0    a3, C0_CONFIG4
-    ext	    a3, a3, CFG4_M_SHIFT, 1
-    beqz    a3, l2_config2
+    ext     a3, a3, CFG4_M_SHIFT, 1
+    beqz    a3, l23_init
     mfc0    a3, C0_CONFIG5
     ext     a3, a3, CFG5_L2C_SHIFT, 1
-    beqz    a3, l2_config2
-    // Report a failure as this code cannot cope with memory mapped L2 config
-    // UHI Boot Failure operation
-    li	    t9, 23
-    // Reason - L2 cache config
-    li	    a0, 1
-    // Trigger the UHI operation
-    sdbbp   1
-    // Return if the debugger corrects the failure
-    jr	    ra
+    beqz    a3, l23_init
 
-l2_config2:
+    # No CM3 code supplied but we have a memory mapped L2 configuration
+    # Report a Boot failure through UHI
+    li      t9, 23
+    # Reason - L2 cache config
+    li      a0, 1
+    # Trigger the UHI operation
+    sdbbp   1
+    # In case a debugger corrects this failure
+    b       done_l3cache
+
+l23_init:
     // Check L2 cache size
     mfc0    v0, C0_CONFIG2
 
@@ -62,7 +65,7 @@ l2_config2:
     ext	    v1, v0, CFG2_SL_SHIFT, CFG2_SL_BITS
 
     // Skip ahead if No L2$
-    beq	    v1, zero, done_l2cache
+    beqz    v1, done_l2cache
 
     li	    a2, 2
     sllv    a1, a2, v1			// Decode L2$ line size in bytes
@@ -75,7 +78,7 @@ l2_config2:
     // Isolate L2$ Associativity
     // L2$ Assoc (-1)
     ext	    v1, v0, CFG2_SA_SHIFT, CFG2_SA_BITS
-    addiu   v1, 1
+    addiu   v1, v1, 1
 
     mul	    a0, a0, v1			// Get total number of sets
 
@@ -89,17 +92,16 @@ l2cache_init:
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
 next_L2cache_tag:
     cache   Index_Store_Tag_S, 0(a2)	// Write Tag using index store tag
-    addiu   a0, -1			// Decrement set counter
-    addu    a2, a1			// Get next line address
-    bne	    a0, zero, next_L2cache_tag 	// Done yet?
+    addiu   a0, a0, -1			// Decrement set counter
+    addu    a2, a2, a1			// Get next line address
+    bnez    a0, next_L2cache_tag 	// Done yet?
 
 done_l2cache:
-
     // Isolate L3$ Line Size
     ext	    v1, v0, CFG2_TL_SHIFT, CFG2_TL_BITS
 
     // Skip ahead if No L3$
-    beq	    v1, zero, done_l3cache
+    beqz    v1, done_l3cache
 
     li	    a2, 2
     sllv    a1, a2, v1			// Decode L3$ line size in bytes
@@ -111,9 +113,9 @@ done_l2cache:
 
     // Isolate L3$ Associativity
     // L3$ Assoc (-1)
-    ext	    v1, v0, CFG2_TA_SHIFT, CFG2_TA_BITS
-    addiu   v1, 1			// Decode L3 associativity (number of sets)
-    mul	    a0, a0, v1			// Compute total number of sets
+    ext	   v1, v0, CFG2_TA_SHIFT, CFG2_TA_BITS
+    addiu  v1, v1, 1			// Decode L3 associativity (number of sets)
+    mul	   a0, a0, v1			// Compute total number of sets
 
 l3cache_init:
     lui	    a2, 0x8000		   	// Get a KSeg0 address for cacheops
@@ -125,9 +127,9 @@ l3cache_init:
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
 next_L3cache_tag:
     cache   Index_Store_Tag_T, 0(a2)	// TCIndexStTag
-    addiu   a0, -1			// Decrement set counter
-    add	    a2, a1			// Get next line address
-    bne	    a0, zero, next_L3cache_tag
+    addiu   a0, a0, -1			// Decrement set counter
+    add	    a2, a2, a1			// Get next line address
+    bnez    a0, next_L3cache_tag
 
 done_l3cache:
     jr      ra

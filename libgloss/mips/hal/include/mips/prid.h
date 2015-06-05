@@ -128,5 +128,3 @@
 #define PRID_74KF	0x97	/* MIPS 74K FPU			ISA MIPS32r2 */
 
 #endif /*  _MIPS_PRID_H_ */
-
-

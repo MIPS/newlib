@@ -31,13 +31,10 @@
 #ifndef _M32C0_H_
 #define _M32C0_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#ifndef _M64C0_H_
 /* MIPS32-specific MMU interface */
 #include <mips/m32tlb.h>
-
+#endif
 /*
  * MIPS32 Exception Codes
  */
@@ -303,7 +300,7 @@ extern "C" {
 #define  CFG1_MMUS_SHIFT	25
 #define  CFG1_MMUS_BITS		 6
 #define CFG1_IS_MASK	0x01c00000	/* icache lines 64<<n */
-#define  CFG1_IS_SHIFT		22
+#define  CFG1_IS_SHIFT		22	/* Unless n==7, then 32 */
 #define  CFG1_IS_BITS		 3
 #define CFG1_IL_MASK	0x00380000	/* icache line size 2<<n */
 #define  CFG1_IL_SHIFT		19
@@ -611,6 +608,9 @@ extern "C" {
 
 /* MIPS32r2 PageGrain  Register (CP0 Register 5, Select 1) */
 #define PAGEGRAIN_ELPA	0x20000000	/* Enable large physical addresses */
+#define PAGEGRAIN_ELPA_SHIFT	29
+#define PAGEGRAIN_ELPA_BITS	1
+
 #define PAGEGRAIN_ESP	0x10000000	/* Enable small (1KB) page support */
 
 /* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */
@@ -620,6 +620,105 @@ extern "C" {
 #define EBASE_CPU	0x000003ff	/* CPU number */
 #define  EBASE_CPU_SHIFT	 0
 #define  EBASE_CPU_BITS		10
+
+/* MIPS32r2 EntryHi register (CP0 Register 10, Select 0) */
+#define C0_ENTRYHI64_R_MASK	0xC000000000000000
+#define C0_ENTRYHI64_R_BITS	2
+#define C0_ENTRYHI64_R_SHIFT	61
+#define C0_ENTRYHI64_VPN2_MASK	0x3FFFFFF000
+#define C0_ENTRYHI64_VPN2_BITS	27
+#define C0_ENTRYHI64_VPN2_SHIFT	13
+#define C0_ENTRYHI_VPN2_MASK	0xFFFFF000
+#define C0_ENTRYHI_VPN2_BITS	18
+#define C0_ENTRYHI_VPN2_SHIFT	13
+#define C0_ENTRYHI_VPN2X_MASK	0x3
+#define C0_ENTRYHI_VPN2X_BITS	2
+#define C0_ENTRYHI_VPN2X_SHIFT	10
+#define C0_ENTRYHI_EHINV_MASK	0x400
+#define C0_ENTRYHI_EHINV_BITS	1
+#define C0_ENTRYHI_EHINV_SHIFT	10
+#define C0_ENTRYHI_ASIDX_MASK	0x300
+#define C0_ENTRYHI_ASIDX_BITS	2
+#define C0_ENTRYHI_ASIDX_SHIFT	8
+#define C0_ENTRYHI_ASID_MASK	0xFF
+#define C0_ENTRYHI_ASID_BITS	8
+#define C0_ENTRYHI_ASID_SHIFT	0
+
+/* MIPS32 EntryLo0 register (CP0 Register 2, select 0) */
+#define ENTRYLO064_RI_MASK	0x8000000000000000
+#define ENTRYLO064_RI_BITS	1
+#define ENTRYLO064_RI_SHIFT	63
+#define ENTRYLO064_XI_MASK	0x4000000000000000
+#define ENTRYLO064_XI_BITS	1
+#define ENTRYLO064_XI_SHIFT	62
+#define ENTRYLO064_PFN_MASK	0x3FFFFFFFFFFFFFE0
+#define ENTRYLO064_PFN_BITS	56
+#define ENTRYLO064_PFN_SHIFT	6
+#define ENTRYLO064_RI_SHIFT	63
+#define ENTRYLO064_RI_BITS	1
+#define ENTRYLO064_RI_SHIFT	63
+#define ENTRYLO0_PFNX_MASK	0x7FFFFF
+#define ENTRYLO0_PFNX_BITS	23
+#define ENTRYLO0_PFNX_SHIFT	0
+#define ENTRYLO0_RI_MASK	0x80000000
+#define ENTRYLO0_RI_BITS	1
+#define ENTRYLO0_RI_SHIFT	31
+#define ENTRYLO0_XI_MASK	0x40000000
+#define ENTRYLO0_XI_BITS	1
+#define ENTRYLO0_XI_SHIFT	30
+#define ENTRYLO0_PFN_MASK	0x3FFFFFE0
+#define ENTRYLO0_PFN_BITS	23
+#define ENTRYLO0_PFN_SHIFT	6
+#define ENTRYLO0_C_MASK		0x38
+#define ENTRYLO0_C_BITS		3
+#define ENTRYLO0_C_SHIFT	3
+#define ENTRYLO0_D_MASK		0x4
+#define ENTRYLO0_D_BITS		1
+#define ENTRYLO0_D_SHIFT	2
+#define ENTRYLO0_V_MASK		0x2
+#define ENTRYLO0_V_BITS		1
+#define ENTRYLO0_V_SHIFT	1
+#define ENTRYLO0_G_MASK		0x1
+#define ENTRYLO0_G_BITS		1
+#define ENTRYLO0_G_SHIFT	0
+
+/* MIPS32 EntryLo1 register (CP0 Register 3, select 0) */
+#define ENTRYLO164_RI_MASK	ENTRYLO064_RI_MASK
+#define ENTRYLO164_RI_BITS	ENTRYLO064_RI_BITS
+#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
+#define ENTRYLO164_XI_MASK	ENTRYLO064_XI_MASK
+#define ENTRYLO164_XI_BITS	ENTRYLO064_XI_BITS
+#define ENTRYLO164_XI_SHIFT	ENTRYLO064_XI_SHIFT
+#define ENTRYLO164_PFN_MASK	ENTRYLO064_PFN_MASK
+#define ENTRYLO164_PFN_BITS	ENTRYLO064_PFN_BITS
+#define ENTRYLO164_PFN_SHIFT	ENTRYLO064_PFN_SHIFT
+#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
+#define ENTRYLO164_RI_BITS	ENTRYLO064_RI_BITS
+#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
+#define ENTRYLO1_PFNX_MASK	ENTRYLO0_PFNX_MASK
+#define ENTRYLO1_PFNX_BITS	ENTRYLO0_PFNX_BITS
+#define ENTRYLO1_PFNX_SHIFT	ENTRYLO0_PFNX_SHIFT
+#define ENTRYLO1_RI_MASK	ENTRYLO0_RI_MASK
+#define ENTRYLO1_RI_BITS	ENTRYLO0_RI_BITS
+#define ENTRYLO1_RI_SHIFT	ENTRYLO0_RI_SHIFT
+#define ENTRYLO1_XI_MASK	ENTRYLO0_XI_MASK
+#define ENTRYLO1_XI_BITS	ENTRYLO0_XI_BITS
+#define ENTRYLO1_XI_SHIFT	ENTRYLO0_XI_SHIFT
+#define ENTRYLO1_PFN_MASK	ENTRYLO0_PFN_MASK
+#define ENTRYLO1_PFN_BITS	ENTRYLO0_PFN_BITS
+#define ENTRYLO1_PFN_SHIFT	ENTRYLO0_PFN_SHIFT
+#define ENTRYLO1_C_MASK		ENTRYLO0_C_MASK
+#define ENTRYLO1_C_BITS		ENTRYLO0_C_BITS
+#define ENTRYLO1_C_SHIFT	ENTRYLO0_C_SHIFT
+#define ENTRYLO1_D_MASK		ENTRYLO0_D_MASK
+#define ENTRYLO1_D_BITS		ENTRYLO0_D_BITS
+#define ENTRYLO1_D_SHIFT	ENTRYLO0_D_SHIFT
+#define ENTRYLO1_V_MASK		ENTRYLO0_V_MASK
+#define ENTRYLO1_V_BITS		ENTRYLO0_V_BITS
+#define ENTRYLO1_V_SHIFT	ENTRYLO0_V_SHIFT
+#define ENTRYLO1_G_MASK		ENTRYLO0_G_MASK
+#define ENTRYLO1_G_BITS		ENTRYLO0_G_BITS
+#define ENTRYLO1_G_SHIFT	ENTRYLO0_G_SHIFT
 
 #ifdef __ASSEMBLER__
 
@@ -854,6 +953,10 @@ typedef signed long long	sreg_t;
 #define C0_KSCRATCH5	31,6
 #define C0_KSCRATCH6	31,7
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define _mips_sync() __asm__ __volatile__ ("sync" : : : "memory")
 
 /* wait for unmasked interrupt */
@@ -876,7 +979,11 @@ __extension__ ({ \
 
 #define _m32c0_mtc0(reg, sel, val) \
 do { \
-    __asm__ __volatile ("%(mtc0 %z0,$%1,%2; ehb%)" \
+    __asm__ __volatile (".set push \n"\
+			".set noreorder\n"\
+			"mtc0 %z0,$%1,%2\n"\
+			"ehb\n" \
+			".set pop" \
 			: \
 			: "dJ" ((reg32_t)(val)), "JK" (reg), "JK" (sel) \
 			: "memory"); \
@@ -1036,8 +1143,16 @@ __extension__ ({ \
 #define mips32_setebase(x)	_m32c0_mtc0(15,1,x)
 #define mips32_xchebase(x)	_m32c0_mxc0(15,1,x)
 
+#ifdef __cplusplus
+}
+#endif
+
 /* Define MIPS64 user-level intrinsics */
 #include <mips/mips32.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* CP0 intrinsics */
 

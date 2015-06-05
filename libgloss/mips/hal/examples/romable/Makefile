@@ -36,16 +36,14 @@ ABI ?= 32
 
 # Set up a 1:1 mapping for physical to virtual addresses
 ifeq ($(ABI), 64)
-FLASH_START = 0xFFFFFFFFBFC00000
 APP_START = 0xFFFFFFFF80000000
 else
-FLASH_START = 0xBFC00000
 APP_START = 0x80000000
 endif
 
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
-CFLAGS += -g
+CFLAGS += -g -O1
 LDFLAGS += -g
 OBJS = romable.o
 APP = romable.elf

@@ -1,6 +1,6 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ * Copyright 2015, Imagination Technologies Limited and/or its
+ *                 affiliated group companies.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _M64R6CM3_H_
-#define _M64R6CM3_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef _CM3_H_
+#define _CM3_H_
 
 #define CMGCR_BASE_ADDR_SHIFT	11
 
+#define CMGCR_BASE_ADDR_LSHIFT	4
 /* Offsets of memory-mapped registers */
 #define GCR_L2_CONFIG		0x130
+#define GCR_L2_RAM_CONFIG	0x240
 #define GCR_TAG_ADDR		0x600
 #define GCR_TAG_STATE		0x608
 #define GCR_TAG_DATA		0x610
 
-#ifdef __cplusplus
-}
-#endif
+/* Contents of  L2 RAM field */
+#define GCR_L2_RAM_HCID_SHIFT	30
+#define GCR_L2_RAM_HCID_BITS	1
+#define GCR_L2_RAM_HCIS_SHIFT	29
+#define GCR_L2_RAM_HCIS_BITS	1
 
-#endif /* _M64R6CM3_H_ */
+/* L2 Configuration Register */
+#define GCR_L2_REG_EXISTS_SHIFT	31
+#define GCR_L2_REG_EXISTS_BITS	1
+#define GCR_L2_LRU_WE_SHIFT	26
+#define GCR_L2_LRU_WE_BITS	1
+#define GCR_L2_TAG_WE_SHIFT	25
+#define GCR_L2_TAG_WE_BITS	1
+#define GCR_L2_ECC_WE_SHIFT	24
+#define GCR_L2_ECC_WE_BITS	1
+#define GCR_L2_BYPASS_SHIFT	20
+#define GCR_L2_BYPASS_BITS	1
+#define GCR_L2_SS_SHIFT		12
+#define GCR_L2_SS_BITS		4
+#define GCR_L2_SL_SHIFT		8
+#define GCR_L2_SL_BITS		4
+#define GCR_L2_SA_SHIFT		0
+#define GCR_L2_SA_BITS		8
+
+#endif /* _CM3_H_ */

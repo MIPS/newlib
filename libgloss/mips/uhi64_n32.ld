@@ -4,7 +4,8 @@
  * support.
  */
 
-ENTRY(_start)
+__entry = DEFINED(__reset_vector) ? 0xbfc00000 : _start;
+ENTRY(__entry)
 OUTPUT_FORMAT("elf32-ntradlittlemips", "elf32-ntradbigmips", "elf32-ntradlittlemips")
 GROUP(-lc -luhi -lgcc -lhal)
 SEARCH_DIR(.)
@@ -37,6 +38,15 @@ PROVIDE (__memory_size = 3M);
 
 /* Base of the memory returned by _get_ram_range */
 PROVIDE (__memory_base = 0x80000000);
+
+/* Stride length for tlb software invalidate for tlbinvf 
+ * (mipsXXr3+). Some MIPS implementations may layout the sets/ways 
+ * differently in the index register. Either sets LSB or ways LSB.
+ *
+ * By setting this to 1 we presume that sets come first. The default boot
+ * code will decrement this value from the Number of TLB entries.
+ */
+PROVIDE (__tlb_stride_length = 1);
 
 /*
  * 0 = Do not use exception handler present in boot for UHI
@@ -80,7 +90,7 @@ PROVIDE (software_init_hook = 0);
 
 /* The default base address for application code is 0x80200000 which
    leaves 2M of space at the start of KSEG0 for a bootloader. */
-PROVIDE (__app_start = 0x80200000);
+PROVIDE (__app_start = DEFINED(__reset_vector) ? 0x80000000 : 0x80200000);
 /* Set default vector spacing to 32 bytes. */
 PROVIDE (__isr_vec_space = 32);
 /* Leave space for 9 vector entries by default. 8 entry points and one
@@ -91,7 +101,7 @@ PROVIDE (__isr_vec_count = 9);
  * the use of boot code will mean that application code is copied
  * from flash to RAM at runtime before being executed.
  */
-PROVIDE (__flash_start = __app_start);
+PROVIDE (__flash_start = DEFINED(__reset_vector) ? 0xbfc00000 : __app_start);
 
 SECTIONS
 {

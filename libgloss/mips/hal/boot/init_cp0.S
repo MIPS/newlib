@@ -45,7 +45,7 @@ LEAF(__init_cp0)
     // Initialize Watch registers if implemented.
     mfc0  v0, C0_CONFIG1
     ext	  v1, v0, 3, 1	      // extract bit 3 WR (Watch registers implemented)
-    beq   v1, zero, $Ldone_wr
+    beqz  v1, $Ldone_wr
     li    	v1, 0x7	      // (M_WatchHiI | M_WatchHiR | M_WatchHiW)
 
     // Clear Watch Status bits and disable watch exceptions

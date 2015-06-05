@@ -61,6 +61,10 @@
 #endif
 #endif
 
+#ifdef MEM_MAPPED_L2C
+# error MEM_MAPPED_L2C used with Config L2 code
+#endif
+
 // Start off pointing to one block below where we want to invalidate the cache
 // as the pointer is moved on at the start of the loop. Also offset the start
 // address for each set of cache lines so that the positive and negative
@@ -145,5 +149,9 @@ $Ldone_tcache:
 #endif // TLINE_ENC != 0
     jr	  ra
 END(__init_l23cache)
+
+LEAF(__init_l23cache_cached)
+	jr	ra
+END(__init_l23cache_cached)
 
 #endif // SLINE_ENC != 0

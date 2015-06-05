@@ -29,9 +29,6 @@
 */
 
 #ifndef _CPU_H_
-#ifdef __cplusplus
-extern "C" {
-#endif
 #define _CPU_H_
 
 #if !defined(__ASSEMBLER__)
@@ -46,7 +43,11 @@ extern "C" {
 #endif
 #endif /* SR_IMASK */
 
-#if defined(__STDC__) && !defined(__ASSEMBLER__)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if !defined(__ASSEMBLER__)
 /*
  * Generic MIPS cache handling
  *

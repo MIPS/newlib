@@ -31,13 +31,13 @@
 #ifndef _MIPS_ENDIAN_H_
 #define _MIPS_ENDIAN_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef __ASSEMBLER__
 #include <stdint.h>	/* get compiler types */
 #include <sys/types.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #ifndef BYTE_ORDER
@@ -87,9 +87,10 @@ extern "C" {
 #endif /* __ASSEMBLER__ */
 #endif	/* BYTE_ORDER */
 
-#include <machine/endian.h>
-
 #ifdef __cplusplus
 }
 #endif
+
+#include <machine/endian.h>
+
 #endif /*_MIPS_ENDIAN_H_*/

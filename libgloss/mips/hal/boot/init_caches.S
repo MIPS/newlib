@@ -166,7 +166,7 @@ LEAF(__change_k0_cca)
     li	  TEMP, CFG_C_NONCOHERENT		  // CCA for all others
 
 $Lset_kseg0_cca:
-    ins	  CONFIG, TEMP, 0, 3			  // instert K0
+    ins	  CONFIG, TEMP, 0, 3			  // insert K0
     mtc0  CONFIG, C0_CONFIG			  // write C0_Config
     .set push
     .set noreorder

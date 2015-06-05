@@ -31,7 +31,7 @@
 
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
-CFLAGS += -g
+CFLAGS += -g -O1
 LDFLAGS += -g
 
 OBJS = interrupt_handler.o
