@@ -42,7 +42,7 @@
  *
  * Return number of entries in TLB.
  * Entries in v0, number of sets in v1.
- * Must not use registers a0 or a3
+ * Must not use registers t8 or a3
  *
  */
 SLEAF(__tlb_size)
@@ -114,9 +114,13 @@ SLEAF(__tlb_size)
 	addu	t2, t2, t3
 
 	# Sets per way
-	ext	v1, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
-	sllv	t2, t2, v1
-	addu	v0, v0, v1
+	ext	t3, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
+	li	v1, 1
+	sllv	v1, v1, t3
+
+	# Total sets
+	sllv	t2, t2, t3
+	addu	v0, v0, t2
 
 9:	jr	ra
 SEND(__tlb_size)
@@ -132,7 +136,6 @@ SLEAF(__tlbinvalall)
 	mfc0	t0, C0_CONFIG
 	ext	t3, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	andi	t1, t3, ((CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT)
-
 	beqz	t1, 11f			# Config[MT] test, return if no TLB.
 
 	PTR_MTC0 zero, C0_ENTRYLO0
@@ -178,9 +181,9 @@ SLEAF(__tlbinvalall)
 	 * at the last VTLB entry.
 	 */
 
-	move	a0, ra
+	move	t8, ra
 	jal	__tlb_size
-	move	ra, a0
+	move	ra, t8
 
 	# Clear VTLB
 	mtc0	zero, C0_INDEX
@@ -196,8 +199,7 @@ SLEAF(__tlbinvalall)
 	lui	t9, %hi(__tlb_stride_length)	# Fetch the tlb stride for
 	addiu	t9, %lo(__tlb_stride_length)	# stepping through FTLB sets.
 	mul	v1, v1, t9
-	subu	t2, v0, t9			# End pointer
-
+	subu	t2, v0, v1			# End pointer
 
 12:	subu	v0, v0, t0
 	mtc0	v0, C0_INDEX
@@ -218,7 +220,6 @@ SLEAF(__tlbinvalall)
 	jal	__tlb_size
 	move	ra, t8
 
-#if ENABLE_LPA
 	# If large physical addressing is enabled, load 0xFFFFFFFF
 	# into the top half of EntryHi.
 	move	t0, zero			# t0 == 0 if XPA disabled
@@ -227,22 +228,22 @@ SLEAF(__tlbinvalall)
 	beqz	t9, 10f
 
 	mfc0	t9, C0_PAGEGRAIN
-	and	t9, t1, PAGEGRAIN_ELPA
+	ext	t9, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
 	bnez	t9, 10f
 
 	li	t0, -1				# t0 == 0xFFFFFFFF if XPA
 						# is used.
-#endif
-
 10:	li	t1, (KSEG0_BASE - 2<<13)
+
 	move	v1, zero
 12:	addiu	t1, t1, (2<<13)
 	PTR_MTC0 t1, C0_ENTRYHI
 
-#if ENABLE_LPA
 	beqz	t0, 13f
-	mthc0   t0, C0_ENTRYHI		# Store 0xFFFFFFFF to upper half of EntryHI
-#endif
+	.set	push
+	.set	xpa
+	mthc0	t0, C0_ENTRYHI		# Store 0xFFFFFFFF to upper half of EntryHI
+	.set	pop
 
 13:	ehb				# mtc0, hazard on tlbp
 

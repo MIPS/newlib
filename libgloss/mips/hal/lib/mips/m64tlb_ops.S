@@ -73,12 +73,9 @@
 	mfhc0	bot, reg;		\
 #endif
 
-
-
-
 /*
  * void m64_tlbwi2(tlbhi64_t hi, tlblo64_t lo0, tlblo64_t lo1, unsigned long long mask,
- *			unsigned int index)
+ *		   unsigned int index)
  *
  * Writes hi,lo0,lo1 and msk in to the TLB entry specified by index.
  *
@@ -96,7 +93,7 @@ LEAF(m64_tlbwi2)
 	PTR_L	t2, 24(sp)
 	PTR_XO32_MTC0(t2, t1, C0_PAGEMASK)
 
-	PTR_L	ta0, 32(sp)
+	lw	ta0, 32(sp)
 #else /* _MIPS_SIM==N32 || _MIPS_SIM==N64 */
 	PTR_MTC0 a0, C0_ENTRYHI
 	PTR_MTC0 a1, C0_ENTRYLO0
@@ -217,7 +214,7 @@ END(m64_tlbrwr2)
 
 /*
  * void m64_tlbri2(tlbhi64_t *phi, tlblo64_t *plo0, tlblo64_t *plo1,
- *		unsigned long long * mask, unsigned int index)
+ *		   unsigned long long * mask, unsigned int index)
  *
  * Reads the TLB entry with specified by index, and returns the EntryHi, EntryLo0,
  * EntryLo1 and PageMask parts in *phi, *plo0, *plo1 and *pmsk respectively.
@@ -317,7 +314,6 @@ LEAF(m64_tlbprobe2)
 	jr.hb	ra
 	nop
 	.set	pop
-
 
 1:	li	v0,-1
 #if _MIPS_SIM==_ABIO32

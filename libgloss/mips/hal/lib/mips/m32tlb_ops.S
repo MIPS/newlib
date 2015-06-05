@@ -243,18 +243,3 @@ LEAF(mips_tlbinval)
 	.set	pop
 
 END(mips_tlbinval)
-
-/*
- * void mips_init_tlb()
- *
- * Initialize the TLB
- *
- */
-LEAF(mips_init_tlb)
-
-	move	v1, ra
-	jal	mips_tlbinvalall
-	move	ra, v1
-
-	jr	ra
-END(mips_init_tlb)
