@@ -39,6 +39,15 @@ PROVIDE (__memory_size = 3M);
 /* Base of the memory returned by _get_ram_range */
 PROVIDE (__memory_base = 0xffffffff80000000);
 
+/* Stride length for tlb software invalidate for tlbinvf 
+ * (mipsXXr3+). Some MIPS implementations may layout the sets/ways 
+ * differently in the index register. Either sets LSB or ways LSB.
+ *
+ * By setting this to 1 we presume that sets come first. The default boot
+ * code will decrement this value from the Number of TLB entries.
+ */
+
+PROVIDE (__tlb_stride_length = 1);
 /*
  * 0 = Do not use exception handler present in boot for UHI
  * 1 = Use exception handler present in boot for UHI if BEV is 0 at

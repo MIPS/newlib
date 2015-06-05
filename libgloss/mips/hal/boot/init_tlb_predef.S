@@ -73,16 +73,25 @@ LEAF(__init_tlb)
 	 * One TLBINVF is executed per FTLB entry.
 	 *
 	 */
-	li	t2, MMU_SIZE			# VTLB Size + FTLB Sets, end ptr
-	li	t1, MMU_SIZE - (1 + FTLB_SIZE)	# Point at last VTLB entry.
+	li	t2, MMU_SIZE			# Start pointer/finger
+	li	t1, MMU_SIZE - FTLB_SETS	# End pointer
+	li	t9, %hi(__tlb_stride_length)
+	addiu	t9, %lo(__tlb_stride_length)
 
-12:	mtc0	t1, C0_INDEX
+	mtc0	zero, C0_INDEX
+	ehb
+	.set	push
+	.set	mips32r3
+	tlbinvf
+	.set	pop
+
+12:	subu	t2, t2, t9
+	mtc0	t2, C0_INDEX
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
 	.set	mips32r3
 	tlbinvf
 	.set	pop
-	addu	t1, t1, 1
 	bne	t1, t2, 12b
 #endif
 
@@ -110,8 +119,8 @@ LEAF(__init_tlb)
 	tlbp				# Probe for a match.
 	ehb				# tlbp, hazard on  MFC0
 
-	PTR_MFC0 t8, C0_INDEX
-	bltz	t8, 12b			# Skip this address if it exists.
+	mfc0	t8, C0_INDEX
+	bgez	t8, 12b			# Skip this address if it exists.
 
 	mtc0	v0, C0_INDEX
 	ehb				# mtc0, hazard on tlbwi

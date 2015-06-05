@@ -38,9 +38,10 @@
 #include <mips/regdef.h>
 
 /*
- * int __tlb_size();
+ * int, int __tlb_size();
  *
  * Return number of entries in TLB.
+ * Entries in v0, number of sets in v1.
  *
  */
 SLEAF(__tlb_size)
@@ -80,9 +81,17 @@ SLEAF(__tlb_size)
 	li	t2, (CFG4_MMUED_SIZEEXT >> CFG4_MMUED_SHIFT)
 	beq	t3, t2, 7f			# SizeExt for VTLBEXT
 
-	beqz	t3, 9f				# Reserved, nothing more to do
+	li	t2, (CFG4_MMUED_FTLB >> CFG4_MMUED_SHIFT)
+	beq	t3, t2, 10f			# FTLB Size
 
-	b	10f				# FTLB Size
+	# CFG4_MMUED == 0, Reserved.
+	# Reserved value in CFG4_MMUED, report a boot failure
+	li	t9, 29
+	# Reason - Core configuration reports impossible values
+	li	a0, 3
+	# Trigger the UHI operation
+	sdbbp	1
+
 7:
 	ext	t3, t1, CFG4_MMUSE_SHIFT, CFG4_MMUSE_BITS
 	sll	t2, t3, CFG1_MMUS_BITS
@@ -104,9 +113,9 @@ SLEAF(__tlb_size)
 	addu	t2, t2, t3
 
 	# Sets per way
-	ext	t3, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
-	sllv	t2, t2, t3
-	addu	v0, v0, t2
+	ext	v1, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
+	sllv	t2, t2, v1
+	addu	v0, v0, v1
 
 9:	jr	ra
 SEND(__tlb_size)
@@ -128,19 +137,22 @@ SLEAF(__tlbinvalall)
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
 
-	mfc0	t9, C0_CONFIG4			# Config4[IE] = 0, do old method for
-						# invalidation
+	// If Config4[IE] = 0, use old method for invalidation
+	mfc0	t9, C0_CONFIG4
 	ext     t2, t9, CFG4_IE_SHIFT, CFG4_IE_BITS
 	beqz	t2, 9f
 
+	// If Config[MT] = 1,  one instruction required
 	li	t0, (CFG0_MT_TLB >> CFG0_MT_SHIFT)
-	beq	t3, t0, 7f		#Config[MT] = 1, one instruction required
+	beq	t3, t0, 7f
 
-
+	// If Config[IE] = 3, one instruction required
 	li	t1, (CFG4_IE_INVALL >> CFG4_IE_SHIFT)
-	beq	t1, t2, 7f		#Config4[IE] = 3, one instruction required
+	beq	t1, t2, 7f
 
-	b	8f			#Config4[IE] = 2, many instructions required
+	// If Config4[IE] = 2, many instructions required
+	// No other options
+	b	8f
 
 7:	# TLB walk done by hardware, Config4[IE] = 3 or Config[MT] = 1
 	mtc0	zero, C0_INDEX
@@ -163,34 +175,33 @@ SLEAF(__tlbinvalall)
 	 * at the last VTLB entry.
 	 */
 
-	# FTLB Ways
-	li	t2, 2
-	ext	t3, t9, CFG4_FTLBW_SHIFT, CFG4_FTLBW_BITS
-	add	t2, t2, t3
+	move	a0, ra
+	jal	__tlb_size
+	move	ra, a0
 
-	# FTLB Sets per way
-	ext	t3, t9, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
-	sllv	t2, t2, t3
+	# Clear VTLB
+	mtc0	zero, C0_INDEX
+	ehb
+	.set	push
+	.set	mips32r3
+	tlbinvf
+	.set	pop
 
-	ext	t3, t9, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
-	sll	t3, t3, CFG1_MMUS_BITS
+	# v0 contains number of TLB entries
+	# v1 contains number of sets per way
+	subu	t2, v0, v1			# t2 holds end index
+						# v0 holds start index
+	lui	t0, %hi(__tlb_stride_length)	# Fetch the tlb stride for
+	addiu	t0, %lo(__tlb_stride_length)	# stepping through FTLB sets.
 
-	mfc0	t0, C0_CONFIG1
-	ext	t1, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
-	or	t1, t1, t3			# VTLB Size, set ptr, points at last
-						# VTLB entry.
-
-	addu	t2, t2, t1			# VTLB Size + FTLB Sets, end ptr
-	addiu	t2, t2, 1
-
-12:	mtc0	t1, C0_INDEX
+12:	subu	v0, v0, t0
+	mtc0	t1, C0_INDEX
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
 	.set	mips32r3
 	tlbinvf
 	.set	pop
-	addiu	t1, t1, 1
-	bne	t1, t2, 12b
+	bne	v0, t2, 12b
 
 	b	11f
 
@@ -214,9 +225,7 @@ SLEAF(__tlbinvalall)
 	bnez	t9, 10f
 
 	li	t0, -1				# t0 == 0xFFFFFFFF if XPA
-	mthc0	zero, C0_ENTRYLO0		# is used.
-	mthc0	zero, C0_ENTRYLO1
-	mthc0	zero, C0_PAGEMASK
+						# is used.
 #endif
 
 10:	li	t1, (KSEG0_BASE - 2<<13)
@@ -234,7 +243,7 @@ SLEAF(__tlbinvalall)
 	tlbp				# Probe for a match.
 	ehb				# tlbp, Hazard on mfc0
 
-	PTR_MFC0 t8, C0_INDEX
+	mfc0	t8, C0_INDEX
 	bgez	t8, 12b			# Skip this address if it exists.
 
 	mtc0	v0, C0_INDEX
@@ -259,9 +268,6 @@ LEAF(__init_tlb)
 	and	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL)
 	beqz	t2, 1f			# return if no tlb present.
 
-	move	v1, ra
-	jal	__tlbinvalall
-	move	ra, v1
 #if ENABLE_LPA
 	mfc0	t0, C0_CONFIG3
 	and	t0, t0, CFG3_LPA
@@ -272,7 +278,10 @@ LEAF(__init_tlb)
 	ins	t0, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
 	mtc0	t0, C0_PAGEGRAIN
 #endif
+	move	a3, ra
+	jal	__tlbinvalall
+	move	ra, a3
 
-	PTR_MTC0 zero, C0_PAGEMASK
+	mtc0	zero, C0_PAGEMASK
 1:	jr	ra
 END(__init_tlb)

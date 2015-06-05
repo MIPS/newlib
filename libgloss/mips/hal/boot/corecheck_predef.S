@@ -78,6 +78,12 @@
 #define C0_CMGCRBASE_EXP C0_CMGCRBASE_VALUE
 #endif
 
+// GCR L2 config has REG_EXISTS and L2 config as readonly nozero fields.
+#if defined(GCR_L2_CONFIG)
+#define GCR_L2_CONFIG_RO ((1<<31) | ((1<<16) - 1))
+#define GCR_L2_CONFIG_EXP GCR_L2_CONFIG_VALUE
+#endif
+
 LEAF(__core_check)
 	/*
 	 * Compare the expected value to the RO fields
@@ -165,6 +171,20 @@ LEAF(__core_check)
 	mfc0	t3, C0_CMGCRBASE
 	and	t2, t1, t3
 	bne	t2, t0, 1f
+#if defined(GCR_L2_CONFIG_VALUE)
+	lui	t0, %hi(GCR_L2_CONFIG_EXP)
+	addiu   t0, t0, %lo(GCR_L2_CONFIG_EXP)
+
+	lui	t1, %hi(GCR_L2_CONFIG_RO)
+	addiu   t1, t1, %lo(GCR_L2_CONFIG_RO)
+
+	lui	t2, %hi(C0_CMGCRBASE_ADDR)
+	addiu	t2, t2, %lo(C0_CMGCRBASE_ADDR)
+
+	lw	t3, GCR_L2_CONFIG(t2)
+	and	t2, t1, t3
+	bne	t2, t0, 1f
+#endif
 #endif
 
 #if defined(C0_WATCHHI_VALUE)

@@ -133,27 +133,27 @@ AENT(m64_tlbinvalall)
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
 
-	mfc0	t0, C0_CONFIG4			# Config4[IE] = 0, do old method for
-						# invalidation
-	ext	t2, t0, CFG4_IE_SHIFT, CFG4_IE_BITS
-	andi	t2, t0, (CFG4_IE_MASK >> CFG4_IE_SHIFT)
+	// If Config4[IE] = 0, use old method for invalidation
+	mfc0	t9, C0_CONFIG4
+	ext     t2, t9, CFG4_IE_SHIFT, CFG4_IE_BITS
 	beqz	t2, 9f
 
+	// If Config[MT] = 1,  one instruction required	
 	li	t0, (CFG0_MT_TLB >> CFG0_MT_SHIFT)
-	beq	t3, t0, 7f			# Config[MT] = 1, one instruction required
+	beq	t3, t0, 7f	
 
-	mfc0	t0, C0_CONFIG4			# Config4[IE] = 3, one instruction required
-	ext	t1, t0, CFG4_IE_SHIFT, CFG4_IE_BITS
-	li	t2, (CFG4_IE_MASK >> CFG4_IE_SHIFT)
-	beq	t1, t2, 7f
+	// If Config[IE] = 3, one instruction required			
+	li	t1, (CFG4_IE_INVALL >> CFG4_IE_SHIFT)
+	beq	t1, t2, 7f		
 
-	b	8f				# Config4[IE] = 2
-
+	// If Config4[IE] = 2, many instructions required
+	// No other options
+	b	8f		
 7:	# TLB walk done by hardware, Config4[IE] = 3 or Config[MT] = 1
 	mtc0	zero, C0_INDEX
 	ehb
 	.set	push
-	.set	mips32r5
+	.set	mips32r3
 	tlbinvf
 	.set	pop
 	b	11f
@@ -194,7 +194,7 @@ AENT(m64_tlbinvalall)
 12:	mtc0	t1, C0_INDEX
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
-	.set	mips32r5
+	.set	mips32r3
 	tlbinvf
 	.set	pop
 	addiu	t1, t1, 1

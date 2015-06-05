@@ -40,17 +40,12 @@ LEAF(__init_l23cache)
 	# Check for memory mapped L2 cache config
 	mfc0	t0, C0_CONFIG4
 	ext	t1, t0, CFG4_M_SHIFT, 1
-	beqz	t1, ret
+	beqz	t1, err
+
 	mfc0	t0, C0_CONFIG5
 	ext	t1, t0, CFG5_L2C_SHIFT, 1
 	bnez	t1, disable_cache
-
-	# Config 5 reports that Config2 holds l2 cache config.
-	# Should there be no configuration there either, just return.
-	mfc0	t0, C0_CONFIG2
-	ext	t1, t0, CFG2_SL_SHIFT, CFG2_SL_BITS
-	beqz	t1, ret
-
+err:
 	# CM3 L2 code supplied but we have a Config2 L2 setup
 	# Report a Boot failure through UHI
 	li	t9, 23
@@ -107,9 +102,12 @@ LEAF(__init_l23cache_cached)
 	addiu	v1, v1, 1			# Set associativity
 	mul	a0, v1, a0			# Get total number of sets
 
-	sd	zero, GCR_TAG_ADDR(CM3_BASE)
-	sd	zero, GCR_TAG_STATE(CM3_BASE)
-	sd	zero, GCR_TAG_DATA(CM3_BASE)
+	sw	zero, GCR_TAG_ADDR(CM3_BASE)
+	sw	zero, (GCR_TAG_ADDR+4)(CM3_BASE)
+	sw	zero, GCR_TAG_STATE(CM3_BASE)
+	sw	zero, (GCR_TAG_STATE+4)(CM3_BASE)
+	sw	zero, GCR_TAG_DATA(CM3_BASE)
+	sw	zero, (GCR_TAG_DATA+4)(CM3_BASE)
 
 	li	t0, 0x8000FFFF			# Reg exists, L2 cache does
 						# TAG/DATA ECC.
@@ -117,7 +115,7 @@ LEAF(__init_l23cache_cached)
 	li	t0, (1<<GCR_L2_LRU_WE_SHIFT)	# LRU is updated on store tag
 						# operation
 	or	v0, v0, t0
-	sd	v0, GCR_L2_CONFIG(CM3_BASE)
+	sw	v0, GCR_L2_CONFIG(CM3_BASE)
 	sync					# Memory hazard
 
 	lui	a2, 0x8000

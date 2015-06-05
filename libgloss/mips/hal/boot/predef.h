@@ -68,17 +68,29 @@
 # endif
 # if (C0_CONFIG5_VALUE & CFG5_L2C) != 0
 #  define MEM_MAPPED_L2C 1
-#  ifndef C0_CMGCRBASE_VALUE
-#    error "Static CM3 cache initialization decisions require C0_CMGCRBASE_VALUE"
-#  endif
+# endif
+# ifndef C0_CMGCRBASE_VALUE
+#  error "Static CM3 cache initialization decisions require C0_CMGCRBASE_VALUE"
+# else
+#  define C0_CMGCRBASE_ADDR ((C0_CMGCRBASE_VALUE << 4) | (0xb << 28))
+# endif
+# ifndef GCR_L2_CONFIG_VALUE
+#  error "Static CM3 cache initialization decisions require GCR_L2_CONFIG_VALUE"
 # endif
 #endif
 
+#ifndef GCR_L2_CONFIG_VALUE
 #define SLINE_ENC    ((C0_CONFIG2_VALUE & CFG2_SL_MASK) >> CFG2_SL_SHIFT)
-#define SLINE_SIZE   (2 << SLINE_ENC)
 #define SSET_ENC     ((C0_CONFIG2_VALUE & CFG2_SS_MASK) >> CFG2_SS_SHIFT)
-#define SSET_SIZE    (64 << SSET_ENC)
 #define SASSOC_ENC   ((C0_CONFIG2_VALUE & CFG2_SA_MASK) >> CFG2_SA_SHIFT)
+#else
+#define SLINE_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SL_MASK) >> GCRL2_CFG_SL_SHIFT)
+#define SSET_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SS_MASK) >> GCRL2_CFG_SS_SHIFT)
+#define SASOC_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SA_MASK) >> GCRL2_CFG_SA_SHIFT)
+#endif
+
+#define SLINE_SIZE   (2 << SLINE_ENC)
+#define SSET_SIZE    (64 << SSET_ENC)
 #define SASSOC	      (SASSOC_ENC + 1)
 #define STOTAL_BYTES (SLINE_SIZE * SSET_SIZE * SASSOC)
 
@@ -99,10 +111,11 @@
 
 // Size definitions.
 // FTLBs may be present.
-#define FTLB_SET_ENC	(C0_CONFIG4_VALUE & CFG4_FTLBS_MASK)
+#define FTLB_SET_ENC	(C0_CONFIG4_VALUE & CFG4_FTLBS_MASK) >> (CFG4_FTLBS_SHIFT)
 #define FTLB_WAY_ENC	((C0_CONFIG4_VALUE & CFG4_FTLBW_MASK) >> CFG4_FTLBW_SHIFT)
 #if TLB_DUAL
 #define FTLB_SIZE	(2 + FTLB_WAY_ENC) << FTLB_SET_ENC
+#define FTLB_SETS	(64 << FTLB_SET_ENC)
 #else
 #define FTLB_SIZE	0
 #endif
@@ -123,8 +136,9 @@
 #if (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_FTLBVEXT
 #define MMU_SIZE	(FTLB_SIZE + VTLB_SIZE + TLB_SIZE + 1)
 #elif (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_SIZEEXT
-#define MMU_SIZE	(((C0_CONFIG4_VALUE & CFG4_MMUSE_MASK) << CFG1_MMUS_BITS) \
-			+ TLB_SIZE + 1)
+#define MMUSE_ENC	(C0_CONFIG4_VALUE & CFG4_MMUSE_MASK) >> CFG4_MMUSE_SHIFT
+#define TLB_EXT_SIZE	(MMUSE_ENC << CFG1_MMUS_BITS)
+#define MMU_SIZE	(TLB_EXT_SIZE + TLB_SIZE + 1)
 #elif (C0_CONFIG4_VALUE & CFG4_MMUED) == CFG4_MMUED_FTLB
 #define MMU_SIZE	(FTLB_SIZE + TLB_SIZE + 1)
 #elif (C0_CONFIG4_VALUE & CFG4_MMUED) == 0

@@ -36,18 +36,12 @@
 #include <mips/cm3.h>
 #include "predef.h"
 
-#ifdef MEM_MAPPED_L2C
-#define CM3_BASE	CM3_BASE
+#define CM3_BASE	a3
 LEAF(__init_l23cache)
-	# Read CMGCRBase to find CMGCR_BASE_ADDR
-	li	v1, C0_CMGCRBASE_VALUE
-	sll	v1, v1, CMGCR_BASE_ADDR_LSHIFT
-	lui	CM3_BASE, 0xb000		# Make it virtual
-	or	CM3_BASE, CM3_BASE, v1
-
+	li	CM3_BASE, C0_CMGCRBASE_ADDR
 	# Disable L2 cache
 	PTR_L	v0, GCR_L2_CONFIG(CM3_BASE)
-	li	a2, v1, 1
+	li	a2, 1
 	ins	v0, a2, GCR_L2_BYPASS_SHIFT, GCR_L2_BYPASS_BITS
 	PTR_S	v0, GCR_L2_CONFIG(CM3_BASE)
 
@@ -55,17 +49,9 @@ LEAF(__init_l23cache)
 END(__init_l23cache)
 
 LEAF(__init_l23cache_cached)
-	# Read CMGCRBase to find CMGCR_BASE_ADDR
-	li	v1, C0_CMGCRBASE_VALUE
-	sll	v1, v1, 4
-	lui	CM3_BASE, 0xb000		# Make it virtual
-	or	CM3_BASE, CM3_BASE, v1
+	li	CM3_BASE, C0_CMGCRBASE_ADDR
 
-	# Read GCR_L2_CONFIG
-	PTR_L	v0, GCR_L2_CONFIG(CM3_BASE)
-	ext	v1, v0, GCR_L2_SL_SHIFT, GCR_L2_SL_BITS
-	beqz	v1, done_cm3l2cache		# No L2 cache
-
+#if SLINE_ENC != 0
 	# Unusual case, hardware cache initialization support & init finished.
 	PTR_L	t1, GCR_L2_RAM_CONFIG(CM3_BASE)
 	ext	t0, t1, GCR_L2_RAM_HCIS_SHIFT, (GCR_L2_RAM_HCID_BITS +\
@@ -74,20 +60,15 @@ LEAF(__init_l23cache_cached)
 	beq	t0, t1, done_cm3l2cache
 
 	# Compute L2 cache size
-	li	a2, 2
-	sllv	a1, a2, v1	 		# Now have L2 line size
+	li	a1, SLINE_SIZE
+	li	a0, SSET_SIZE
 
-	ext	a0, v0, GCR_L2_SS_SHIFT, GCR_L2_SS_BITS
-	li	a2, 64
-	sllv	a0, a2, a0			# Now have L2 sets/way
-
-	ext	v1, v0, GCR_L2_SA_SHIFT, GCR_L2_SA_BITS
-	addiu	v1, v1, 1			# Set associativity
-	mul	a0, v1, a0			# Get total number of sets
-
-	sd	zero, GCR_TAG_ADDR(CM3_BASE)
-	sd	zero, GCR_TAG_STATE(CM3_BASE)
-	sd	zero, GCR_TAG_DATA(CM3_BASE)
+	sw	zero, GCR_TAG_ADDR(CM3_BASE)
+	sw	zero, (GCR_TAG_ADDR+4)(CM3_BASE)
+	sw	zero, GCR_TAG_STATE(CM3_BASE)
+	sw	zero, (GCR_TAG_STATE+4)(CM3_BASE)
+	sw	zero, GCR_TAG_DATA(CM3_BASE)
+	sw	zero, (GCR_TAG_DATA+4)(CM3_BASE)
 
 	li	t0, 0x8000FFFF			# Reg exists, L2 cache does
 						# TAG/DATA ECC.
@@ -95,16 +76,16 @@ LEAF(__init_l23cache_cached)
 	li	t0, (1<<GCR_L2_LRU_WE_SHIFT)	# LRU is updated on store tag
 						# operation
 	or	v0, v0, t0
-	sd	v0, GCR_L2_CONFIG(CM3_BASE)
+	sw	v0, GCR_L2_CONFIG(CM3_BASE)
 	sync					# Memory hazard
 
 	lui	a2, 0x8000
-
 next_cm3l2cache_tag:
 	cache	Index_Store_Tag_S, 0(a2)
 	addiu	a0, a0, -1
 	addu	a2, a2, a1
 	bnez	a0, next_cm3l2cache_tag
+#endif /* SLINE_ENC != 0 */
 
 done_cm3l2cache:
 	move	a2, zero
@@ -115,4 +96,3 @@ done_cm3l2cache:
 	# Return
 	jr	ra
 END(__init_l23cache_cached)
-#endif // MEM_MAPPED_L2C
