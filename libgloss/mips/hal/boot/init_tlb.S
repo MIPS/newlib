@@ -42,6 +42,7 @@
  *
  * Return number of entries in TLB.
  * Entries in v0, number of sets in v1.
+ * Must not use registers a0 or a3
  *
  */
 SLEAF(__tlb_size)
@@ -124,6 +125,7 @@ SEND(__tlb_size)
  * void __tlbinvalall()
  *
  * Invalidate the TLB.
+ * Must not use register a3
  */
 SLEAF(__tlbinvalall)
 
