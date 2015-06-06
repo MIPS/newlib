@@ -146,7 +146,7 @@ LEAF(mips_tlbri2)
 	mfc0	t1, C0_ENTRYLO0
 	mfc0	t2, C0_ENTRYLO1
 	mfc0	t3, C0_PAGEMASK
-	sw	t0, 0(a1)
+	sw	t0, 0(a0)
 	sw	t1, 0(a1)
 	sw	t2, 0(a2)
 	sw	t3, 0(a3)
