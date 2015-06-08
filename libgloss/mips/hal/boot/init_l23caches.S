@@ -63,7 +63,6 @@ l23_init:
 
     // Isolate L2$ Line Size
     ext	    v1, v0, CFG2_SL_SHIFT, CFG2_SL_BITS
-
     // Skip ahead if No L2$
     beqz    v1, done_l2cache
 
@@ -81,20 +80,27 @@ l23_init:
     addiu   v1, v1, 1
 
     mul	    a0, a0, v1			// Get total number of sets
+    mul	    t9, a0, a1			// Total size of cache.
 
 l2cache_init:
-    lui	    a2, 0x8000			// Get a KSeg0 address for cacheops
-
-    // Clear L23TagLo/L23TagHi registers
+   // Clear L23TagLo/L23TagHi registers
     mtc0    zero, C0_TAGLO, 4
+
+    lui	    a2, 0x8000			// Get a KSeg0 address for cacheops
+    subu     a2, a2, a1			// Prebias  the address as the loop
+    subu     a3, a2, a1			// increments them first.
+
+    addu     t9, t9, a2			// End pointer
+    sll	    a1, a1, 1			// Double lines as we do 2 cache operations
 
     // L2$ Index Store Tag Cache Op
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
 next_L2cache_tag:
-    cache   Index_Store_Tag_S, 0(a2)	// Write Tag using index store tag
-    addiu   a0, a0, -1			// Decrement set counter
     addu    a2, a2, a1			// Get next line address
-    bnez    a0, next_L2cache_tag 	// Done yet?
+    addu    a3, a3, a1
+    cache   Index_Store_Tag_S, 0(a2)	// Write Tag using index store tag
+    cache   Index_Store_Tag_S, 0(a3)
+    bne	   a3, t9, next_L2cache_tag 	// Done yet?
 
 done_l2cache:
     // Isolate L3$ Line Size
@@ -116,9 +122,16 @@ done_l2cache:
     ext	   v1, v0, CFG2_TA_SHIFT, CFG2_TA_BITS
     addiu  v1, v1, 1			// Decode L3 associativity (number of sets)
     mul	   a0, a0, v1			// Compute total number of sets
+    mul	   t9, a0, a1			// Total size of cache.
 
 l3cache_init:
-    lui	    a2, 0x8000		   	// Get a KSeg0 address for cacheops
+
+    lui	    a2, 0x8000			// Get a KSeg0 address for cacheops
+    subu     a2, a2, a1			// Prebias  the address as the loop
+    subu     a3, a2, a1			// increments them first.
+
+    addu     t9, t9, a2			// End pointer
+    sll	    a1, a1, 1			// Double lines as we do 2 cache operations
 
     // Clear L23Tag register
     mtc0    zero, C0_TAGLO, 4
@@ -126,10 +139,11 @@ l3cache_init:
     // L3$ Index Store Tag Cache Op
     // Will invalidate the tag entry, clear the lock bit, and clear the LRF bit
 next_L3cache_tag:
+    add	   a2, a2, a1			// Get next line address
+    add	   a3, a3, a1			// Get next line address
     cache   Index_Store_Tag_T, 0(a2)	// TCIndexStTag
-    addiu   a0, a0, -1			// Decrement set counter
-    add	    a2, a2, a1			// Get next line address
-    bnez    a0, next_L3cache_tag
+    cache   Index_Store_Tag_T, 0(a3)	// TCIndexStTag
+    bne	   a3, t9, next_L3cache_tag
 
 done_l3cache:
     jr      ra
