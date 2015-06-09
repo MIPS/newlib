@@ -131,7 +131,6 @@ END(mips_tlb_size)
  */
 LEAF(mips_tlbinvalall)
 AENT(m64_tlbinvalall)
-AENT(mips_init_tlb)
 
 	mfc0	t0, C0_CONFIG
 	ext	t3, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
