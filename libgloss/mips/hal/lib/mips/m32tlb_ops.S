@@ -233,7 +233,19 @@ LEAF(mips_tlbinval)
 	li	t1, C0_ENTRYHI_EHINV_MASK
 	b	3f
 
-2:	li	t1, KSEG0_BASE
+2:	li	t1, (KSEG0_BASE - 2<<13)
+5:	addiu	t1, t1, 2<<13
+	mtc0	t1, C0_ENTRYHI
+	ehb				# mtc0, Hazard on tlbp
+
+	tlbp
+	ehb				# tlbp, hazard on index
+
+	mfc0	t2, C0_INDEX
+	bgez	t2, 5b
+
+	mtc0	v0, C0_INDEX
+
 3:	mtc0	t1, C0_ENTRYHI
 	ehb				# mtco, hazard on tlbwi
 
