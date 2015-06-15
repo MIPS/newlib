@@ -112,6 +112,9 @@ LEAF(__init_l23cache_cached)
 	sw	zero, (GCR_TAG_STATE+4)(CM3_BASE)
 	sw	zero, GCR_TAG_DATA(CM3_BASE)
 	sw	zero, (GCR_TAG_DATA+4)(CM3_BASE)
+	sw	zero, GCR_TAG_ECC(CM3_BASE)
+	sw	zero, (GCR_TAG_ECC+4)(CM3_BASE)
+	sync
 
 	li	t0, 0x8000FFFF			# Reg exists, L2 cache does
 						# TAG/DATA ECC.

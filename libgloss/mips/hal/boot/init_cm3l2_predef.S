@@ -49,14 +49,14 @@
 
 #undef SLINE_ENC
 #undef SSET_ENC
-#undef SASOC_ENC
+#undef SASSOC_ENC
 #undef SLINE_SIZE
 #undef SSET_SIZE
 #undef SASSOC
 
 #define SLINE_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SL_MASK) >> GCRL2_CFG_SL_SHIFT)
 #define SSET_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SS_MASK) >> GCRL2_CFG_SS_SHIFT)
-#define SASOC_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SA_MASK) >> GCRL2_CFG_SA_SHIFT)
+#define SASSOC_ENC    ((GCR_L2_CONFIG_VALUE & GCR_L2_SA_MASK) >> GCRL2_CFG_SA_SHIFT)
 #define SLINE_SIZE   (2 << SLINE_ENC)
 #define SSET_SIZE    (64 << SSET_ENC)
 #define SASSOC	      (SASSOC_ENC + 1)
@@ -94,6 +94,8 @@ LEAF(__init_l23cache_cached)
 	sw	zero, (GCR_TAG_STATE+4)(CM3_BASE)
 	sw	zero, GCR_TAG_DATA(CM3_BASE)
 	sw	zero, (GCR_TAG_DATA+4)(CM3_BASE)
+	sw	zero, GCR_TAG_ECC(CM3_BASE)
+	sw	zero, (GCR_TAG_ECC+4)(CM3_BASE)
 
 	li	t0, 0x8000FFFF			# Reg exists, L2 cache does
 						# TAG/DATA ECC.
