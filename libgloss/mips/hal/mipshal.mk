@@ -49,6 +49,7 @@ lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(s
 
 # These are linker script symbols that are prefixed with '__"
 priv_symbols = MEMORY_BASE MEMORY_SIZE STACK
+priv_symbols += ENABLE_XPA
 priv_symbols += FLUSH_TO_ZERO
 priv_symbols += FLASH_START APP_START FLASH_APP_START
 priv_symbols += ISR_VEC_SPACE ISR_VECTOR_COUNT
