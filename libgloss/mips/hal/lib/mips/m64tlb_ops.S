@@ -373,11 +373,33 @@ LEAF(m64_tlbinval)
 	b	3f
 
 #if _MIPS_SIM==_ABIO32
-2:	li	v0, -1
-	li	v1, KSEG0_BASE
-3:	PTR_XO32_MTC0(v0, v1, C0_ENTRYHI)
+2:	li	t1, -1
+	li	v1, (KSEG0_BASE - 2<<13)
+5:	addiu	v1, v1, (2<<13)
+	PTR_XO32_MTC0(t1, v1, C0_ENTRYHI)
+	ehb				# mtc0, Hazard on tlbp
+
+	tlbp
+	ehb				# tlbp, hazard on index
+
+	mfc0	t2, C0_INDEX
+	bgez	t2, 5b
+
+	mtc0	v0, C0_INDEX
+3:	PTR_XO32_MTC0(t1, v1, C0_ENTRYHI)
 #else
-2:	li	v1, KSEG0_BASE	# replace with this, plus
+2:	li	v1, (KSEG0_BASE-2<<13)	# replace with this
+5:	addiu	v1, v1, (2<<13)
+	PTR_MTC0 v1, C0_ENTRYHI
+	ehb				# mtc0, Hazard on tlbp
+
+	tlbp
+	ehb				# tlbp, hazard on index
+
+	mfc0	t2, C0_INDEX
+	bgez	t2, 5b
+
+	mtc0	v0, C0_INDEX
 3:	PTR_MTC0 v1, C0_ENTRYHI
 #endif
 	ehb			# mtco, hazard on tlbwi
