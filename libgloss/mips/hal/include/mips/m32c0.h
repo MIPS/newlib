@@ -1143,11 +1143,82 @@ __extension__ ({ \
 #define mips32_setebase(x)	_m32c0_mtc0(15,1,x)
 #define mips32_xchebase(x)	_m32c0_mxc0(15,1,x)
 
+/* CP0 Status register (NOTE: not atomic operations) */
+#define mips32_getsr()		_m32c0_mfc0(C0_SR)
+#define mips32_setsr(v)		_m32c0_mtc0(C0_SR,v)
+#define mips32_xchsr(v)		_m32c0_mxc0(C0_SR,v)
+#define mips32_bicsr(clr)	_m32c0_bcc0(C0_SR,clr)
+#define mips32_bissr(set)	_m32c0_bsc0(C0_SR,set)
+#define mips32_bcssr(c,s)	_m32c0_bcsc0(C0_SR,c,s)
+
+/* CP0 Cause register (NOTE: not atomic operations) */
+#define mips32_getcr()		_m32c0_mfc0(C0_CR)
+#define mips32_setcr(v)		_m32c0_mtc0(C0_CR,v)
+#define mips32_xchcr(v)		_m32c0_mxc0(C0_CR,v)
+#define mips32_biccr(clr)	_m32c0_bcc0(C0_CR,clr)
+#define mips32_biscr(set)	_m32c0_bsc0(C0_CR,set)
+#define mips32_bcscr(c,s)	_m32c0_bcsc0(C0_CR,c,s)
+
+/* CP0 PrID register */
+#define mips32_getprid()	_m32c0_mfc0(C0_PRID)
+
+#ifdef C0_COUNT
+/* CP0 Count register */
+#define mips32_getcount()	_m32c0_mfc0(C0_COUNT)
+#define mips32_setcount(v)	_m32c0_mtc0(C0_COUNT,v)
+#define mips32_xchcount(v)	_m32c0_mxc0(C0_COUNT,v)
+#endif
+
+#ifdef C0_COMPARE
+/* CP0 Compare register*/
+#define mips32_getcompare()	_m32c0_mfc0(C0_COMPARE)
+#define mips32_setcompare(v)	_m32c0_mtc0(C0_COMPARE,v)
+#define mips32_xchcompare(v)	_m32c0_mxc0(C0_COMPARE,v)
+#endif
+
+#ifdef C0_CONFIG
+/* CP0 Config register */
+#define mips32_getconfig()	_m32c0_mfc0(C0_CONFIG)
+#define mips32_setconfig(v)	_m32c0_mtc0(C0_CONFIG,v)
+#define mips32_xchconfig(v)	_m32c0_mxc0(C0_CONFIG,v)
+#define mips32_bicconfig(c)	_m32c0_bcc0(C0_CONFIG,c)
+#define mips32_bisconfig(s)	_m32c0_bsc0(C0_CONFIG,s)
+#define mips32_bcsconfig(c,s)	_m32c0_bcsc0(C0_CONFIG,c,s)
+#endif
+
+#ifdef C0_ECC
+/* CP0 ECC register */
+#define mips32_getecc()		_m32c0_mfc0(C0_ECC)
+#define mips32_setecc(x)	_m32c0_mtc0(C0_ECC, x)
+#define mips32_xchecc(x)	_m32c0_mxc0(C0_ECC, x)
+#endif
+
+#ifdef C0_TAGHI
+/* CP0 TagHi register */
+#define mips32_gettaghi()	_m32c0_mfc0(C0_TAGHI)
+#define mips32_settaghi(x)	_m32c0_mtc0(C0_TAGHI, x)
+#define mips32_xchtaghi(x)	_m32c0_mxc0(C0_TAGHI, x)
+#endif
+
+#ifdef C0_WATCHLO
+/* CP0 WatchLo register */
+#define mips32_getwatchlo()	_m32c0_mfc0(C0_WATCHLO)
+#define mips32_setwatchlo(x)	_m32c0_mtc0(C0_WATCHLO, x)
+#define mips32_xchwatchlo(x)	_m32c0_mxc0(C0_WATCHLO, x)
+#endif
+
+#ifdef C0_WATCHHI
+/* CP0 WatchHi register */
+#define mips32_getwatchhi()	_m32c0_mfc0(C0_WATCHHI)
+#define mips32_setwatchhi(x)	_m32c0_mtc0(C0_WATCHHI, x)
+#define mips32_xchwatchhi(x)	_m32c0_mxc0(C0_WATCHHI, x)
+#endif
+
 #ifdef __cplusplus
 }
 #endif
 
-/* Define MIPS64 user-level intrinsics */
+/* Define MIPS32 user-level intrinsics */
 #include <mips/mips32.h>
 
 #ifdef __cplusplus
