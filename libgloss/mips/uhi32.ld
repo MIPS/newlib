@@ -48,6 +48,11 @@ PROVIDE (__memory_base = 0x80000000);
  */
 PROVIDE (__tlb_stride_length = 1);
 
+/* By default, XPA is not used even if available. To enable XPA,
+ * __enable_xpa should be 1.
+ */
+PROVIDE (__enable_xpa = 0);
+
 /*
  * 0 = Do not use exception handler present in boot for UHI
  * 1 = Use exception handler present in boot for UHI if BEV is 0 at

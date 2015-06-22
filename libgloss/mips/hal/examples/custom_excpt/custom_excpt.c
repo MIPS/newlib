@@ -55,8 +55,8 @@ void
 _mips_handle_exception (struct gpctx *ctx, int exception)
 {
   /*
-   * This example is designed to work only MIPS and does not handle the case
-   * where a memory operation occurs in a branch delay slot.
+   * This example is designed to work only on MIPS32 and does not handle the
+   * case where a memory operation occurs in a branch delay slot.
    */
   if ((mips_getcr () & CR_BD) == 0
       && (ctx->epc & 0x1) == 0)

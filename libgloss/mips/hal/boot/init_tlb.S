@@ -279,16 +279,19 @@ LEAF(__init_tlb)
 	and	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL)
 	beqz	t2, 1f			# return if no tlb present.
 
-#if ENABLE_LPA
+	lui	t1, %hi(__enable_xpa)
+	ori	t1, %lo(__enable_xpa)
+	beqz	t1, 2f
+
 	mfc0	t0, C0_CONFIG3
 	and	t0, t0, CFG3_LPA
 	beqz	t0, 1f
 
 	li	t1, 1
-	mfc0	t0, PAGEGRAIN_ELPA
+	mfc0	t0, C0_PAGEGRAIN
 	ins	t0, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
 	mtc0	t0, C0_PAGEGRAIN
-#endif
+2:
 	move	a3, ra
 	jal	__tlbinvalall
 	move	ra, a3

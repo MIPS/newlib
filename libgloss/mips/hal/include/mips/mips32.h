@@ -115,6 +115,50 @@ extern "C" {
     __v; \
 })
 
+#if __mips_isa_rev < 6
+
+/* MIPS32r2 jr.hb */
+#if _MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIN32
+#define mips32_jr_hb() __asm__ __volatile__(	\
+       "bltzal	$0,0f\n"			\
+"0:     addiu	$31,1f-0b\n"			\
+"       jr.hb	$31\n"				\
+"1:"						\
+	: : : "$31")
+#elif _MIPS_SIM == _ABI64
+#define mips32_jr_hb() __asm__ __volatile__(	\
+       "bltzal	$0,0f\n"			\
+"0:     daddiu	$31,1f-0b\n"			\
+"       jr.hb	$31\n"				\
+"1:"						\
+	: : : "$31")
+#else
+#error Unknown ABI
+#endif
+
+#else /*  __mips_isa_rev < 6  */
+
+/* MIP32r6 jr.hb */
+#if _MIPS_SIM == _ABIO32 ||  _MIPS_SIM == _ABIN32
+#define mips32_jr_hb() __asm__ __volatile__(	\
+       "auipc	$24,%pcrel_hi(1f)\n"		\
+       "addiu	$24,%pcrel_lo(1f + 4)\n"	\
+       "jr.hb	$24\n"				\
+"1:"						\
+       : : : "$24")
+#elif _MIPS_SIM == _ABI64
+#define mips32_jr_hb() __asm__ __volatile__(	\
+       "auipc	$24,%pcrel_hi(1f)\n"		\
+       "daddiu	$24,%pcrel_lo(1f + 4)\n"	\
+       "jr.hb	$24\n"				\
+"1:"						\
+       : : : "$24")
+#else
+#error Unknown ABI
+#endif
+
+#endif /* __mips_isa_rev < 6 */
+
 #endif /* ! __mips16 */
 
 #endif /* __ASSEMBLER__ */

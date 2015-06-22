@@ -42,10 +42,10 @@
  */
 
 LEAF(__init_tlb)
-#if HAVE_LPA && ENABLE_LPA
+#if HAVE_LPA && ENABLE_XPA
 	mfc0	t0, C0_PAGEGRAIN
 	li	t1, 1
-	ins	t0, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAINELPA_BITS
+	ins	t0, t1, PAGEGRAIN_ELPA_SHIFT, PAGEGRAIN_ELPA_BITS
 	mtc0	t0, C0_PAGEGRAIN
 #endif
 	# Top halves of registers are cleared impicitly with mtc0
