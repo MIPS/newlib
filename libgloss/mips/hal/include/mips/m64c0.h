@@ -91,37 +91,33 @@ __extension__ ({ \
 })
 
 /* MIPS64 TagLo register */
-#define mips64_getdtaglo()	_m64c0_mfc0(C0_TAGLO,2)
-#define mips64_setdtaglo(x)	_m64c0_mtc0(C0_TAGLO,2,x)
-#define mips64_xchdtaglo(x)	_m64c0_mxc0(C0_TAGLO,2,x)
-#define mips64_gettaglo2()	_m64c0_mfc0(C0_TAGLO,4)
-#define mips64_settaglo2(x)	_m64c0_mtc0(C0_TAGLO,4,x)
-#define mips64_xchtaglo2(x)	_m64c0_mxc0(C0_TAGLO,4,x)
+#define mips64_getdtaglo()	_m64c0_mfc0(28,2)
+#define mips64_setdtaglo(x)	_m64c0_mtc0(28,2,x)
+#define mips64_xchdtaglo(x)	_m64c0_mxc0(28,2,x)
+#define mips64_gettaglo2()	_m64c0_mfc0(28,4)
+#define mips64_settaglo2(x)	_m64c0_mtc0(28,4,x)
+#define mips64_xchtaglo2(x)	_m64c0_mxc0(28,4,x)
 
 /* MIPS64 DataLo register */
-#define mips64_getdatalo()	_m64c0_mfc0(C0_TAGLO,1)
-#define mips64_setdatalo(x)	_m64c0_mtc0(C0_TAGLO,1,x)
-#define mips64_xchdatalo(x)	_m64c0_mxc0(C0_TAGLO,1,x)
-#define mips64_getddatalo()	_m64c0_mfc0(C0_TAGLO,3)
-#define mips64_setddatalo(x)	_m64c0_mtc0(C0_TAGLO,3,x)
-#define mips64_xchddatalo(x)	_m64c0_mxc0(C0_TAGLO,3,x)
-#define mips64_getdatalo2()	_m64c0_mfc0(C0_TAGLO,5)
-#define mips64_setdatalo2(x)	_m64c0_mtc0(C0_TAGLO,5,x)
-#define mips64_xchdatalo2(x)	_m64c0_mxc0(C0_TAGLO,5,x)
+#define mips64_getdatalo()	_m64c0_mfc0(28,1)
+#define mips64_setdatalo(x)	_m64c0_mtc0(28,1,x)
+#define mips64_xchdatalo(x)	_m64c0_mxc0(28,1,x)
+#define mips64_getddatalo()	_m64c0_mfc0(28,3)
+#define mips64_setddatalo(x)	_m64c0_mtc0(28,3,x)
+#define mips64_xchddatalo(x)	_m64c0_mxc0(28,3,x)
+#define mips64_getdatalo2()	_m64c0_mfc0(28,5)
+#define mips64_setdatalo2(x)	_m64c0_mtc0(28,5,x)
+#define mips64_xchdatalo2(x)	_m64c0_mxc0(28,5,x)
 
-#ifdef C0_TAGHI
 /* CP0 TagHi register */
-#define mips64_gettaghi()	_m64c0_mfc0(C0_TAGHI)
-#define mips64_settaghi(x)	_m64c0_mtc0(C0_TAGHI, x)
-#define mips64_xchtaghi(x)	_m64c0_mxc0(C0_TAGHI, x)
-#endif
+#define mips64_gettaghi()	_m64c0_mfc0(29,0)
+#define mips64_settaghi(x)	_m64c0_mtc0(29,0, x)
+#define mips64_xchtaghi(x)	_m64c0_mxc0(29,0, x)
 
-#ifdef C0_WATCHLO
 /* CP0 WatchLo register */
-#define mips64_getwatchlo()	_m64c0_mfc0(C0_WATCHLO)
-#define mips64_setwatchlo(x)	_m64c0_mtc0(C0_WATCHLO, x)
-#define mips64_xchwatchlo(x)	_m64c0_mxc0(C0_WATCHLO, x)
-#endif
+#define mips64_getwatchlo()	_m64c0_mfc0(18,0)
+#define mips64_setwatchlo(x)	_m64c0_mtc0(18,0, x)
+#define mips64_xchwatchlo(x)	_m64c0_mxc0(18,0, x)
 
 /* Superset of MIPS32 */
 #include <mips/m32c0.h>
