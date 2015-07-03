@@ -37,16 +37,109 @@
  * Most apart from "set" return the original register value.
  */
 
-#define _m64c0_mfc0(reg, sel) \
+#define _m64c0_mfc0(selreg) \
 __extension__ ({ \
   register unsigned long __r; \
   __asm__ __volatile ("dmfc0 %0,$%1,%2" \
 		      : "=d" (__r) \
-		      : "JK" (reg), "JK" (sel)); \
+      		      : "JK" (selreg & 0x1F), "JK" (selreg>>8)); \
   __r; \
 })
 
-#define _m64c0_mtc0(reg, sel, val) \
+#define _m64c0_mtc0(selreg, val) \
+do { \
+    __asm__ __volatile (".set push \n"\
+			".set noreorder\n"\
+			"dmtc0 %z0,$%1,%2\n"\
+			"ehb\n" \
+			".set pop" \
+			: \
+			: "dJ" ((reg64_t)(val)), "JK" (selreg & 0x1F),\
+			"JK" (selreg>>8) \
+			: "memory"); \
+} while (0)
+
+#define _m64c0_mxc0(selreg, val) \
+__extension__ ({ \
+    register reg64_t __o; \
+    __o = _m64c0_mfc0 (selreg); \
+    _m64c0_mtc0 (selreg, val); \
+    __o; \
+})
+
+#define _m64c0_bcc0(selreg, clr) \
+__extension__ ({ \
+    register reg64_t __o; \
+    __o = _m64c0_mfc0 (selreg); \
+    _m64c0_mtc0 (selreg, __o & ~(clr)); \
+    __o; \
+})
+
+#define _m64c0_bsc0(selreg, set) \
+__extension__ ({ \
+    register reg64_t __o; \
+    __o = _m64c0_mfc0 (selreg); \
+    _m64c0_mtc0 (selreg, __o | (set)); \
+    __o; \
+})
+
+#define _m64c0_bcsc0(selreg, clr, set) \
+__extension__ ({ \
+    register reg64_t __o; \
+    __o = _m64c0_mfc0 (selreg); \
+    _m64c0_mtc0 (selreg, (__o & ~(clr)) | (set)); \
+    __o; \
+})
+
+/* MIPS64 TagLo register */
+#define mips64_getitaglo()	_m64c0_mfc0(C0_TAGLO)	/* alias define */
+#define mips64_setitaglo(x)	_m64c0_mtc0(C0_TAGLO,x)	/* alias define */
+#define mips64_xchitaglo(x)	_m64c0_mxc0(C0_TAGLO,x)	/* alias define */
+#define mips64_getdtaglo()	_m64c0_mfc0((C0_TAGLO+(2<<8)))
+#define mips64_setdtaglo(x)	_m64c0_mtc0((C0_TAGLO+(2<<8)),x)
+#define mips64_xchdtaglo(x)	_m64c0_mxc0((C0_TAGLO+(2<<8)),x)
+#define mips64_gettaglo2()	_m64c0_mfc0((C0_TAGLO+(4<<8)))
+#define mips64_settaglo2(x)	_m64c0_mtc0((C0_TAGLO+(4<<8)),x)
+#define mips64_xchtaglo2(x)	_m64c0_mxc0((C0_TAGLO+(4<<8)),x)
+
+/* MIPS64 DataLo register */
+#define mips64_getdatalo()	_m64c0_mfc0((C0_TAGLO+(1<<8)))
+#define mips64_setdatalo(x)	_m64c0_mtc0((C0_TAGLO+(1<<8)),x)
+#define mips64_xchdatalo(x)	_m64c0_mxc0((C0_TAGLO+(1<<8)),x)
+#define mips64_getidatalo()	mips64_getdatalo()	/* alias define */
+#define mips64_setidatalo(x)	mips64_setdatalo(x)	/* alias define */
+#define mips64_xchidatalo(x)	mips64_xchdatalo(x)	/* alias define */
+#define mips64_getddatalo()	_m64c0_mfc0((C0_TAGLO+(3<<8)))
+#define mips64_setddatalo(x)	_m64c0_mtc0((C0_TAGLO+(3<<8)),x)
+#define mips64_xchddatalo(x)	_m64c0_mxc0((C0_TAGLO+(3<<8)),x)
+#define mips64_getdatalo2()	_m64c0_mfc0((C0_TAGLO+(5<<8)))
+#define mips64_setdatalo2(x)	_m64c0_mtc0((C0_TAGLO+(5<<8)),x)
+#define mips64_xchdatalo2(x)	_m64c0_mxc0((C0_TAGLO+(5<<8)),x)
+
+#ifdef C0_TAGHI
+/* CP0 TagHi register */
+#define mips64_gettaghi()	_m64c0_mfc0(C0_TAGHI)
+#define mips64_settaghi(x)	_m64c0_mtc0(C0_TAGHI, x)
+#define mips64_xchtaghi(x)	_m64c0_mxc0(C0_TAGHI, x)
+#endif
+
+#ifdef C0_WATCHLO
+/* CP0 WatchLo register */
+#define mips64_getwatchlo()	_m64c0_mfc0(C0_WATCHLO)
+#define mips64_setwatchlo(x)	_m64c0_mtc0(C0_WATCHLO, x)
+#define mips64_xchwatchlo(x)	_m64c0_mxc0(C0_WATCHLO, x)
+#endif
+
+#define _m64c0_mfc0_generic(reg, sel) \
+__extension__ ({ \
+  register unsigned long __r; \
+  __asm__ __volatile ("dmfc0 %0,$%1,%2" \
+		      : "=d" (__r) \
+      		      : "JK" (reg), "JK" (sel)); \
+  __r; \
+})
+
+#define _m64c0_mtc0_generic(reg, sel, val) \
 do { \
     __asm__ __volatile (".set push \n"\
 			".set noreorder\n"\
@@ -58,66 +151,37 @@ do { \
 			: "memory"); \
 } while (0)
 
-#define _m64c0_mxc0(reg, sel, val) \
+#define _m64c0_mxc0_generic(reg, sel, val) \
 __extension__ ({ \
     register reg64_t __o; \
-    __o = _m64c0_mfc0 (reg, sel); \
-    _m64c0_mtc0 (reg, sel, val); \
+    __o = _m64c0_mfc0_generic (reg, sel); \
+    _m64c0_mtc0_generic (reg, sel, val); \
     __o; \
 })
 
-#define _m64c0_bcc0(reg, sel, clr) \
+#define _m64c0_bcc0_generic(reg, sel, clr) \
 __extension__ ({ \
     register reg64_t __o; \
-    __o = _m64c0_mfc0 (reg, sel); \
-    _m64c0_mtc0 (reg, sel, __o & ~(clr)); \
+    __o = _m64c0_mfc0_generic (reg, sel); \
+    _m64c0_mtc0_generic (reg, sel, __o & ~(clr)); \
     __o; \
 })
 
-#define _m64c0_bsc0(reg, sel, set) \
+#define _m64c0_bsc0_generic(reg, sel, set) \
 __extension__ ({ \
     register reg64_t __o; \
-    __o = _m64c0_mfc0 (reg, sel); \
-    _m64c0_mtc0 (reg, sel, __o | (set)); \
+    __o = _m64c0_mfc0_generic (reg, sel); \
+    _m64c0_mtc0_generic (reg, sel, __o | (set)); \
     __o; \
 })
 
-#define _m64c0_bcsc0(reg, sel, clr, set) \
+#define _m64c0_bcsc0_generic(reg, sel, clr, set) \
 __extension__ ({ \
     register reg64_t __o; \
-    __o = _m64c0_mfc0 (reg, sel); \
-    _m64c0_mtc0 (reg, sel, (__o & ~(clr)) | (set)); \
+    __o = _m64c0_mfc0_generic (reg, sel); \
+    _m64c0_mtc0_generic (reg, sel, (__o & ~(clr)) | (set)); \
     __o; \
 })
-
-/* MIPS64 TagLo register */
-#define mips64_getdtaglo()	_m64c0_mfc0(28,2)
-#define mips64_setdtaglo(x)	_m64c0_mtc0(28,2,x)
-#define mips64_xchdtaglo(x)	_m64c0_mxc0(28,2,x)
-#define mips64_gettaglo2()	_m64c0_mfc0(28,4)
-#define mips64_settaglo2(x)	_m64c0_mtc0(28,4,x)
-#define mips64_xchtaglo2(x)	_m64c0_mxc0(28,4,x)
-
-/* MIPS64 DataLo register */
-#define mips64_getdatalo()	_m64c0_mfc0(28,1)
-#define mips64_setdatalo(x)	_m64c0_mtc0(28,1,x)
-#define mips64_xchdatalo(x)	_m64c0_mxc0(28,1,x)
-#define mips64_getddatalo()	_m64c0_mfc0(28,3)
-#define mips64_setddatalo(x)	_m64c0_mtc0(28,3,x)
-#define mips64_xchddatalo(x)	_m64c0_mxc0(28,3,x)
-#define mips64_getdatalo2()	_m64c0_mfc0(28,5)
-#define mips64_setdatalo2(x)	_m64c0_mtc0(28,5,x)
-#define mips64_xchdatalo2(x)	_m64c0_mxc0(28,5,x)
-
-/* CP0 TagHi register */
-#define mips64_gettaghi()	_m64c0_mfc0(29,0)
-#define mips64_settaghi(x)	_m64c0_mtc0(29,0, x)
-#define mips64_xchtaghi(x)	_m64c0_mxc0(29,0, x)
-
-/* CP0 WatchLo register */
-#define mips64_getwatchlo()	_m64c0_mfc0(18,0)
-#define mips64_setwatchlo(x)	_m64c0_mtc0(18,0, x)
-#define mips64_xchwatchlo(x)	_m64c0_mxc0(18,0, x)
 
 /* Superset of MIPS32 */
 #include <mips/m32c0.h>
