@@ -921,7 +921,7 @@ typedef signed long long	sreg_t;
 #define C0_CONFIG5	0x510
 #define C0_LLADDR	17
 #define C0_MAAR		0x111
-#define C0_MAARI      	0x111
+#define C0_MAARI	0x111
 #define C0_WATCHLO	18
 #define C0_WATCHHI	19
 #define C0_XCONTEXT	20
@@ -965,11 +965,14 @@ extern "C" {
   __asm__ __volatile ("wait")
 
 /*
- * Define macros for accessing the MIPS32 coprocessor 0 registers.
- * Most apart from "set" return the original register value.
+ * Define macros for accessing the MIPS32 coprocessor 0 registers. Most apart
+ * from "set" return the original register value. These macros take an encoded
+ * (register, select) combination, so they can use the textual names above.
  */
 
-#define _m32c0_mfc0(selreg) \
+#define MIPS_C0_REGNAME(regno, sel) ((sel<<8) + regno)
+
+#define mips32_get_c0(selreg) \
 __extension__ ({ \
   register unsigned long __r; \
   __asm__ __volatile ("mfc0 %0,$%1,%2" \
@@ -978,7 +981,7 @@ __extension__ ({ \
   __r; \
 })
 
-#define _m32c0_mtc0(selreg, val) \
+#define mips32_set_c0(selreg, val) \
 do { \
     __asm__ __volatile (".set push \n"\
 			".set noreorder\n"\
@@ -991,232 +994,238 @@ do { \
 			: "memory"); \
 } while (0)
 
-#define _m32c0_mxc0(selreg, val) \
+#define mips32_xch_c0(selreg, val) \
 __extension__ ({ \
     register reg32_t __o; \
-    __o = _m32c0_mfc0 (selreg); \
-    _m32c0_mtc0 (selreg, val); \
+    __o = mips32_get_c0 (selreg); \
+    mips32_set_c0 (selreg, val); \
     __o; \
 })
 
-#define _m32c0_bcc0(selreg, clr) \
+#define mips32_bc_c0(selreg, clr) \
 __extension__ ({ \
     register reg32_t __o; \
-    __o = _m32c0_mfc0 (selreg); \
-    _m32c0_mtc0 (selreg, __o & ~(clr)); \
+    __o = mips32_get_c0 (selreg); \
+    mips32_set_c0 (selreg, __o & ~(clr)); \
     __o; \
 })
 
-#define _m32c0_bsc0(selreg, set) \
+#define mips32_bs_c0(selreg, set) \
 __extension__ ({ \
     register reg32_t __o; \
-    __o = _m32c0_mfc0 (selreg); \
-    _m32c0_mtc0 (selreg, __o | (set)); \
+    __o = mips32_get_c0 (selreg); \
+    mips32_set_c0 (selreg, __o | (set)); \
     __o; \
 })
 
-#define _m32c0_bcsc0(selreg, clr, set) \
+#define mips32_bcs_c0(selreg, clr, set) \
 __extension__ ({ \
     register reg32_t __o; \
-    __o = _m32c0_mfc0 (selreg); \
-    _m32c0_mtc0 (selreg, (__o & ~(clr)) | (set)); \
+    __o = mips32_get_c0 (selreg); \
+    mips32_set_c0 (selreg, (__o & ~(clr)) | (set)); \
     __o; \
 })
 
 /* generic equivalents for mips/cpu.h */
-#define _mips_mfc0(r)		_m32c0_mfc0(r)
-#define _mips_mtc0(r,v)		_m32c0_mtc0(r,v)
+#define _mips_mfc0(r)		mips32_get_c0(r)
+#define _mips_mtc0(r,v)		mips32_set_c0(r,v)
 
 /* MIPS32 Config0 register */
-#define mips32_getconfig0()	_m32c0_mfc0(C0_CONFIG0)
-#define mips32_setconfig0(v)	_m32c0_mtc0(C0_CONFIG0,v)
-#define mips32_xchconfig0(v)	_m32c0_mxc0(C0_CONFIG0,v)
-#define mips32_bicconfig0(clr)	_m32c0_bcc0(C0_CONFIG0,clr)
-#define mips32_bisconfig0(set)	_m32c0_bsc0(C0_CONFIG0,set)
-#define mips32_bcsconfig0(c,s)	_m32c0_bcsc0(C0_CONFIG0,c,s)
+#define mips32_getconfig0()	mips32_get_c0(C0_CONFIG0)
+#define mips32_setconfig0(v)	mips32_set_c0(C0_CONFIG0,v)
+#define mips32_xchconfig0(v)	mips32_xch_c0(C0_CONFIG0,v)
+#define mips32_bicconfig0(clr)	mips32_bc_c0(C0_CONFIG0,clr)
+#define mips32_bisconfig0(set)	mips32_bs_c0(C0_CONFIG0,set)
+#define mips32_bcsconfig0(c,s)	mips32_bcs_c0(C0_CONFIG0,c,s)
 
 /* MIPS32 Config1, 2, 3, 4, 5 register */
-#define mips32_getconfig1()	_m32c0_mfc0(C0_CONFIG1)
-#define mips32_setconfig1(v)	_m32c0_mtc0(C0_CONFIG1,v)
-#define mips32_xchconfig1(v)	_m32c0_mxc0(C0_CONFIG1,v)
-#define mips32_bicconfig1(clr)	_m32c0_bcc0(C0_CONFIG1,clr)
-#define mips32_bisconfig1(set)	_m32c0_bsc0(C0_CONFIG1,set)
-#define mips32_bcsconfig1(c,s)	_m32c0_bcsc0(C0_CONFIG1,c,s)
+#define mips32_getconfig1()	mips32_get_c0(C0_CONFIG1)
+#define mips32_setconfig1(v)	mips32_set_c0(C0_CONFIG1,v)
+#define mips32_xchconfig1(v)	mips32_xch_c0(C0_CONFIG1,v)
+#define mips32_bicconfig1(clr)	mips32_bc_c0(C0_CONFIG1,clr)
+#define mips32_bisconfig1(set)	mips32_bs_c0(C0_CONFIG1,set)
+#define mips32_bcsconfig1(c,s)	mips32_bcs_c0(C0_CONFIG1,c,s)
 
-#define mips32_getconfig2()	_m32c0_mfc0(C0_CONFIG2)
-#define mips32_setconfig2(v)	_m32c0_mtc0(C0_CONFIG2,v)
-#define mips32_xchconfig2(v)	_m32c0_mxc0(C0_CONFIG2,v)
-#define mips32_bicconfig2(clr)	_m32c0_bcc0(C0_CONFIG2,clr)
-#define mips32_bisconfig2(set)	_m32c0_bsc0(C0_CONFIG2,set)
-#define mips32_bcsconfig2(c,s)	_m32c0_bcsc0(C0_CONFIG2,c,s)
+#define mips32_getconfig2()	mips32_get_c0(C0_CONFIG2)
+#define mips32_setconfig2(v)	mips32_set_c0(C0_CONFIG2,v)
+#define mips32_xchconfig2(v)	mips32_xch_c0(C0_CONFIG2,v)
+#define mips32_bicconfig2(clr)	mips32_bc_c0(C0_CONFIG2,clr)
+#define mips32_bisconfig2(set)	mips32_bs_c0(C0_CONFIG2,set)
+#define mips32_bcsconfig2(c,s)	mips32_bcs_c0(C0_CONFIG2,c,s)
 
-#define mips32_getconfig3()	_m32c0_mfc0(C0_CONFIG3)
-#define mips32_setconfig3(v)	_m32c0_mtc0(C0_CONFIG3,v)
-#define mips32_xchconfig3(v)	_m32c0_mxc0(C0_CONFIG3,v)
-#define mips32_bicconfig3(clr)	_m32c0_bcc0(C0_CONFIG3,clr)
-#define mips32_bisconfig3(set)	_m32c0_bsc0(C0_CONFIG3,set)
-#define mips32_bcsconfig3(c,s)	_m32c0_bcsc0(C0_CONFIG3,c,s)
+#define mips32_getconfig3()	mips32_get_c0(C0_CONFIG3)
+#define mips32_setconfig3(v)	mips32_set_c0(C0_CONFIG3,v)
+#define mips32_xchconfig3(v)	mips32_xch_c0(C0_CONFIG3,v)
+#define mips32_bicconfig3(clr)	mips32_bc_c0(C0_CONFIG3,clr)
+#define mips32_bisconfig3(set)	mips32_bs_c0(C0_CONFIG3,set)
+#define mips32_bcsconfig3(c,s)	mips32_bcs_c0(C0_CONFIG3,c,s)
 
-#define mips32_getconfig4()	_m32c0_mfc0(C0_CONFIG4)
-#define mips32_setconfig4(v)	_m32c0_mtc0(C0_CONFIG4,v)
-#define mips32_xchconfig4(v)	_m32c0_mxc0(C0_CONFIG4,v)
-#define mips32_bicconfig4(clr)	_m32c0_bcc0(C0_CONFIG4,clr)
-#define mips32_bisconfig4(set)	_m32c0_bsc0(C0_CONFIG4,set)
-#define mips32_bcsconfig4(c,s)	_m32c0_bcsc0(C0_CONFIG4,c,s)
+#define mips32_getconfig4()	mips32_get_c0(C0_CONFIG4)
+#define mips32_setconfig4(v)	mips32_set_c0(C0_CONFIG4,v)
+#define mips32_xchconfig4(v)	mips32_xch_c0(C0_CONFIG4,v)
+#define mips32_bicconfig4(clr)	mips32_bc_c0(C0_CONFIG4,clr)
+#define mips32_bisconfig4(set)	mips32_bs_c0(C0_CONFIG4,set)
+#define mips32_bcsconfig4(c,s)	mips32_bcs_c0(C0_CONFIG4,c,s)
 
-#define mips32_getconfig5()	_m32c0_mfc0(C0_CONFIG5)
-#define mips32_setconfig5(v)	_m32c0_mtc0(C0_CONFIG5,v)
-#define mips32_xchconfig5(v)	_m32c0_mxc0(C0_CONFIG5,v)
-#define mips32_bicconfig5(clr)	_m32c0_bcc0(C0_CONFIG5,clr)
-#define mips32_bisconfig5(set)	_m32c0_bsc0(C0_CONFIG5,set)
-#define mips32_bcsconfig5(c,s)	_m32c0_bcsc0(C0_CONFIG5,c,s)
+#define mips32_getconfig5()	mips32_get_c0(C0_CONFIG5)
+#define mips32_setconfig5(v)	mips32_set_c0(C0_CONFIG5,v)
+#define mips32_xchconfig5(v)	mips32_xch_c0(C0_CONFIG5,v)
+#define mips32_bicconfig5(clr)	mips32_bc_c0(C0_CONFIG5,clr)
+#define mips32_bisconfig5(set)	mips32_bs_c0(C0_CONFIG5,set)
+#define mips32_bcsconfig5(c,s)	mips32_bcs_c0(C0_CONFIG5,c,s)
 
 /* MIPS32 Debug register */
-#define mips32_getdebug()	_m32c0_mfc0(C0_DEBUG)
-#define mips32_setdebug(v)	_m32c0_mtc0(C0_DEBUG,v)
-#define mips32_xchdebug(v)	_m32c0_mxc0(C0_DEBUG,v)
-#define mips32_bicdebug(clr)	_m32c0_bcc0(C0_DEBUG,clr)
-#define mips32_bisdebug(set)	_m32c0_bsc0(C0_DEBUG,set)
-#define mips32_bcsdebug(c,s)	_m32c0_bcsc0(C0_DEBUG,c,s)
+#define mips32_getdebug()	mips32_get_c0(C0_DEBUG)
+#define mips32_setdebug(v)	mips32_set_c0(C0_DEBUG,v)
+#define mips32_xchdebug(v)	mips32_xch_c0(C0_DEBUG,v)
+#define mips32_bicdebug(clr)	mips32_bc_c0(C0_DEBUG,clr)
+#define mips32_bisdebug(set)	mips32_bs_c0(C0_DEBUG,set)
+#define mips32_bcsdebug(c,s)	mips32_bcs_c0(C0_DEBUG,c,s)
 
 /* MIPS32 ErrCtl register */
-#define mips32_geterrctl()	_m32c0_mfc0(C0_ERRCTL)
-#define mips32_seterrctl(x)	_m32c0_mtc0(C0_ERRCTL,x)
-#define mips32_xcherrctl(x)	_m32c0_mxc0(C0_ERRCTL,x)
-#define mips32_bicerrctl(clr)	_m32c0_bcc0(C0_ERRCTL,clr)
-#define mips32_biserrctl(set)	_m32c0_bsc0(C0_ERRCTL,set)
-#define mips32_bcserrctl(c,s)	_m32c0_bcsc0(C0_ERRCTL,c,s)
+#define mips32_geterrctl()	mips32_get_c0(C0_ERRCTL)
+#define mips32_seterrctl(x)	mips32_set_c0(C0_ERRCTL,x)
+#define mips32_xcherrctl(x)	mips32_xch_c0(C0_ERRCTL,x)
+#define mips32_bicerrctl(clr)	mips32_bc_c0(C0_ERRCTL,clr)
+#define mips32_biserrctl(set)	mips32_bs_c0(C0_ERRCTL,set)
+#define mips32_bcserrctl(c,s)	mips32_bcs_c0(C0_ERRCTL,c,s)
 
 /* MIPS32 TagLo register */
-#define mips32_getitaglo()	_m32c0_mfc0(C0_TAGLO)	/* alias define */
-#define mips32_setitaglo(x)	_m32c0_mtc0(C0_TAGLO,x)	/* alias define */
-#define mips32_xchitaglo(x)	_m32c0_mxc0(C0_TAGLO,x)	/* alias define */
-#define mips32_getdtaglo()	_m32c0_mfc0((C0_TAGLO+(2<<8)))
-#define mips32_setdtaglo(x)	_m32c0_mtc0((C0_TAGLO+(2<<8)),x)
-#define mips32_xchdtaglo(x)	_m32c0_mxc0((C0_TAGLO+(2<<8)),x)
-#define mips32_gettaglo2()	_m32c0_mfc0((C0_TAGLO+(4<<8)))
-#define mips32_settaglo2(x)	_m32c0_mtc0((C0_TAGLO+(4<<8)),x)
-#define mips32_xchtaglo2(x)	_m32c0_mxc0((C0_TAGLO+(4<<8)),x)
+#define mips32_getitaglo()	mips32_get_c0(C0_TAGLO)		/* alias define */
+#define mips32_setitaglo(x)	mips32_set_c0(C0_TAGLO,x)	/* alias define */
+#define mips32_xchitaglo(x)	mips32_xch_c0(C0_TAGLO,x)	/* alias define */
+#define mips32_getdtaglo()	mips32_get_c0(MIPS_C0_REGNAME(C0_TAGLO, 2))
+#define mips32_setdtaglo(x)	mips32_set_c0(MIPS_C0_REGNAME(C0_TAGLO, 2),x)
+#define mips32_xchdtaglo(x)	mips32_xch_c0(MIPS_C0_REGNAME(C0_TAGLO, 2),x)
+#define mips32_gettaglo2()	mips32_get_c0(MIPS_C0_REGNAME(C0_TAGLO, 4))
+#define mips32_settaglo2(x)	mips32_set_c0(MIPS_C0_REGNAME(C0_TAGLO, 4),x)
+#define mips32_xchtaglo2(x)	mips32_xch_c0(MIPS_C0_REGNAME(C0_TAGLO, 4),x)
 
 /* MIPS32 DataLo register */
-#define mips32_getdatalo()	_m32c0_mfc0((C0_TAGLO+(1<<8)))
-#define mips32_setdatalo(x)	_m32c0_mtc0((C0_TAGLO+(1<<8)),x)
-#define mips32_xchdatalo(x)	_m32c0_mxc0((C0_TAGLO+(1<<8)),x)
+#define mips32_getdatalo()	mips32_get_c0(MIPS_C0_REGNAME(C0_TAGLO, 1))
+#define mips32_setdatalo(x)	mips32_set_c0(MIPS_C0_REGNAME(C0_TAGLO, 1),x)
+#define mips32_xchdatalo(x)	mips32_xch_c0(MIPS_C0_REGNAME(C0_TAGLO, 1),x)
 #define mips32_getidatalo()	mips32_getdatalo()	/* alias define */
 #define mips32_setidatalo(x)	mips32_setdatalo(x)	/* alias define */
 #define mips32_xchidatalo(x)	mips32_xchdatalo(x)	/* alias define */
-#define mips32_getddatalo()	_m32c0_mfc0((C0_TAGLO+(3<<8)))
-#define mips32_setddatalo(x)	_m32c0_mtc0((C0_TAGLO+(3<<8)),x)
-#define mips32_xchddatalo(x)	_m32c0_mxc0((C0_TAGLO+(3<<8)),x)
-#define mips32_getdatalo2()	_m32c0_mfc0((C0_TAGLO+(5<<8)))
-#define mips32_setdatalo2(x)	_m32c0_mtc0((C0_TAGLO+(5<<8)),x)
-#define mips32_xchdatalo2(x)	_m32c0_mxc0((C0_TAGLO+(5<<8)),x)
+#define mips32_getddatalo()	mips32_get_c0(MIPS_C0_REGNAME(C0_TAGLO, 3))
+#define mips32_setddatalo(x)	mips32_set_c0(MIPS_C0_REGNAME(C0_TAGLO, 3),x)
+#define mips32_xchddatalo(x)	mips32_xch_c0(MIPS_C0_REGNAME(C0_TAGLO, 3),x)
+#define mips32_getdatalo2()	mips32_get_c0(MIPS_C0_REGNAME(C0_TAGLO, 5))
+#define mips32_setdatalo2(x)	mips32_set_c0(MIPS_C0_REGNAME(C0_TAGLO, 5),x)
+#define mips32_xchdatalo2(x)	mips32_xch_c0(MIPS_C0_REGNAME(C0_TAGLO, 5),x)
 
 /* MIPS32r2 IntCtl register */
-#define mips32_getintctl()	_m32c0_mfc0(C0_INTCTL)
-#define mips32_setintctl(x)	_m32c0_mtc0(C0_INTCTL,x)
-#define mips32_xchintctl(x)	_m32c0_mxc0(C0_INTCTL,x)
+#define mips32_getintctl()	mips32_get_c0(C0_INTCTL)
+#define mips32_setintctl(x)	mips32_set_c0(C0_INTCTL,x)
+#define mips32_xchintctl(x)	mips32_xch_c0(C0_INTCTL,x)
 
 /* MIPS32r2 SRSCtl register */
-#define mips32_getsrsctl()	_m32c0_mfc0(C0_SRSCTL)
-#define mips32_setsrsctl(x)	_m32c0_mtc0(C0_SRSCTL,x)
-#define mips32_xchsrsctl(x)	_m32c0_mxc0(C0_SRSCTL,x)
+#define mips32_getsrsctl()	mips32_get_c0(C0_SRSCTL)
+#define mips32_setsrsctl(x)	mips32_set_c0(C0_SRSCTL,x)
+#define mips32_xchsrsctl(x)	mips32_xch_c0(C0_SRSCTL,x)
 
 /* MIPS32r2 SRSMap register */
-#define mips32_getsrsmapl()	_m32c0_mfc0(C0_SRSMAP)
-#define mips32_setsrsmap(x)	_m32c0_mtc0(C0_SRSMAP,x)
-#define mips32_xchsrsmap(x)	_m32c0_mxc0(C0_SRSMAP,x)
+#define mips32_getsrsmapl()	mips32_get_c0(C0_SRSMAP)
+#define mips32_setsrsmap(x)	mips32_set_c0(C0_SRSMAP,x)
+#define mips32_xchsrsmap(x)	mips32_xch_c0(C0_SRSMAP,x)
 
 /* MIPS32r2/SmartMIPS PageGrain register */
-#define mips32_getpagegrain()	_m32c0_mfc0(C0_PAGEGRAIN)
-#define mips32_setpagegrain(x)	_m32c0_mtc0(C0_PAGEGRAIN,x)
-#define mips32_xchpagegrain(x)	_m32c0_mxc0(C0_PAGEGRAIN,x)
+#define mips32_getpagegrain()	mips32_get_c0(C0_PAGEGRAIN)
+#define mips32_setpagegrain(x)	mips32_set_c0(C0_PAGEGRAIN,x)
+#define mips32_xchpagegrain(x)	mips32_xch_c0(C0_PAGEGRAIN,x)
 
 /* MIPS32r2 HWREna register */
-#define mips32_gethwrena()	_m32c0_mfc0(C0_HWRENA)
-#define mips32_sethwrena(v)	_m32c0_mtc0(C0_HWRENA,v)
-#define mips32_xchhwrena(v)	_m32c0_mxc0(C0_HWRENA,v)
-#define mips32_bichwrena(clr)	_m32c0_bcc0(C0_HWRENA,clr)
-#define mips32_bishwrena(set)	_m32c0_bsc0(C0_HWRENA,set)
-#define mips32_bcshwrena(c,s)	_m32c0_bcsc0(C0_HWRENA,c,s)
+#define mips32_gethwrena()	mips32_get_c0(C0_HWRENA)
+#define mips32_sethwrena(v)	mips32_set_c0(C0_HWRENA,v)
+#define mips32_xchhwrena(v)	mips32_xch_c0(C0_HWRENA,v)
+#define mips32_bichwrena(clr)	mips32_bc_c0(C0_HWRENA,clr)
+#define mips32_bishwrena(set)	mips32_bs_c0(C0_HWRENA,set)
+#define mips32_bcshwrena(c,s)	mips32_bcs_c0(C0_HWRENA,c,s)
 
 /* MIPS32r2 EBase register */
-#define mips32_getebase()	_m32c0_mfc0(C0_EBASE)
-#define mips32_setebase(x)	_m32c0_mtc0(C0_EBASE,x)
-#define mips32_xchebase(x)	_m32c0_mxc0(C0_EBASE,x)
+#define mips32_getebase()	mips32_get_c0(C0_EBASE)
+#define mips32_setebase(x)	mips32_set_c0(C0_EBASE,x)
+#define mips32_xchebase(x)	mips32_xch_c0(C0_EBASE,x)
 
 /* CP0 Status register (NOTE: not atomic operations) */
-#define mips32_getsr()		_m32c0_mfc0(C0_SR)
-#define mips32_setsr(v)		_m32c0_mtc0(C0_SR,v)
-#define mips32_xchsr(v)		_m32c0_mxc0(C0_SR,v)
-#define mips32_bicsr(clr)	_m32c0_bcc0(C0_SR,clr)
-#define mips32_bissr(set)	_m32c0_bsc0(C0_SR,set)
-#define mips32_bcssr(c,s)	_m32c0_bcsc0(C0_SR,c,s)
+#define mips32_getsr()		mips32_get_c0(C0_SR)
+#define mips32_setsr(v)		mips32_set_c0(C0_SR,v)
+#define mips32_xchsr(v)		mips32_xch_c0(C0_SR,v)
+#define mips32_bicsr(clr)	mips32_bc_c0(C0_SR,clr)
+#define mips32_bissr(set)	mips32_bs_c0(C0_SR,set)
+#define mips32_bcssr(c,s)	mips32_bcs_c0(C0_SR,c,s)
 
 /* CP0 Cause register (NOTE: not atomic operations) */
-#define mips32_getcr()		_m32c0_mfc0(C0_CR)
-#define mips32_setcr(v)		_m32c0_mtc0(C0_CR,v)
-#define mips32_xchcr(v)		_m32c0_mxc0(C0_CR,v)
-#define mips32_biccr(clr)	_m32c0_bcc0(C0_CR,clr)
-#define mips32_biscr(set)	_m32c0_bsc0(C0_CR,set)
-#define mips32_bcscr(c,s)	_m32c0_bcsc0(C0_CR,c,s)
+#define mips32_getcr()		mips32_get_c0(C0_CR)
+#define mips32_setcr(v)		mips32_set_c0(C0_CR,v)
+#define mips32_xchcr(v)		mips32_xch_c0(C0_CR,v)
+#define mips32_biccr(clr)	mips32_bc_c0(C0_CR,clr)
+#define mips32_biscr(set)	mips32_bs_c0(C0_CR,set)
+#define mips32_bcscr(c,s)	mips32_bcs_c0(C0_CR,c,s)
 
 /* CP0 PrID register */
-#define mips32_getprid()	_m32c0_mfc0(C0_PRID)
+#define mips32_getprid()	mips32_get_c0(C0_PRID)
 
 #ifdef C0_COUNT
 /* CP0 Count register */
-#define mips32_getcount()	_m32c0_mfc0(C0_COUNT)
-#define mips32_setcount(v)	_m32c0_mtc0(C0_COUNT,v)
-#define mips32_xchcount(v)	_m32c0_mxc0(C0_COUNT,v)
+#define mips32_getcount()	mips32_get_c0(C0_COUNT)
+#define mips32_setcount(v)	mips32_set_c0(C0_COUNT,v)
+#define mips32_xchcount(v)	mips32_xch_c0(C0_COUNT,v)
 #endif
 
 #ifdef C0_COMPARE
 /* CP0 Compare register*/
-#define mips32_getcompare()	_m32c0_mfc0(C0_COMPARE)
-#define mips32_setcompare(v)	_m32c0_mtc0(C0_COMPARE,v)
-#define mips32_xchcompare(v)	_m32c0_mxc0(C0_COMPARE,v)
+#define mips32_getcompare()	mips32_get_c0(C0_COMPARE)
+#define mips32_setcompare(v)	mips32_set_c0(C0_COMPARE,v)
+#define mips32_xchcompare(v)	mips32_xch_c0(C0_COMPARE,v)
 #endif
 
 #ifdef C0_CONFIG
 /* CP0 Config register */
-#define mips32_getconfig()	_m32c0_mfc0(C0_CONFIG)
-#define mips32_setconfig(v)	_m32c0_mtc0(C0_CONFIG,v)
-#define mips32_xchconfig(v)	_m32c0_mxc0(C0_CONFIG,v)
-#define mips32_bicconfig(c)	_m32c0_bcc0(C0_CONFIG,c)
-#define mips32_bisconfig(s)	_m32c0_bsc0(C0_CONFIG,s)
-#define mips32_bcsconfig(c,s)	_m32c0_bcsc0(C0_CONFIG,c,s)
+#define mips32_getconfig()	mips32_get_c0(C0_CONFIG)
+#define mips32_setconfig(v)	mips32_set_c0(C0_CONFIG,v)
+#define mips32_xchconfig(v)	mips32_xch_c0(C0_CONFIG,v)
+#define mips32_bicconfig(c)	mips32_bc_c0(C0_CONFIG,c)
+#define mips32_bisconfig(s)	mips32_bs_c0(C0_CONFIG,s)
+#define mips32_bcsconfig(c,s)	mips32_bcs_c0(C0_CONFIG,c,s)
 #endif
 
 #ifdef C0_ECC
 /* CP0 ECC register */
-#define mips32_getecc()		_m32c0_mfc0(C0_ECC)
-#define mips32_setecc(x)	_m32c0_mtc0(C0_ECC, x)
-#define mips32_xchecc(x)	_m32c0_mxc0(C0_ECC, x)
+#define mips32_getecc()		mips32_get_c0(C0_ECC)
+#define mips32_setecc(x)	mips32_set_c0(C0_ECC, x)
+#define mips32_xchecc(x)	mips32_xch_c0(C0_ECC, x)
 #endif
 
 #ifdef C0_TAGHI
 /* CP0 TagHi register */
-#define mips32_gettaghi()	_m32c0_mfc0(C0_TAGHI)
-#define mips32_settaghi(x)	_m32c0_mtc0(C0_TAGHI, x)
-#define mips32_xchtaghi(x)	_m32c0_mxc0(C0_TAGHI, x)
+#define mips32_gettaghi()	mips32_get_c0(C0_TAGHI)
+#define mips32_settaghi(x)	mips32_set_c0(C0_TAGHI, x)
+#define mips32_xchtaghi(x)	mips32_xch_c0(C0_TAGHI, x)
 #endif
 
 #ifdef C0_WATCHLO
 /* CP0 WatchLo register */
-#define mips32_getwatchlo()	_m32c0_mfc0(C0_WATCHLO)
-#define mips32_setwatchlo(x)	_m32c0_mtc0(C0_WATCHLO, x)
-#define mips32_xchwatchlo(x)	_m32c0_mxc0(C0_WATCHLO, x)
+#define mips32_getwatchlo()	mips32_get_c0(C0_WATCHLO)
+#define mips32_setwatchlo(x)	mips32_set_c0(C0_WATCHLO, x)
+#define mips32_xchwatchlo(x)	mips32_xch_c0(C0_WATCHLO, x)
 #endif
 
 #ifdef C0_WATCHHI
 /* CP0 WatchHi register */
-#define mips32_getwatchhi()	_m32c0_mfc0(C0_WATCHHI)
-#define mips32_setwatchhi(x)	_m32c0_mtc0(C0_WATCHHI, x)
-#define mips32_xchwatchhi(x)	_m32c0_mxc0(C0_WATCHHI, x)
+#define mips32_getwatchhi()	mips32_get_c0(C0_WATCHHI)
+#define mips32_setwatchhi(x)	mips32_set_c0(C0_WATCHHI, x)
+#define mips32_xchwatchhi(x)	mips32_xch_c0(C0_WATCHHI, x)
 #endif
 
-#define _m32c0_mfc0_generic(reg, sel) \
+/*
+ * Define macros for accessing the MIPS32 coprocessor 0 registers.  Most
+ * apart from "set" return the original register value.  These particular
+ * macros take (reg, sel) as separate paramters, so they can't be used with
+ * the coprocessor 0 register names above.
+ */
+#define _m32c0_mfc0(reg, sel) \
 __extension__ ({ \
   register unsigned long __r; \
   __asm__ __volatile ("mfc0 %0,$%1,%2" \
@@ -1225,7 +1234,7 @@ __extension__ ({ \
   __r; \
 })
 
-#define _m32c0_mtc0_generic(reg, sel, val) \
+#define _m32c0_mtc0(reg, sel, val) \
 do { \
     __asm__ __volatile (".set push \n"\
 			".set noreorder\n"\
@@ -1237,35 +1246,35 @@ do { \
 			: "memory"); \
 } while (0)
 
-#define _m32c0_mxc0_generic(reg, sel, val) \
+#define _m32c0_mxc0(reg, sel, val) \
 __extension__ ({ \
     register reg32_t __o; \
-    __o = _m32c0_mfc0_generic (reg, sel); \
-    _m32c0_mtc0_generic (reg, sel, val); \
+    __o = _m32c0_mfc0 (reg, sel); \
+    _m32c0_mtc0 (reg, sel, val); \
     __o; \
 })
 
-#define _m32c0_bcc0_generic(reg, sel, clr) \
+#define _m32c0_bcc0(reg, sel, clr) \
 __extension__ ({ \
     register reg32_t __o; \
-    __o = _m32c0_mfc0_generic (reg, sel); \
-    _m32c0_mtc0_generic (reg, sel, __o & ~(clr)); \
+    __o = _m32c0_mfc0 (reg, sel); \
+    _m32c0_mtc0 (reg, sel, __o & ~(clr)); \
     __o; \
 })
 
-#define _m32c0_bsc0_generic(reg, sel, set) \
+#define _m32c0_bsc0(reg, sel, set) \
 __extension__ ({ \
     register reg32_t __o; \
-    __o = _m32c0_mfc0_generic (reg, sel); \
-    _m32c0_mtc0_generic (reg, sel, __o | (set)); \
+    __o = _m32c0_mfc0 (reg, sel); \
+    _m32c0_mtc0 (reg, sel, __o | (set)); \
     __o; \
 })
 
-#define _m32c0_bcsc0_generic(reg, sel, clr, set) \
+#define _m32c0_bcsc0(reg, sel, clr, set) \
 __extension__ ({ \
     register reg32_t __o; \
-    __o = _m32c0_mfc0_generic (reg, sel); \
-    _m32c0_mtc0_generic (reg, sel, (__o & ~(clr)) | (set)); \
+    __o = _m32c0_mfc0 (reg, sel); \
+    _m32c0_mtc0 (reg, sel, (__o & ~(clr)) | (set)); \
     __o; \
 })
 
