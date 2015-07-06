@@ -873,7 +873,7 @@ typedef signed long long	sreg_t;
 #define C0_TLBLO0	2
 #define C0_ENTRYLO1	3
 #define C0_TLBLO1	3
-#define C0_GLOBAL	3
+#define C0_GLOBAL	0x103
 #define C0_CONTEXT	4
 #define C0_CTXT		4
 #define C0_CONTEXTCONF	0x104
@@ -970,14 +970,14 @@ extern "C" {
  * (register, select) combination, so they can use the textual names above.
  */
 
-#define MIPS_C0_REGNAME(regno, sel) ((sel<<8) + regno)
+#define MIPS_C0_REGNAME(regno, sel) ((sel << 8) + regno)
 
 #define mips32_get_c0(selreg) \
 __extension__ ({ \
   register unsigned long __r; \
   __asm__ __volatile ("mfc0 %0,$%1,%2" \
 		      : "=d" (__r) \
-      		      : "JK" (selreg & 0x1F), "JK" (selreg>>8)); \
+		      : "JK" (selreg & 0x1F), "JK" (selreg >> 8)); \
   __r; \
 })
 
@@ -990,7 +990,7 @@ do { \
 			".set pop" \
 			: \
 			: "dJ" ((reg32_t)(val)), "JK" (selreg & 0x1F),\
-			"JK" (selreg>>8) \
+			  "JK" (selreg >> 8) \
 			: "memory"); \
 } while (0)
 

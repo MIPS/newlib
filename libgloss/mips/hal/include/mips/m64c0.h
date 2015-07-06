@@ -31,20 +31,21 @@
 #ifndef _M64C0_H_
 #define _M64C0_H_
 
+/* Superset of MIPS32 */
+#include <mips/m32c0.h>
+
 /*
  * Define macros for accessing the MIPS coprocessor 0 registers which are
  * 64 bits wide.
  * Most apart from "set" return the original register value.
  */
 
-#define MIPS_C0_REGNAME(regno, sel) ((sel<<8) + regno)
-
 #define mips64_get_c0(selreg) \
 __extension__ ({ \
   register unsigned long __r; \
   __asm__ __volatile ("dmfc0 %0,$%1,%2" \
 		      : "=d" (__r) \
-      		      : "JK" (selreg & 0x1F), "JK" (selreg>>8)); \
+		      : "JK" (selreg & 0x1F), "JK" (selreg >> 8)); \
   __r; \
 })
 
@@ -57,7 +58,7 @@ do { \
 			".set pop" \
 			: \
 			: "dJ" ((reg64_t)(val)), "JK" (selreg & 0x1F),\
-			"JK" (selreg>>8) \
+			  "JK" (selreg >> 8) \
 			: "memory"); \
 } while (0)
 
@@ -180,9 +181,6 @@ __extension__ ({ \
     _m64c0_mtc0 (reg, sel, (__o & ~(clr)) | (set)); \
     __o; \
 })
-
-/* Superset of MIPS32 */
-#include <mips/m32c0.h>
 
 /* Define MIPS64 user-level intrinsics */
 #include <mips/mips64.h>
