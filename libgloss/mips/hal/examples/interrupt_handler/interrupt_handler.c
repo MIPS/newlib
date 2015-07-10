@@ -37,9 +37,9 @@ int
 main ()
 {
   /* Enable SW interrupt 0 */
-  _mips_bsc0 (C0_STATUS, SR_SINT0);
+  mips32_bs_c0 (C0_STATUS, SR_SINT0);
   /* Trigger the interrupt */
-  _mips_bsc0 (C0_CAUSE, SR_SINT0);
+  mips32_bs_c0 (C0_CAUSE, SR_SINT0);
   /* Wait for handling */
   while (!handled)
     {
@@ -59,7 +59,7 @@ _mips_isr_sw0 (void)
   /* Count the interrupt */
   handled += 1;
   /* Clear the interrupt */
-  _mips_bcc0 (C0_CAUSE, SR_SINT0);
+  mips32_bc_c0 (C0_CAUSE, SR_SINT0);
 }
 
 /* Provide a fall-back handler if anything other than SW0 is raised */
