@@ -40,6 +40,7 @@ ifeq ($(CORE), P5600)
  DEFINES += -DC0_CONFIG4_VALUE=0xc01c0000
  DEFINES += -DC0_CONFIG5_VALUE=0x10000038
  DEFINES += -DC0_WATCHHI_VALUE=0x00000000
+ OBJS += init_l23caches_predef.o
  override ABI = 32
  override ENDIAN = EL
  override MIPS_TOOLCHAIN = mips-mti-elf
@@ -58,6 +59,7 @@ else
   DEFINES += -DC0_WATCHHI3_VALUE=0x00000000
   DEFINES += -DC0_CMGCRBASE_VALUE=0x01fbf800
   DEFINES += -DGCR_L2_CONFIG_VALUE=0x00000000
+  OBJS = init_cm3l2_predef.o
   override ABI = 64
   override ENDIAN = EL
   override MIPS_TOOLCHAIN = mips-img-elf
@@ -73,9 +75,8 @@ ifeq ($(ENABLE_XPA), 1)
   DEFINES += -DENABLE_XPA=1
 endif
 
-OBJS = romable_predef.o reset_predef.o init_caches_predef.o init_cp0_predef.o
-OBJS += init_l23caches_predef.o init_tlb_predef.o init_cm3l2_predef.o
-OBJS += corecheck_predef.o
+OBJS += romable_predef.o reset_predef.o init_caches_predef.o init_cp0_predef.o
+OBJS += init_tlb_predef.o corecheck_predef.o
 APP = romable_predef.elf
 
 CFLAGS += -g -O1 $(DEFINES)
