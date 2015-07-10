@@ -75,6 +75,7 @@ PROVIDE (__flush_to_zero = 1);
 
 /* Set up the public symbols depending on whether the user has chosen
    quiet or verbose exception handling above */
+EXTERN (__exception_handle);
 PROVIDE(__exception_handle = (DEFINED(__exception_handle_quiet)
 				      ? __exception_handle_quiet
 				      : __exception_handle_verbose));

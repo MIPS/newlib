@@ -105,6 +105,7 @@
 #  define FTLB_SETS	(1 << FTLB_SET_ENC)
 #  define FTLB_SIZE	(2 + FTLB_WAY_ENC) * FTLB_SETS
 # else
+#  define FTLB_SETS	1
 #  define FTLB_SIZE	0
 # endif
 
