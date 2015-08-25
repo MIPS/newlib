@@ -273,18 +273,22 @@
 #define  CFG0_AT_M64_A64 (2 << CFG0_AT_SHIFT) /* MIPS64, 64-bit addresses */
 #define  CFG0_AT_RES	 (3 << CFG0_AT_SHIFT)
 #define CFG0_AR_MASK	0x00001c00
+#define CFG0_ARMASK	0x00001c00
 #define  CFG0_AR_SHIFT		10
+#define  CFG0_ARSHIFT		10
 #define  CFG0_AR_BITS		 3
 #define  CFG0_AR_R1	 (0 << CFG0_AR_SHIFT) /* Release 1 */
 #define  CFG0_AR_R2	 (1 << CFG0_AR_SHIFT) /* Release 2,3,5 */
 #define  CFG0_AR_R6	 (2 << CFG0_AR_SHIFT) /* Release 6 */
 #define CFG0_MT_MASK	0x00000380	/* MMU Type: */
+#define CFG0_MTMASK	0x00000380
 #define  CFG0_MT_SHIFT		 7
 #define  CFG0_MT_BITS		 3
 #define  CFG0_MT_NONE	 (0 << CFG0_MT_SHIFT) /* No MMU */
 #define  CFG0_MT_TLB	 (1 << CFG0_MT_SHIFT) /* Standard TLB */
 #define  CFG0_MT_BAT	 (2 << CFG0_MT_SHIFT) /* BAT */
 #define  CFG0_MT_FIXED	 (3 << CFG0_MT_SHIFT) /* Fixed mapping */
+#define  CFG0_MT_NONSTD	 (3 << CFG0_MT_SHIFT) /* Legacy */
 #define  CFG0_MT_DUAL	 (4 << CFG0_MT_SHIFT) /* Dual VTLB and FTLB */
 #define CFG0_VI		0x00000008	/* Icache is virtual */
 #define  CFG0_VI_SHIFT		 3
@@ -301,30 +305,37 @@
 #define CFG1_MMUS_MASK	0x7e000000	/* mmu size - 1 */
 #define CFG1_MMUSMASK	0x7e000000
 #define  CFG1_MMUS_SHIFT	25
+#define  CFG1_MMUSSHIFT		25
 #define  CFG1_MMUS_BITS		 6
 #define CFG1_IS_MASK	0x01c00000	/* icache lines 64<<n */
 #define CFG1_ISMASK	0x01c00000
 #define  CFG1_IS_SHIFT		22	/* Unless n==7, then 32 */
+#define  CFG1_ISSHIFT		22
 #define  CFG1_IS_BITS		 3
 #define CFG1_IL_MASK	0x00380000	/* icache line size 2<<n */
 #define CFG1_ILMASK	0x00380000
 #define  CFG1_IL_SHIFT		19
+#define  CFG1_ILSHIFT		19
 #define  CFG1_IL_BITS		 3
 #define CFG1_IA_MASK	0x00070000	/* icache ways - 1 */
 #define CFG1_IAMASK	0x00070000
 #define  CFG1_IA_SHIFT		16
+#define  CFG1_IASHIFT		16
 #define  CFG1_IA_BITS		 3
 #define CFG1_DS_MASK	0x0000e000	/* dcache lines 64<<n */
 #define CFG1_DSMASK	0x0000e000
 #define  CFG1_DS_SHIFT		13
+#define  CFG1_DSSHIFT		13
 #define  CFG1_DS_BITS		 3
 #define CFG1_DL_MASK	0x00001c00	/* dcache line size 2<<n */
 #define CFG1_DLMASK	0x00001c00
 #define  CFG1_DL_SHIFT		10
+#define  CFG1_DLSHIFT		10
 #define  CFG1_DL_BITS		 3
 #define CFG1_DA_MASK	0x00000380	/* dcache ways - 1 */
 #define CFG1_DAMASK	0x00000380
 #define  CFG1_DA_SHIFT		 7
+#define  CFG1_DASHIFT		 7
 #define  CFG1_DA_BITS		 3
 #define CFG1_C2		0x00000040	/* Coprocessor 2 present */
 #define  CFG1_C2_SHIFT		 6
@@ -350,34 +361,42 @@
 #define CFG2_TU_MASK	0x70000000	/* tertiary cache control */
 #define CFG2_TUMASK	0x70000000
 #define  CFG2_TU_SHIFT		28
+#define  CFG2_TUSHIFT		28
 #define  CFG2_TU_BITS		 3
 #define CFG2_TS_MASK	0x0f000000	/* tcache sets per wway 64<<n */
 #define CFG2_TSMASK	0x0f000000
 #define  CFG2_TS_SHIFT		24
+#define  CFG2_TSSHIFT		24
 #define  CFG2_TS_BITS		 4
 #define CFG2_TL_MASK	0x00f00000	/* tcache line size 2<<n */
 #define CFG2_TLMASK	0x00f00000
 #define  CFG2_TL_SHIFT		20
+#define  CFG2_TLSHIFT		20
 #define  CFG2_TL_BITS		 4
 #define CFG2_TA_MASK	0x000f0000	/* tcache ways - 1 */
 #define CFG2_TAMASK	0x000f0000
 #define  CFG2_TA_SHIFT		16
+#define  CFG2_TASHIFT		16
 #define  CFG2_TA_BITS		 4
 #define CFG2_SU_MASK	0x0000f000	/* secondary cache control */
 #define CFG2_SUMASK	0x0000f000
 #define  CFG2_SU_SHIFT		12
+#define  CFG2_SUSHIFT		12
 #define  CFG2_SU_BITS		 4
 #define CFG2_SS_MASK	0x00000f00	/* scache sets per wway 64<<n */
 #define CFG2_SSMASK	0x00000f00
 #define  CFG2_SS_SHIFT		 8
+#define  CFG2_SSSHIFT		 8
 #define  CFG2_SS_BITS		 4
 #define CFG2_SL_MASK	0x000000f0	/* scache line size 2<<n */
 #define CFG2_SLMASK	0x000000f0
 #define  CFG2_SL_SHIFT		 4
+#define  CFG2_SLSHIFT		 4
 #define  CFG2_SL_BITS		 4
 #define CFG2_SA_MASK	0x0000000f	/* scache ways - 1 */
 #define CFG2_SAMASK	0x0000000f
 #define  CFG2_SA_SHIFT		 0
+#define  CFG2_SASHIFT		 0
 #define  CFG2_SA_BITS		 4
 
 /*
@@ -605,7 +624,9 @@
 #define WATCHHI_G		0x40000000
 #define  WATCHHI_G_SHIFT		30
 #define WATCHHI_ASID_MASK	0x00ff0000
+#define WATCHHI_ASIDMASK	0x00ff0000
 #define  WATCHHI_ASID_SHIFT		16
+#define  WATCHHI_ASIDSHIFT		16
 #define  WATCHHI_ASID_BITS		 8
 #define WATCHHI_MASK		0x00000ffc
 #define WATCHHI_I		0x00000004
@@ -615,7 +636,9 @@
 /* MIPS32 PerfCnt Register (CP0 Register 25) */
 #define PERFCNT_M		0x80000000
 #define PERFCNT_EVENT_MASK	0x000007e0
+#define PERFCNT_EVENTMASK	0x000007e0
 #define PERFCNT_EVENT_SHIFT		 5
+#define PERFCNT_EVENTSHIFT		 5
 #define PERFCNT_EVENT_BITS		 6
 #define PERFCNT_IE		0x00000010
 #define PERFCNT_U		0x00000008
