@@ -209,9 +209,17 @@
 #define  SR_IE_SHIFT		 0
 
 /*
+ * MIPS32r6 VPControl (CP0 Register 0, Select 4)
+ */
+#define VPCONTROL_DIS	0x00000001
+#define VPCONTROL_SHIFT		 0
+
+/*
  * MIPS32r2 HWREna Register  (CP0 Register 7, Select 0)
  */
 #define HWRENA_ULR	0x20000000
+#define HWRENA_XNP	0x00000020
+#define HWRENA_PERFCNT	0x00000010
 #define HWRENA_CCRES	0x00000008
 #define HWRENA_CC	0x00000004
 #define HWRENA_SYNCSTEP	0x00000002
@@ -252,6 +260,14 @@
 #define SRSCTL_PSS_SHIFT	 6
 #define SRSCTL_CSS	0x0000000f	/* current shadow set */
 #define SRSCTL_CSS_SHIFT	 0
+
+/*
+ * MIPS32 BEVVA Register (CP0 Register 15, Select 4)
+ */
+#define BEVVA_BASE_MASK	0xfffff000
+#define BEVVA_BASE_SHIFT	12
+#define BEVVA_MASK_MASK	0x00000fff
+#define BEVVA_MASK_SHIFT	 0
 
 /*
  * MIPS32 Config0 Register  (CP0 Register 16, Select 0)
@@ -520,6 +536,8 @@
 #define  CFG5_EVA_SHIFT		28
 #define CFG5_MSAEN	0x08000000	/* Enable MSA ASE */
 #define  CFG5_MSAEN_SHIFT	27
+#define CFG_XNP		0x00002000
+#define CFG_XNP_SHIFT		13
 #define CFG5_CES	0x00001000	/* Current endian state */
 #define  CFG5_CES_SHIFT		12
 #define CFG5_DEC	0x00000800	/* Dual endian control */
@@ -779,6 +797,7 @@
 #define C0_CONTEXTCONF	$4,1
 #define C0_USERLOCAL	$4,2
 #define C0_XCONTEXTCONF	$4,3
+#define C0_DEBUGCTXTID	$4,4
 #define C0_PAGEMASK	$5
 #define C0_PAGEGRAIN	$5,1
 #define C0_SEGCTL0	$5,2
@@ -812,6 +831,7 @@
 #define C0_EBASE	$15,1
 #define C0_CDMMBASE	$15,2
 #define C0_CMGCRBASE	$15,3
+#define C0_BEVVA	$15,4
 #define C0_CONFIG	$16
 #define C0_CONFIG0	$16,0
 #define C0_CONFIG1	$16,1
@@ -919,6 +939,7 @@ typedef signed long long	sreg_t;
 #define C0_CONTEXTCONF	0x104
 #define C0_USERLOCAL	0x204
 #define C0_XCONTEXTCONF	0x304
+#define C0_DEBUGCTXTID	0x404
 #define C0_PAGEMASK	5
 #define C0_PAGEGRAIN	0x105
 #define C0_SEGCTL0	0x205
@@ -952,6 +973,7 @@ typedef signed long long	sreg_t;
 #define C0_EBASE	0x10F
 #define C0_CDMMBASE	0x20F
 #define C0_CMGCRBASE	0x30F
+#define C0_BEVVA	0x40F
 #define C0_CONFIG	16
 #define C0_CONFIG0	16
 #define C0_CONFIG1	0x110
