@@ -141,6 +141,11 @@ SLEAF(__tlbinvalall)
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
 
+	// Fetch size & number of sets in v0, v1.
+	move	t8, ra
+	jal	__tlb_size
+	move	ra, t8
+
 	// If Config4 does not exist then use old method for invalidation
 	mfc0	t1, C0_CONFIG3
 	ext	t1, t1, CFG3_M_SHIFT, 1
@@ -151,19 +156,18 @@ SLEAF(__tlbinvalall)
 	ext     t2, t9, CFG4_IE_SHIFT, CFG4_IE_BITS
 	beqz	t2, 9f
 
-	// If Config[MT] = 1,  one instruction required
-	li	t0, (CFG0_MT_TLB >> CFG0_MT_SHIFT)
-	beq	t3, t0, 7f
+	// If Config4[IE] = 1, EHINV loop.
+	li	t1, (CFG4_IE_EHINV >> CFG4_IE_SHIFT)
+	beq	t1, t2, 14f
 
-	// If Config[IE] = 3, one instruction required
-	li	t1, (CFG4_IE_INVALL >> CFG4_IE_SHIFT)
-	beq	t1, t2, 7f
+	// If Config4[IE] = 2, tlbinvf loop. Handles Config[MT] being
+	// either 1 or 4.
+	li	t1, (CFG4_IE_INV >> CFG4_IE_SHIFT)
+	beq	t1, t2, 8f
 
-	// If Config4[IE] = 2, many instructions required
-	// No other options
-	b	8f
+	// If Config4[IE] = 3, single tlbinvf needed.
 
-7:	# TLB walk done by hardware, Config4[IE] = 3 or Config[MT] = 1
+7:	// TLB walk done by hardware, Config4[IE] = 3
 	mtc0	zero, C0_INDEX
 	ehb
 	.set	push
@@ -173,23 +177,16 @@ SLEAF(__tlbinvalall)
 	.set	pop
 	b	11f
 
-8:	/* TLB walk done by software, Config4[IE] = 2, Config[MT] = 4
+8:	/* TLB walk done by software, Config4[IE] = 2, Config[MT] = 4 or 1
 	 *
 	 * one TLBINVF is executed with an index in VTLB range to
 	 * invalidate all VTLB entries.
 	 *
-	 * One TLBINVF is executed per FTLB set.
+	 * For Dual TLBs additionally, one TLBINVF is executed per FTLB set.
 	 *
-	 * We'll clean out the TLB by computing the Size of the VTLB
-	 * but not add the 1. This will give us a finger that points
-	 * at the last VTLB entry.
 	 */
 
-	move	t8, ra
-	jal	__tlb_size
-	move	ra, t8
-
-	# Clear VTLB
+	// Flush the VTLB
 	mtc0	zero, C0_INDEX
 	ehb
 	.set	push
@@ -198,8 +195,15 @@ SLEAF(__tlbinvalall)
 	tlbinvf
 	.set	pop
 
-	# v0 contains number of TLB entries
-	# v1 contains number of sets per way
+	// For JTLB MMUs (Config[MT] = 1) only 1 tlbinvf is required
+	// early out in that case.
+	mfc0	t0, C0_CONFIG
+	ext	t3, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
+	li	t1, (CFG0_MT_TLB >> CFG0_MT_SHIFT)
+	beq	t1, t3, 11f
+
+	// v0 contains number of TLB entries
+	// v1 contains number of sets per way
 	lui	t9, %hi(__tlb_stride_length)	# Fetch the tlb stride for
 	addiu	t9, %lo(__tlb_stride_length)	# stepping through FTLB sets.
 	mul	v1, v1, t9
@@ -217,15 +221,32 @@ SLEAF(__tlbinvalall)
 
 	b	11f
 
-9:	# Clean invalidate TLB for R1 onwards by loading
-	# 0x(FFFFFFFF)KSEG0_BASE into EntryHi and writing it into index 0
-	# incrementing by a pagesize, writing into index 1, etc.
-	move	t8, ra
-	jal	__tlb_size
-	move	ra, t8
+14:	/*
+	 * Config4[IE] = 1. EHINV supported, but not tlbinvf.
+	 *
+	 * Invalidate the TLB for R3 onwards by loading EHINV and writing to all
+	 * tlb entries.
+	 */
+	move	v1, zero
+	li	t1, C0_ENTRYHI_EHINV_MASK
+	mtc0	t1, C0_ENTRYHI
+15:
+	mtc0	v1, C0_INDEX
+	ehb					# mtc0, hazard on tlbwi
 
-	# If large physical addressing is enabled, load 0xFFFFFFFF
-	# into the top half of EntryHi.
+	tlbwi
+	addiu	v1, v1, 1
+	bne	v0, v1, 15b
+
+	b	11f
+
+9:	/* Invalidate the TLB for R1 onwards by loading
+	 * 0x(FFFFFFFF)KSEG0_BASE into EntryHi and writing it into index 0
+	 * incrementing by a pagesize, writing into index 1, etc.
+	 */
+
+	// If large physical addressing is enabled, load 0xFFFFFFFF
+	// into the top half of EntryHi.
 	move	t0, zero			# t0 == 0 if XPA disabled
 	mfc0	t9, C0_CONFIG3			# or not present.
 	and	t9, t1, CFG3_LPA

@@ -99,6 +99,20 @@ LEAF(__init_tlb)
 	bne	t1, t2, 12b
 #endif
 
+#if HAVE_EHINV_WALK
+	li	v0, MMU_SIZE
+	move	v1, zero
+	li	t0, C0_ENTRYHI_EHINV_MASK
+	PTR_MTC0 t0, C0_ENTRYHI
+13:
+	mtc0	v1, C0_INDEX
+	ehb
+
+	tlbwi
+	addiu	v1, v1, 1
+	bne	v0, v1, 13b
+#endif
+
 #if HAVE_NO_INV
 9:	# Clean invalidate TLB for R1 onwards by loading
 	# 0x(FFFFFFFF)KSEG0_BASE into EntryHi and writing it into index MAX
