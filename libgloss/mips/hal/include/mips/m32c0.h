@@ -478,6 +478,7 @@
 #define  CFG4_IE_SHIFT		29
 #define  CFG4_IE_BITS		 2
 #define  CFG4_IE_NONE	(0 << CFG4_IE_SHIFT) /* TLB invalidate not available */
+#define  CFG4_IE_EHINV	(1 << CFG4_IE_SHIFT) /* TLB invalidate with EHINV */
 #define  CFG4_IE_INV	(2 << CFG4_IE_SHIFT) /* TLB invalidate per entry */
 #define  CFG4_IE_INVALL	(3 << CFG4_IE_SHIFT) /* TLB invalidate entire MMU */
 #define CFG4_AE		0x10000000	/* EntryHI.ASID is 10-bits */
