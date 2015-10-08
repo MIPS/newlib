@@ -87,7 +87,6 @@
 #define CR_SS	20
 #define CR_SB	22
 
-
 /* Standard Status Register bitmasks: */
 #define SR_CU1		0x20000000	/* Mark CP1 as usable */
 #define SR_FR		0x04000000	/* Enable MIPS III FP registers */
@@ -97,6 +96,10 @@
 #define SR_KX		0x00000080	/* Kernel extended addressing enabled */
 #define SR_SX		0x00000040	/* Supervisor extended addressing enabled */
 #define SR_UX		0x00000020	/* User extended addressing enabled */
+#define SR_IE		0x00000001	/* Interrupt enable */
+
+#define SR_MX		0x01000000	/* MDMX or DSP ASE */
+#define CFG5_MSAEN	0x08000000	/* MSA ASE */
 
 /* Standard (R4000) cache operations. Taken from "MIPS R4000
    Microprocessor User's Manual" 2nd edition: */

@@ -29,3 +29,31 @@ unlink.o: ${srcdir}/../unlink.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
 write.o: ${srcdir}/../write.c
 	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+get_ram_range.o: ${srcdir}/get_ram_range.c
+	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+link.o: $(srcdir)/link.c
+	$(CC) $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) -c $(CFLAGS) $?
+
+# These are the UHI implementations of semi-hosting functions
+
+uhi_getargs.o: $(srcdir)/uhi_getargs.S
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
+uhi_%.o: $(srcdir)/uhi_%.c
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
+
+# These are the YAMON specific versions of semi-hosting which fall
+# back to UHI for operations not supported natively on YAMON
+yamon_%.o: $(srcdir)/yamon_%.c
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<
+
+# Exception and interrupt handling support
+mips_excpt_handler.o: $(srcdir)/hal/lib/mips/mips_excpt_handler.c
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -DVERBOSE_EXCEPTIONS=1 -O2 $(INCLUDES) -c $(CFLAGS) $<
+mips_excpt_handler_quiet.o: $(srcdir)/hal/lib/mips/mips_excpt_handler.c
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
+%.o: $(srcdir)/hal/lib/mips/%.S
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
+
+# Boot code
+%.o: $(srcdir)/hal/boot/%.S
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $<

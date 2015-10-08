@@ -67,7 +67,8 @@ OBJCOPY = `if [ -f ${objroot}/../binutils/objcopy ] ; \
 CRT0 = @crt0@
 PCRT0 = @pcrt0@
 GENOBJS = syscalls.o fstat.o getpid.o isatty.o kill.o \
-	lseek.o print.o putnum.o stat.o unlink.o
+	lseek.o print.o putnum.o stat.o unlink.o __exit.o link.o \
+	get_ram_range.o
 GENOBJS2 = open.o close.o read.o write.o
 IDTOBJS = idtmon.o @part_specific_obj@ ${GENOBJS}
 PMONOBJS = pmon.o @part_specific_obj@ ${GENOBJS}
@@ -76,11 +77,35 @@ DVEOBJS = dvemon.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 JMR3904OBJS = jmr3904-io.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 CFEOBJS = cfe.o cfe_api.o cfe_mem.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 CYGMONOBJS = open.o close.o cygmon.o @part_specific_obj@ ${GENOBJS}
+UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
+  uhi_lseek.o uhi_open.o uhi_plog.o \
+  uhi_pread.o uhi_pwrite.o uhi_read.o uhi_link.o uhi_stat.o \
+  uhi_unlink.o uhi_write.o uhi_getargs.o uhi_exception.o \
+  uhi_get_ram_range.o uhi_indirect.o \
+  syscalls.o getpid.o isatty.o kill.o
+
+YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
+  yamon_fstat.o yamon_exception.o
+HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb_ops.o \
+  mips_fp.o mips_msa.o \
+  mips_excpt_entry.o mips_excpt_handler.o mips_excpt_handler_quiet.o \
+  mips_excpt_register.o mips_excpt_boot.o mips_excpt_isr.o \
+  m64tlb_ops.o mxxtlb_ops.o mips_l2size.o mips_xpa.o
+
+HALINCLUDE = -I $(srcdir)/hal/include
+BOOTOBJ = reset.o init_cp0.o init_caches.o init_tlb.o init_l23caches.o
+
+CM3OBJ_IMPL = mips_cm3_l2size.o init_cm3l2.o
+
+CM3AR = libcm3.a
 
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
 
-CFLAGS = -g 
+EXAMPLES = custom_excpt fault_recovery interrupt_handler isr_vector_space \
+	   romable romable_minimal romable_predef
+
+CFLAGS = -g
 
 GCC_LDFLAGS = `if [ -d ${objroot}/../gcc ] ; \
 	then echo -L${objroot}/../gcc ; fi`
@@ -140,6 +165,22 @@ libcfe.a: $(CFEOBJS)
 	${AR} ${ARFLAGS} $@ $(CFEOBJS)
 	${RANLIB} $@
 
+libuhi.a: $(UHIOBJS)
+	${AR} ${ARFLAGS} $@ $(UHIOBJS)
+	${RANLIB} $@
+
+libyamon.a: $(YAMONOBJS)
+	${AR} ${ARFLAGS} $@ $(YAMONOBJS)
+	${RANLIB} $@
+
+libhal.a: $(HALOBJ) $(BOOTOBJ)
+	${AR} ${ARFLAGS} $@ $^
+	${RANLIB} $@
+
+libcm3_impl.a: $(CM3OBJ_IMPL)
+	${AR} ${ARFLAGS} $@ $^
+	${RANLIB} $@
+
 # nullmon.a , This is what you want if you want crt0 but NO mon services
 # Supports GDB sim testing, board bringups, ICE operation.
 libnullmon.a: $(NULLMONOBJS)
@@ -191,10 +232,10 @@ cfe-test.dis: cfe-test.x
 	$(OBJDUMP) -d cfe-test.x > $@
 cfe-test: cfe-test.srec cfe-test.dis
 
-doc:	
+doc:
 
 clean mostlyclean:
-	rm -f a.out core *.i *~ *.o *-test *.srec *.dis *.map *.x
+	rm -f a.out core *.i *~ *.a *.o *-test *.srec *.dis *.map *.x
 
 distclean maintainer-clean realclean: clean
 	rm -f Makefile config.status a.out
@@ -205,9 +246,41 @@ install:
 	@for file in $(CRT0) $(PCRT0) $(BSP); do \
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$${file}; \
 	done
+	$(INSTALL_DATA) ${srcdir}/hal/lib/mips/libcm3.a $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/libcm3.a
 	@for script in ${SCRIPTS}; do\
 	  $(INSTALL_DATA) ${srcdir}/$${script}.ld $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$${script}.ld; \
 	done
+	mkdir -p $(DESTDIR)$(tooldir)/include/mips
+	@for header in ${srcdir}/hal/include/mips/*.h; do\
+	  $(INSTALL_DATA) $${header} $(DESTDIR)$(tooldir)/include/mips; \
+	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/boot
+	@for file in ${srcdir}/hal/boot/*.[hS] ; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/boot/; \
+	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/hal
+	@for file in ${srcdir}/hal/lib/mips/*.[hSc] ${srcdir}/crt0.S; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/hal/; \
+	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/uhi
+	@for file in ${srcdir}/uhi_*.c ${srcdir}/yamon_*.c ${srcdir}/syscalls.c; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/uhi/; \
+	done
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/rules
+	@$(INSTALL_DATA) ${srcdir}/hal/mipshal.mk $(DESTDIR)$(exec_prefix)/share/mips/rules/
+	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples
+	for example in $(EXAMPLES); do\
+	  mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}; \
+	  $(INSTALL_DATA) ${srcdir}/hal/examples/$${example}/Makefile \
+	    $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
+	  $(INSTALL_DATA) ${srcdir}/hal/examples/$${example}/README.txt \
+	    $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
+	  for file in ${srcdir}/hal/examples/$${example}/*.[cS]; do\
+	    $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
+	  done; \
+	done
+	$(INSTALL_PROGRAM) ${srcdir}/hal/examples/romable_minimal/makescripts.sh \
+	  $(DESTDIR)$(exec_prefix)/share/mips/examples/romable_minimal/makescripts.sh
 
 info:
 install-info:
@@ -217,8 +290,9 @@ test.o:	${srcdir}/test.c
 
 # these are for the BSPs
 crt0.o: ${srcdir}/crt0.S
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) ${srcdir}/crt0.S -o crt0.o
 pcrt0.o: ${srcdir}/crt0.S
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) -DGCRT0 ${srcdir}/crt0.S -o ${PCRT0}
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) -DGCRT0 ${srcdir}/crt0.S -o ${PCRT0}
 crt0_cfe.o: ${srcdir}/crt0_cfe.S
 crt0_cygmon.o: ${srcdir}/crt0_cygmon.S
 idtmon.o: ${srcdir}/idtmon.S
@@ -229,6 +303,8 @@ vr4300.o: ${srcdir}/vr4300.S
 vr5xxx.o: ${srcdir}/vr5xxx.S
 	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/vr5xxx.S
 lsipmon.o: $(srcdir)/lsipmon.S $(srcdir)/pmon.S
+__exit.o: ${srcdir}/__exit.c
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/__exit.c -o $@
 jmr3904-io.o: ${srcdir}/jmr3904-io.c
 	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/jmr3904-io.c -o $@
 cfe.o: ${srcdir}/cfe.c ${srcdir}/cfe_api.h

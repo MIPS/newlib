@@ -8,7 +8,6 @@
    elf32 ABI targets in OUTPUT_FORMAT.  */
 
 ENTRY(_start)
-OUTPUT_ARCH("mips:isa64r2")
 OUTPUT_FORMAT("elf64-tradlittlemips", "elf64-tradbigmips", "elf64-tradlittlemips")
 GROUP(-lc -lidt -lgcc)
 SEARCH_DIR(.)
@@ -98,13 +97,19 @@ SECTIONS
   }
 
   . = .;
+  .MIPS.abiflags : {
+    __MIPS_abiflags_start = .;
+    *(.MIPS.abiflags)
+    __MIPS_abiflags_end = .;
+  }
   .rodata : {
     *(.rdata)
     *(.rodata)
     *(.rodata.*)
     *(.gnu.linkonce.r.*)
   }
-   _fdata = ALIGN(16);
+   . = ALIGN(16);
+   _fdata = .;
   .data : {
     *(.data)
     *(.data.*)
@@ -142,6 +147,7 @@ SECTIONS
     *(COMMON)
   }
 
+  . = ALIGN(4);
   PROVIDE (end = .);
   _end = .;
 

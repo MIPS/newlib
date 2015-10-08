@@ -2,41 +2,46 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "regs.S"
-
 extern char _end[];
 
-/* FIXME: This is not ideal, since we do a get_mem_info() call for
+/* FIXME: This is not ideal, since we do a get_ram_range() call for
    every sbrk() call. */
 char *
-sbrk (nbytes)
-     int nbytes;
+sbrk (int nbytes)
 {
-  static char *heap_ptr = _end;
-  static char *heap_start = _end;
+  static char *heap_ptr = NULL;
+  static char *heap_start = NULL;
+  static unsigned long heap_size = NULL;
   char        *base;
-  struct s_mem {
-    unsigned int size;
-    unsigned int icsize;
-    unsigned int dcsize;
-  } mem;
   unsigned int avail = 0;
+  void *ram_base;
+  void *ram_extent;
 
-  /* The sizeof (s_mem.size) must be 4 bytes.  The compiler should be
-     able to eliminate this check */
-  if (sizeof (unsigned int) != 4)
-    return (char *)-1;
+  if (heap_start == NULL)
+    {
+      _get_ram_range (&ram_base, &ram_extent);
 
-  get_mem_info(&mem);
-  /* NOTE: The value returned from the get_mem_info call is the amount
-     of memory, and not the address of the (last byte + 1) */
+      /* If the _end symbol is within the RAM then use _end.  */
+      if ((void*)_end > ram_base && (void*)_end < ram_extent)
+	{
+	  heap_start = _end;
+	  heap_ptr = _end;
+	  heap_size = ram_extent - (void*)_end;
+	}
+      else
+	{
+	  heap_start = ram_base;
+	  heap_ptr = ram_base;
+	  heap_size = ram_extent - ram_base;
+	}
+    }
 
-  if (((size_t)heap_ptr >= heap_start) && ((size_t)heap_ptr < (heap_start + mem.size))) {
-    avail = (heap_start + mem.size) - (size_t)heap_ptr;
+  if ((heap_ptr >= heap_start) && (heap_ptr < (heap_start + heap_size))) {
+    avail = (heap_start + heap_size) - heap_ptr;
     base = heap_ptr;
   } /* else will fail since "nbytes" will be greater than zeroed "avail" value */
 
-  if ((nbytes > avail) || (heap_ptr + nbytes < _end))
+  if ((nbytes > avail) || (heap_ptr + nbytes < heap_start))
    base = (char *)-1;
   else
    heap_ptr += nbytes;
