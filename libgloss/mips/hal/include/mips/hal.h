@@ -375,6 +375,7 @@ extern reg_t _fpctx_save (struct fpctx *ptr);
 extern reg_t _fpctx_load (struct fpctx *ptr);
 extern reg_t _msactx_save (struct msactx *ptr);
 extern reg_t _msactx_load (struct msactx *ptr);
+extern reg_t _msa_unaligned_handler(struct gpctx*);
 
 /* Fall back exception handlers:
    _mips_handle_exception - May be implemented by a user but is aliased

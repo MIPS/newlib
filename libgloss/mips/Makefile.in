@@ -90,7 +90,7 @@ HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb_ops.o \
   mips_fp.o mips_msa.o \
   mips_excpt_entry.o mips_excpt_handler.o mips_excpt_handler_quiet.o \
   mips_excpt_register.o mips_excpt_boot.o mips_excpt_isr.o \
-  m64tlb_ops.o mxxtlb_ops.o mips_l2size.o mips_xpa.o
+  m64tlb_ops.o mxxtlb_ops.o mips_l2size.o mips_xpa.o mips_msa_unalign_handler.o
 
 HALINCLUDE = -I $(srcdir)/hal/include
 BOOTOBJ = reset.o init_cp0.o init_caches.o init_tlb.o init_l23caches.o
