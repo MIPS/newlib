@@ -133,9 +133,17 @@ LEAF(mips_tlbinvalall)
 AENT(m64_tlbinvalall)
 
 	mfc0	t0, C0_CONFIG
-	ext	t3, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
-	andi	t1, t3, ((CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT)
-	beqz	t1, 11f			# Config[MT] test, return if no TLB.
+	ext	t0, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
+	# No MMU test, 0 entries
+	beqz	t0, 11f
+
+	# Fixed Address Translation, 0 entries
+	li	t2, (CFG0_MT_FIXED >> CFG0_MT_SHIFT)
+	beq	t0, t2, 11f
+
+	# Block Address Translator, 0 entries
+	li	t2, (CFG0_MT_BAT >> CFG0_MT_SHIFT)
+	beq	t0, t2, 11f
 
 	PTR_MTC0 zero, C0_ENTRYLO0
 	PTR_MTC0 zero, C0_ENTRYLO1

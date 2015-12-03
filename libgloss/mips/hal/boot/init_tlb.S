@@ -133,9 +133,14 @@ SEND(__tlb_size)
 SLEAF(__tlbinvalall)
 
 	mfc0	t0, C0_CONFIG
-	ext	t3, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
-	andi	t1, t3, ((CFG0_MT_TLB | CFG0_MT_DUAL) >> CFG0_MT_SHIFT)
+	and	t2, t0, CFG0_MT_MASK
 	beqz	t1, 11f			# Config[MT] test, return if no TLB.
+
+	li	t1, CFG0_MT_BAT
+	beq	t1, t2, 11f		# return as there is a BAT.
+
+	li	t1, CFG0_MT_FIXED	# return as there is a FMT.
+	beq	t1, t2, 11f
 
 	PTR_MTC0 zero, C0_ENTRYLO0
 	PTR_MTC0 zero, C0_ENTRYLO1
@@ -297,10 +302,16 @@ SEND(__tlbinvalall)
 LEAF(__init_tlb)
 
 	mfc0	t0, C0_CONFIG
-	and	t2, t0, (CFG0_MT_TLB | CFG0_MT_DUAL)
+	and	t2, t0, CFG0_MT_MASK
 	beqz	t2, 1f			# return if no tlb present.
 
-	lui	t1, %hi(__enable_xpa)
+	li	t1, CFG0_MT_BAT
+	beq	t1, t2, 1f		# return as there is a BAT.
+
+	li	t1, CFG0_MT_FIXED	# return as there is a FMT.
+	beq	t1, t2, 1f
+
+	lui	t1, %hi(__enable_xpa)	# Test for XPA usage.
 	ori	t1, %lo(__enable_xpa)
 	beqz	t1, 2f
 
