@@ -339,7 +339,10 @@
 __extension__ ({ \
 	unsigned long __res; \
 	__asm__ __volatile__( \
-	"%[mftgpr\t%0,$" #rt "%]" \
+	".set push\n" \
+	".set noat\n" \
+	"mftgpr\t%0,$" #rt "\n" \
+	".set pop\n" \
 		: "=d" (__res)); \
 	__res; \
 })
@@ -348,7 +351,10 @@ __extension__ ({ \
 #define _m32c0_mttgpr(rd,v) \
 do { \
 	__asm__ __volatile__( \
-		"%[mttgpr\t%z0,$" #rd "%]" \
+		".set push\n" \
+		".set noat\n" \
+		"mttgpr\t%z0,$" #rd "\n" \
+		".set pop\n" \
 		: : "dJ" (v)); \
 } while (0)
 
