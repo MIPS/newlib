@@ -620,12 +620,12 @@ __extension__ ({ \
 #define mips32_bcsdebug(c,s)	_mips_bcsc0(C0_DEBUG,c,s)
 
 /* MIPS32 ErrCtl register */
-#define mips32_geterrctl()	_mips_mfc0(C0_ERRRCTL)
-#define mips32_seterrctl(x)	_mips_mtc0(C0_ERRRCTL,x)
-#define mips32_xcherrctl(x)	_mips_mxc0(C0_ERRRCTL,x)
-#define mips32_bicerrctl(clr)	_mips_bcc0(C0_ERRRCTL,clr)
-#define mips32_biserrctl(set)	_mips_bsc0(C0_ERRRCTL,set)
-#define mips32_bcserrctl(c,s)	_mips_bcsc0(C0_ERRRCTL,c,s)
+#define mips32_geterrctl()	_mips_mfc0(C0_ERRCTL)
+#define mips32_seterrctl(x)	_mips_mtc0(C0_ERRCTL,x)
+#define mips32_xcherrctl(x)	_mips_mxc0(C0_ERRCTL,x)
+#define mips32_bicerrctl(clr)	_mips_bcc0(C0_ERRCTL,clr)
+#define mips32_biserrctl(set)	_mips_bsc0(C0_ERRCTL,set)
+#define mips32_bcserrctl(c,s)	_mips_bcsc0(C0_ERRCTL,c,s)
 
 /* MIPS32 TagLo register */
 #define mips32_getitaglo()	_mips_mfc0(C0_TAGLO)	/* alias define */
