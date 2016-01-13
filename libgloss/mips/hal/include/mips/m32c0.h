@@ -1031,6 +1031,19 @@ extern "C" {
 #define _mips_wait() \
   __asm__ __volatile ("wait")
 
+/* CP0 UserTrace1/2 registers */
+#define _mips32_set_usertrace1(val) \
+do { \
+    __asm__ __volatile ("mtc0 %z0,$23,3"::"dJ" ((reg32_t)(val))); \
+} while (0)
+#define _mips32_setusertrace1(v) _mips32_set_usertrace1(val)
+
+#define _mips32_set_usertrace2(val) \
+do { \
+    __asm__ __volatile ("mtc0 %z0,$24,3"::"dJ" ((reg32_t)(val))); \
+} while (0)
+#define _mips32_setusertrace2(v) _mips32_set_usertrace2(val)
+
 /*
  * Define macros for accessing the MIPS32 coprocessor 0 registers. Most apart
  * from "set" return the original register value. These macros take an encoded
