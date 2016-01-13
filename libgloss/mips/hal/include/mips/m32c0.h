@@ -1074,6 +1074,29 @@ do { \
 			: "memory"); \
 } while (0)
 
+#define mips32_get_gc0(selreg) \
+__extension__ ({ \
+  register unsigned long __r; \
+  __asm__ __volatile (".set push\n.set virt\nmfgc0 %0,$%1,%2\n.set pop\n" \
+		      : "=d" (__r) \
+		      : "JK" (selreg & 0x1F), "JK" (selreg >> 8)); \
+  __r; \
+})
+
+#define mips32_set_gc0(selreg, val) \
+do { \
+    __asm__ __volatile (".set push \n"\
+			".set noreorder\n"\
+			".set virt\n"\
+			"mtgc0 %z0,$%1,%2\n"\
+			"ehb\n" \
+			".set pop" \
+			: \
+			: "dJ" ((reg32_t)(val)), "JK" (selreg & 0x1F),\
+			  "JK" (selreg >> 8) \
+			: "memory"); \
+} while (0)
+
 #define mips32_xch_c0(selreg, val) \
 __extension__ ({ \
     register reg32_t __o; \
