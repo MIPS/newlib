@@ -984,7 +984,7 @@ typedef signed long long	sreg_t;
 #define C0_CONFIG5	0x510
 #define C0_LLADDR	17
 #define C0_MAAR		0x111
-#define C0_MAARI	0x111
+#define C0_MAARI	0x211
 #define C0_WATCHLO	18
 #define C0_WATCHHI	19
 #define C0_XCONTEXT	20
