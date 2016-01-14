@@ -1129,6 +1129,38 @@ __extension__ ({ \
     __o; \
 })
 
+#define mips32_xch_gc0(selreg, val) \
+__extension__ ({ \
+    register reg32_t __o; \
+    __o = mips32_get_gc0 (selreg); \
+    mips32_set_gc0 (selreg, val); \
+    __o; \
+})
+
+#define mips32_bc_gc0(selreg, clr) \
+__extension__ ({ \
+    register reg32_t __o; \
+    __o = mips32_get_gc0 (selreg); \
+    mips32_set_gc0 (selreg, __o & ~(clr)); \
+    __o; \
+})
+
+#define mips32_bs_gc0(selreg, set) \
+__extension__ ({ \
+    register reg32_t __o; \
+    __o = mips32_get_gc0 (selreg); \
+    mips32_set_gc0 (selreg, __o | (set)); \
+    __o; \
+})
+
+#define mips32_bcs_gc0(selreg, clr, set) \
+__extension__ ({ \
+    register reg32_t __o; \
+    __o = mips32_get_gc0 (selreg); \
+    mips32_set_gc0 (selreg, (__o & ~(clr)) | (set)); \
+    __o; \
+})
+
 /* generic equivalents for mips/cpu.h */
 #define _mips_mfc0(r)		mips32_get_c0(r)
 #define _mips_mtc0(r,v)		mips32_set_c0(r,v)
