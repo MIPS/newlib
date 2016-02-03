@@ -384,6 +384,8 @@ extern reg_t _msactx_load (struct msactx *ptr);
 extern void _mips_handle_exception (struct gpctx *ctx, int exception);
 extern void __exception_handle (struct gpctx *ctx, int exception);
 
+extern uintptr_t _mips_nextpc(struct gpctx *ctx, uint32_t one, uint32_t two);
+
 /* Obtain the largest available region of RAM */
 extern void _get_ram_range (void **ram_base, void **ram_extent);
 
