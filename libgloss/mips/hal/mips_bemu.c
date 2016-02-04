@@ -165,16 +165,30 @@ static inline reg_t uop(reg_t i)
 	return i >> 10;
 }
 
-/* Return number of bytes for a microMIPS sequence */
 static inline reg_t usz(reg_t first)
 {
-	if (isr6() && uop(first) == 0x1f)
-		return 6;
-	else if (((uop(first) & 0x4) == 0x4)
-		 || ((uop(first) & 0x7) == 0x0))
+	/* Fill in the correct number of bits in "inst", by checking
+	 * MSB-5..MSB-3 of the major opcode. */
+	switch (uop(first) & 0x7) {
+	case 0:
+		/* POOL32A, POOL32B, POOL32I, POOL32C */
+	case 4:
+		/* ADDI32, ADDIU32, ORI32, XORI32, SLTI32, SLTIU32, ANDI32, JALX32 */
+	case 5:
+		/* LBU32, LHU32, POOL32F, JALS32, BEQ32, BNE32, J32, JAL32 */
+	case 6:
+		/* SB32, SH32, ADDIUPC, SWC132, SDC132, SW32 */
+	case 7:
+		/* LB32, LH32, LWC132, LDC132, LW32 */
 		return 4;
-	else
+	case 1:
+		/* POOL16A, POOL16B, POOL16C, LWGP16, POOL16F */
+	case 2:
+		/* LBU16, LHU16, LWSP16, LW16, SB16, SH16, SWSP16, SW16 */
+	case 3:
+		/* MOVE16, ANDI16, POOL16D, POOL16E, BEQZ16, BNEZ16, B16, LI16 */
 		return 2;
+	}
 }
 
 /* Decode microMIPS relative offsets */
@@ -205,206 +219,221 @@ static inline sreg_t ureloff7(reg_t inst)
  */
 static inline uintptr_t _umipsr6_nextpc(struct gpctx *ctx, uinterch_t one)
 {
-	reg_t pc = ctx->epc;
-	reg_t inst;
+	reg_t inst, pc;
 	reg_t val;
 	reg_t rs, rt, vrs, vrt;
 	struct dspctx *dctx;
 
-	inst = one.thin.first;
-	pc += 2;
+	uint32_t major_opc = uop(one.thin.first);
+	uint32_t insn_size = usz(one.thin.first);
 
-	/* 32-bit instructions.  */
-	if (((uop(inst) & 0x4) == 0x4) || ((uop(inst) & 0x7) == 0x0)) {
-		inst <<= 16;
-		inst |= one.thin.second;
+	inst = one.thin.first;
+
+	if (insn_size == 4) {
+		inst = (inst << 16) | one.thin.second;
+
 		rt = _mips32r2_ext(inst, 21, 5);
 		rs = _mips32r2_ext(inst, 16, 5);
-		pc += 2;
-		switch (uop(inst >> 16)) {
-		case 0x00:	/* POOL32A */
-			if ((inst & 0x3f) == 0x3c) {
-				/* POOL32Axf:JALRC(.HB) */
-				if ((_mips32r2_ext(inst, 6, 10) == 0x3c)
-				    || (_mips32r2_ext(inst, 6, 10) == 0x7c))
-					pc = getreg(ctx,
-						    _mips32r2_ext(inst, 16, 5));
-				break;
-		case 0x10:	/* POOL32I */
-				switch (_mips32r2_ext(inst, 21, 5)) {
-				case 0x08:	/* BC1EQZC */
-				case 0x09:	/* BC1NEZC */
-					if (!getfpctx(ctx))
-						break;
-					val =
-					    getreg(ctx,
-						   _mips32r2_ext(inst, 16, 5));
-					if (((_mips32r2_ext(inst, 21, 5) ==
-					      0x08) && ((val & 0x1) == 0))
-					    ||
-					    ((_mips32r2_ext(inst, 21, 5) ==
-					      0x09) && ((val & 0x1) != 0)))
-						pc += ureloff16(inst);
-					break;
-				case 0x0a:	/* BC2EQZC */
-				case 0x0b:	/* BC2NEZC */
-					//BARF
-					break;
-				case 0x19:	/* BPOSGE32 */
-					dctx = getdspctx(ctx);
-					if (!dctx)
-						break;
+	}
 
-					if ((dctx->dspc & 0x7f) >= 32)
-						pc += ureloff16(inst);
-					break;
-				}
-				break;
-		case 0x20:	/* BEQZC/JIC */
-				if (_mips32r2_ext(inst, 21, 5) == 0) {
-					/* JIC */
-					val =
-					    getreg(ctx,
-						   _mips32r2_ext(inst, 16, 5));
-					pc = val + (((inst & 0xffff) ^ 0x8000) -
-						    0x8000);
-				} else {
-					val =
-					    getreg(ctx,
-						   _mips32r2_ext(inst, 21, 5));
-					if (val == 0)
-						pc += ureloff21(inst);
-				}
-				break;
-		case 0x28:	/* BNEZC/JIALC */
-				if (_mips32r2_ext(inst, 21, 5) == 0) {
-					/* JIALC */
-					val =
-					    getreg(ctx,
-						   _mips32r2_ext(inst, 16, 5));
-					pc = val + (((inst & 0xffff) ^ 0x8000) -
-						    0x8000);
-				} else {
-					val =
-					    getreg(ctx,
-						   _mips32r2_ext(inst, 21, 5));
-					if (val != 0)
-						pc += ureloff21(inst);
-				}
-				break;
-		case 0x30:	/* BLEZALC/BGEZALC/BGEUC */
-				if ((((rt != 0) && (rs == 0))
-				     && (getreg(ctx, rt) <= 0))
-				    || (((rt == rs) && (rt != 0))
-					&& (getreg(ctx, rt) >= 0))
-				    || (((rs != rt) && (rt != 0) && (rs != 0))
-					&& (getreg(ctx, rs) >=
-					    getreg(ctx, rt))))
-					pc += ureloff16(inst);
-				break;
-		case 0x38:	/* BGTZALC/BLTZALC/BLTUC */
-				if ((((rt != 0) && (rs == 0))
-				     && (getreg(ctx, rt) > 0))
-				    || (((rt == rs) && (rt != 0))
-					&& (getreg(ctx, rt) < 0))
-				    || (((rs != rt) && (rt != 0) && (rs != 0))
-					&& (getreg(ctx, rs) < getreg(ctx, rt))))
-					pc += ureloff16(inst);
-				break;
-		case 0x1d:	/* BOVC/BEQC/BEQZALC */
-				vrs = getreg(ctx, rs);
-				vrt = getreg(ctx, rt);
+	pc = ctx->epc;
 
-				if (rs >= rt) {
-					/* BOVC */
-					if (addwilloverflow(vrs, vrt) == 1)
-						pc += ureloff16(inst);
-				} else if (((rs < rt) && (vrt == vrs))
-					   || ((rt != 0) && (rs == 0)
-					       && (vrt == 0))) {
-					/* BEQC, BEQZALC */
-					pc += ureloff16(inst);
-				}
-				break;
-			}
-		case 0x25:	/* BC */
-		case 0x2d:	/* BALC */
-			pc += ureloff26(inst);
-			break;
-		case 0x35:	/* BGTZC/BLTZC/BLTC */
-			{
-				if ((((rt != 0) && (rs == 0))
-				     && (getreg(ctx, rt) > 0))
-				    || (((rt == rs) && (rt != 0))
-					&& (getreg(ctx, rt) < 0))
-				    || (((rt != rs) && (rt != 0) && (rs != 0))
-					&& (getreg(ctx, rs) < getreg(ctx, rt))))
-					pc += ureloff16(inst);
-				break;
-			}
-		case 0x3d:	/* BLEZC/BGEZC/BGEC */
-			{
-				if ((((rt != 0) && (rs == 0))
-				     && (getreg(ctx, rt) <= 0))
-				    || (((rt == rs) && (rt != 0))
-					&& (getreg(ctx, rt) >= 0))
-				    || (((rt != rs) && (rt != 0) && (rs != 0))
-					&& (getreg(ctx, rs) >=
-					    getreg(ctx, rt))))
-					pc += ureloff16(inst);
-				break;
-			}
-		case 0x1f:	/* BNVC/BNEC/BNEZALC */
-			{
-				reg_t vrs = getreg(ctx, rs);
-				reg_t vrt = getreg(ctx, rt);
-
-				if (rs >= rt) {
-					/* BNVC */
-					if (addwilloverflow(vrs, vrt) == 0)
-						pc += ureloff16(inst);
-					break;
-				}
-
-				if (((rs < rt) && (vrt != vrs))
-				    || ((rt != 0) && (rs == 0) && (vrt != 0)))
-					/* BNEC/BNEZALC */
-					pc += ureloff16(inst);
-				break;
-			}
-		}
-	} else {
-		/* 16-bit instructions.  */
-		switch (uop(inst)) {
-		case 0x11:	/* POOL16C */
-			switch (inst & 0x1f) {
-			case 0x03:	/* JRC16 */
-			case 0x0b:	/* JALRC16 */
-				pc = getreg(ctx, _mips32r2_ext(inst, 5, 5));
-				break;
-			case 0x13:	/* JRCADDIUSP */
-				pc = ctx->ra;
-				break;
-			}
-			break;
-		case 0x23:	/* BEQZC16 */
-			{
-				rs = U2M[_mips32r2_ext(inst, 7, 3)];
-				if (getreg(ctx, rs) == 0)
-					pc += ureloff7(inst);
-				break;
-			}
-		case 0x2b:	/* BNEZC16 */
-			{
-				rs = U2M[_mips32r2_ext(inst, 7, 3)];
-				if (getreg(ctx, rs) != 0)
-					pc += ureloff7(inst);
-				break;
-			}
-		case 0x33:	/* BC16 */
-			pc += ureloff10(inst);
+	switch (major_opc) {
+	/* 32-bit instructions.  */
+	case 0x00: /* POOL32A */
+		switch (inst & 0xffff) {
+		case 0x0f3c: /* JALRC */
+		case 0x1f3c: /* JALRC.HB */
+			pc = getreg(ctx, _mips32r2_ext(inst, 16, 5));
 			break;
 		}
+		pc += insn_size;
+		break;
+	case 0x10: /* POOL32I */
+		pc += insn_size;
+
+		switch (_mips32r2_ext(inst, 21, 5)) {
+		case 0x08:	/* BC1EQZC */
+		case 0x09:	/* BC1NEZC */
+			if (!getfpctx(ctx))
+				break;
+			val = getreg(ctx, _mips32r2_ext(inst, 16, 5));
+			if (((_mips32r2_ext(inst, 21, 5) == 0x08) && ((val & 0x1) == 0)) ||
+			    ((_mips32r2_ext(inst, 21, 5) == 0x09) && ((val & 0x1) != 0)))
+				pc += ureloff16(inst);
+			break;
+		case 0x0a:	/* BC2EQZC */
+		case 0x0b:	/* BC2NEZC */
+			//BARF
+			break;
+		case 0x19:	/* BPOSGE32 */
+			dctx = getdspctx(ctx);
+			if (!dctx)
+				break;
+
+			if ((dctx->dspc & 0x7f) >= 32)
+				pc += ureloff16(inst);
+			break;
+		}
+		break;
+	case 0x20: /* BEQZC/JIC */
+		if (_mips32r2_ext(inst, 21, 5) == 0) {
+			/* JIC */
+			val = getreg(ctx, _mips32r2_ext(inst, 16, 5));
+			pc = val + (((inst & 0xffff) ^ 0x8000) - 0x8000);
+		} else {
+			val = getreg(ctx, _mips32r2_ext(inst, 21, 5));
+			if (val == 0)
+				pc += ureloff21(inst);
+			pc += insn_size;
+		}
+		break;
+	case 0x28: /* BNEZC/JIALC */
+		if (_mips32r2_ext(inst, 21, 5) == 0) {
+			/* JIALC */
+			val = getreg(ctx, _mips32r2_ext(inst, 16, 5));
+			pc = val + (((inst & 0xffff) ^ 0x8000) - 0x8000);
+		} else {
+			val = getreg(ctx, _mips32r2_ext(inst, 21, 5));
+			if (val != 0)
+				pc += ureloff21(inst);
+			pc += insn_size;
+		}
+		break;
+	case 0x30: { /* BLEZALC/BGEZALC/BGEUC */
+		unsigned cond;
+
+		/* BLEZALC */
+		cond =  (rt != 0) && (rs == 0) && (getreg(ctx, rt) <= 0);
+		/* BGEZALC */
+		cond |= (rt == rs) && (rt != 0) && (getreg(ctx, rt) >= 0);
+		/* BGEUC */
+		cond |= (rt != rs) && (rt != 0) && (rs != 0) &&
+			(getureg(ctx, rs) >= getureg(ctx, rt));
+
+		if (cond)
+			pc += ureloff16(inst);
+		pc += insn_size;
+		break;
+	}
+	case 0x38: { /* BGTZALC/BLTZALC/BLTUC */
+		unsigned cond;
+
+		/* BGTZALC */
+		cond = (rt != 0) && (rs == 0) && (getreg(ctx, rt) > 0);
+		/* BLTZALC */
+		cond |= (rt == rs) && (rt != 0) && (getreg(ctx, rt) < 0);
+		/* BLTUC */
+		cond |= (rt != rs) && (rt != 0) && (rs != 0) &&
+			(getureg(ctx, rs) < getureg(ctx, rt));
+
+		if (cond)
+			pc += ureloff16(inst);
+		pc += insn_size;
+		break;
+	}
+	case 0x1d: /* BOVC/BEQC/BEQZALC */
+		vrs = getreg(ctx, rs);
+		vrt = getreg(ctx, rt);
+
+		if (rs >= rt) {
+			/* BOVC */
+			if (addwilloverflow(vrs, vrt) == 1)
+				pc += ureloff16(inst);
+		} else if (((rs < rt) && (vrt == vrs)) ||
+			   ((rt != 0) && (rs == 0) && (vrt == 0))) {
+			/* BEQC, BEQZALC */
+			pc += ureloff16(inst);
+		}
+		pc += insn_size;
+		break;
+	case 0x25: /* BC */
+	case 0x2d: /* BALC */
+		pc += ureloff26(inst) + insn_size;
+		break;
+	case 0x35: { /* BGTZC/BLTZC/BLTC */
+		unsigned cond;
+
+		/* BGTZC */
+		cond = (rt != 0) && (rs == 0) && (getreg(ctx, rt) > 0);
+		/* BLTZC */
+		cond |= (rt == rs) && (rt != 0) && (getreg(ctx, rt) < 0);
+		/* BLTC */
+		cond |= (rt != rs) && (rt != 0) && (rs != 0) &&
+			(getreg(ctx, rs) < getreg(ctx, rt));
+
+		if (cond)
+			pc += ureloff16(inst);
+		pc += insn_size;
+		break;
+	}
+	case 0x3d: { /* BLEZC/BGEZC/BGEC */
+		unsigned cond;
+
+		/* BLEZC */
+		cond = (rt != 0) && (rs == 0) && (getreg(ctx, rt) <= 0);
+		/* BGEZC */
+		cond |= (rt == rs) && (rt != 0) && (getreg(ctx, rt) >= 0);
+		/* BGEC */
+		cond |= (rt != rs) && (rt != 0) && (rs != 0) &&
+			(getreg(ctx, rs) >= getreg(ctx, rt));
+
+		if (cond)
+			pc += ureloff16(inst);
+		pc += insn_size;
+		break;
+	}
+	case 0x1f: { /* BNVC/BNEC/BNEZALC */
+		reg_t vrs = getreg(ctx, rs);
+		reg_t vrt = getreg(ctx, rt);
+
+		pc += insn_size;
+
+		if (rs >= rt) {
+			/* BNVC */
+			if (addwilloverflow(vrs, vrt) == 0)
+				pc += ureloff16(inst);
+			break;
+		}
+
+		if (((rs < rt) && (vrt != vrs)) ||
+		    ((rt != 0) && (rs == 0) && (vrt != 0)))
+			/* BNEC/BNEZALC */
+			pc += ureloff16(inst);
+		break;
+	}
+	case 0x11: /* POOL16C */
+		switch (inst & 0x1f) {
+		case 0x03:	/* JRC16 */
+		case 0x0b:	/* JALRC16 */
+			pc = getreg(ctx, _mips32r2_ext(inst, 5, 5));
+			break;
+		case 0x13:	/* JRCADDIUSP */
+			pc = ctx->ra;
+			break;
+		default:
+			pc += insn_size;
+		}
+		break;
+	case 0x23: { /* BEQZC16 */
+		rs = U2M[_mips32r2_ext(inst, 7, 3)];
+		if (getreg(ctx, rs) == 0)
+			pc += ureloff7(inst);
+		pc += insn_size;
+		break;
+	}
+	case 0x2b: { /* BNEZC16 */
+		rs = U2M[_mips32r2_ext(inst, 7, 3)];
+		if (getreg(ctx, rs) != 0)
+			pc += ureloff7(inst);
+		pc += insn_size;
+		break;
+	}
+	case 0x33: /* BC16 */
+		pc += ureloff10(inst) + insn_size;
+		break;
+	default:
+		pc += insn_size;
 	}
 
 	return pc;
@@ -460,34 +489,14 @@ static inline uintptr_t _umips_nextpc(struct gpctx *ctx, uinterch_t one)
 	reg_t inst, pc;
 	reg_t rs;
 	struct dspctx *dctx;
-	uint32_t major_opc = uop(one.thin.first), minor_opc;
-	uint32_t insn_size;
+	uint32_t major_opc = uop(one.thin.first);
+	uint32_t insn_size = usz(one.thin.first);
 
-	/* Fill in the correct number of bits in "inst", by checking
-	 * MSB-5..MSB-3 of the major opcode. */
-	switch (major_opc & 0x7) {
-	case 0:
-		/* POOL32A, POOL32B, POOL32I, POOL32C */
-	case 4:
-		/* ADDI32, ADDIU32, ORI32, XORI32, SLTI32, SLTIU32, ANDI32, JALX32 */
-	case 5:
-		/* LBU32, LHU32, POOL32F, JALS32, BEQ32, BNE32, J32, JAL32 */
-	case 6:
-		/* SB32, SH32, ADDIUPC, SWC132, SDC132, SW32 */
-	case 7:
-		/* LB32, LH32, LWC132, LDC132, LW32 */
-		inst =  (one.thin.first << 16) | one.thin.second;
-		insn_size = 4;
-		break;
-	case 1:
-		/* POOL16A, POOL16B, POOL16C, LWGP16, POOL16F */
-	case 2:
-		/* LBU16, LHU16, LWSP16, LW16, SB16, SH16, SWSP16, SW16 */
-	case 3:
-		/* MOVE16, ANDI16, POOL16D, POOL16E, BEQZ16, BNEZ16, B16, LI16 */
-		inst = one.thin.first;
-		insn_size = 2;
-		break;
+	inst = one.thin.first;
+
+	if (insn_size == 4) {
+		inst <<= 16;
+		inst |= one.thin.second;
 	}
 
 	pc = ctx->epc;
@@ -1074,9 +1083,14 @@ static inline uintptr_t _mips32_nextpc(struct gpctx *ctx, uint32_t inst)
 uintptr_t _mips_nextpc(struct gpctx *ctx, uint32_t one)
 {
 	if (ctx->epc & 1) {
-/* Only MIPS32 and microMIPS R3 have been tested so far. */
+		/* MIPS16 has not been tested yet. */
 #if 1
-	return _umips_nextpc(ctx, (uinterch_t) one);
+		if (mips32_getconfig3() & CFG3_ISA_MASK) {
+			if (isr6())
+				return _umipsr6_nextpc(ctx, (uinterch_t) one);
+			else
+				return _umips_nextpc(ctx, (uinterch_t) one);
+		}
 #else
 		if (mips32_getconfig1() & CFG1_CA)
 			return _mips16_nextpc(ctx, (uinterch_t) one);
