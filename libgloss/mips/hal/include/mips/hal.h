@@ -203,13 +203,116 @@
 
 #define XPACTX_BADVADDR	((SZREG)*2)
 
+#define VZROOTCTX_GUESTCTL0     ((SZREG)*2)
+#define VZROOTCTX_GUESTCTL1     (VZROOTCTX_GUESTCTL0 + (1 * 8))
+#define VZROOTCTX_GUESTCTL2     (VZROOTCTX_GUESTCTL0 + (2 * 8))
+#define VZROOTCTX_GUESTCTL3     (VZROOTCTX_GUESTCTL0 + (3 * 8))
+#define VZROOTCTX_GUESTCTL0EXT  (VZROOTCTX_GUESTCTL0 + (4 * 8))
+#define VZROOTCTX_GTOFFSET      (VZROOTCTX_GUESTCTL0 + (5 * 8))
+#define VZROOTCTX_SIZE          (VZROOTCTX_GUESTCTL0 + (5 * 8))
+
+#define VZGUESTCTX_INDEX          ((SZREG)*2)
+#define VZGUESTCTX_ENTRYLO0       (VZGUESTCTX_INDEX + 4)
+#define VZGUESTCTX_ENTRYLO1       (VZGUESTCTX_ENTRYLO0 + 8)
+#define VZGUESTCTX_CONTEXT        (VZGUESTCTX_ENTRYLO1 + 8)
+#define VZGUESTCTX_CONTEXTCONFIG  (VZGUESTCTX_CONTEXT + SZREG)
+#define VZGUESTCTX_USERLOCAL      (VZGUESTCTX_CONTEXTCONFIG + 4)
+#define VZGUESTCTX_PAGEMASK       (VZGUESTCTX_USERLOCAL + SZREG)
+#define VZGUESTCTX_PAGEGRAIN      (VZGUESTCTX_PAGEMASK + SZREG)
+#define VZGUESTCTX_SEGCTL0        (VZGUESTCTX_PAGEGRAIN + 4)
+#define VZGUESTCTX_SEGCTL1        (VZGUESTCTX_SEGCTL0 + SZREG)
+#define VZGUESTCTX_SEGCTL2        (VZGUESTCTX_SEGCTL1 + SZREG)
+#define VZGUESTCTX_PWBASE         (VZGUESTCTX_SEGCTL2 + SZREG)
+#define VZGUESTCTX_PWFIELD        (VZGUESTCTX_PWBASE + SZREG)
+#define VZGUESTCTX_PWSIZE         (VZGUESTCTX_PWFIELD + SZREG)
+#define VZGUESTCTX_WIRED          (VZGUESTCTX_PWSIZE + SZREG)
+#define VZGUESTCTX_PWCTL          (VZGUESTCTX_WIRED + 4)
+#define VZGUESTCTX_HWRENA         (VZGUESTCTX_PWCTL + 4)
+#define VZGUESTCTX_BADVADDR       (VZGUESTCTX_HWRENA + 4)
+#define VZGUESTCTX_BADINSTR       (VZGUESTCTX_BADVADDR + SZREG)
+#define VZGUESTCTX_BADINSTRP      (VZGUESTCTX_BADINSTR + 4)
+#define VZGUESTCTX_ENTRYHI        (VZGUESTCTX_BADINSTRP + 4)
+#define VZGUESTCTX_COMPARE        (VZGUESTCTX_ENTRYHI + SZREG)
+#define VZGUESTCTX_STATUS         (VZGUESTCTX_COMPARE + 4)
+#define VZGUESTCTX_INTCTL         (VZGUESTCTX_STATUS + 4)
+#define VZGUESTCTX_SRSCTL         (VZGUESTCTX_INTCTL + 4)
+#define VZGUESTCTX_SRSMAP         (VZGUESTCTX_SRSCTL + 4)
+#define VZGUESTCTX_CAUSE          (VZGUESTCTX_SRSMAP + 4)
+#define VZGUESTCTX_NESTEDEXC      (VZGUESTCTX_CAUSE + 4)
+#define VZGUESTCTX_EPC            (VZGUESTCTX_NESTEDEXC + 4)
+#define VZGUESTCTX_NESTEDEPC      (VZGUESTCTX_EPC + SZREG)
+#define VZGUESTCTX_EBASE          (VZGUESTCTX_NESTEDEPC + SZREG)
+#define VZGUESTCTX_CONFIG         (VZGUESTCTX_EBASE + SZREG)
+#define VZGUESTCTX_CONFIG1        (VZGUESTCTX_CONFIG + 4)
+#define VZGUESTCTX_CONFIG2        (VZGUESTCTX_CONFIG1 + 4)
+#define VZGUESTCTX_CONFIG3        (VZGUESTCTX_CONFIG2 + 4)
+#define VZGUESTCTX_CONFIG4        (VZGUESTCTX_CONFIG3 + 4)
+#define VZGUESTCTX_CONFIG5        (VZGUESTCTX_CONFIG4 + 4)
+#define VZGUESTCTX_CONFIG6        (VZGUESTCTX_CONFIG5 + 4)
+#define VZGUESTCTX_CONFIG7        (VZGUESTCTX_CONFIG6 + 4)
+#define VZGUESTCTX_LLADDR         (VZGUESTCTX_CONFIG7 + 4)
+#define VZGUESTCTX_MAARI          (VZGUESTCTX_LLADDR + 8)
+#define VZGUESTCTX_WATCHLO0       (VZGUESTCTX_MAARI + 8)
+#define VZGUESTCTX_WATCHLO1       (VZGUESTCTX_WATCHLO0 + SZREG)
+#define VZGUESTCTX_WATCHLO2       (VZGUESTCTX_WATCHLO1 + 4)
+#define VZGUESTCTX_WATCHLO3       (VZGUESTCTX_WATCHLO2 + SZREG)
+#define VZGUESTCTX_WATCHLO4       (VZGUESTCTX_WATCHLO3 + 4)
+#define VZGUESTCTX_WATCHLO5       (VZGUESTCTX_WATCHLO4 + SZREG)
+#define VZGUESTCTX_WATCHLO6       (VZGUESTCTX_WATCHLO5 + 4)
+#define VZGUESTCTX_WATCHLO7       (VZGUESTCTX_WATCHLO6 + SZREG)
+#define VZGUESTCTX_WATCHHI0       (VZGUESTCTX_WATCHLO7 + 4)
+#define VZGUESTCTX_WATCHHI1       (VZGUESTCTX_WATCHHI0 + SZREG)
+#define VZGUESTCTX_WATCHHI2       (VZGUESTCTX_WATCHHI1 + 4)
+#define VZGUESTCTX_WATCHHI3       (VZGUESTCTX_WATCHHI2 + SZREG)
+#define VZGUESTCTX_WATCHHI4       (VZGUESTCTX_WATCHHI3 + 4)
+#define VZGUESTCTX_WATCHHI5       (VZGUESTCTX_WATCHHI4 + SZREG)
+#define VZGUESTCTX_WATCHHI6       (VZGUESTCTX_WATCHHI5 + 4)
+#define VZGUESTCTX_WATCHHI7       (VZGUESTCTX_WATCHHI6 + SZREG)
+#define VZGUESTCTX_ERROREPC       (VZGUESTCTX_WATCHHI7 + 4)
+#define VZGUESTCTX_KSCRATCH1      (VZGUESTCTX_ERROREPC + SZREG)
+#define VZGUESTCTX_KSCRATCH2      (VZGUESTCTX_KSCRATCH1 + SZREG)
+#define VZGUESTCTX_KSCRATCH3      (VZGUESTCTX_KSCRATCH2 + SZREG)
+#define VZGUESTCTX_KSCRATCH4      (VZGUESTCTX_KSCRATCH3 + SZREG)
+#define VZGUESTCTX_KSCRATCH5      (VZGUESTCTX_KSCRATCH4 + SZREG)
+#define VZGUESTCTX_KSCRATCH6      (VZGUESTCTX_KSCRATCH5 + SZREG)
+#define VZGUESTCTX_PRID           (VZGUESTCTX_KSCRATCH6 + SZREG)
+#define VZGUESTCTX_MAAR           (VZGUESTCTX_PRID + 4)
+#define VZGUESTCTX_SIZE()         __extension__ ({ \
+  reg_t maari, max = 0; \
+  if (mips32_getconfig5() & CFG5_MRP) { \
+        maari =_m32c0_mfc0(C0_MAARI); \
+        _m32c0_mtc0(C0_MAARI, -1); \
+        max = _m32c0_mfc0(C0_MAARI); \
+        _m32c0_mtc0(C0_MAARI, maari); \
+  }; \
+  VZGUESTCTX_MAAR + (max * 8); \
+)}
+#define VZGUESTCTX_MAXSIZE      (VZGUESTCTX_MAAR + (64 * 8))
+
+#define VZTLBCTX_ENTRY          ((SZREG)*2)
+#define VZTLBCTXENTRY_ENTRYHI   0
+#define VZTLBCTXENTRY_ENTRYLO0  (SZREG)
+#define VZTLBCTXENTRY_ENTRYLO1  (SZREG + 8)
+#define VZTLBCTXENTRY_PAGEMASK  (SZREG + 16)
+#define VZTLBCTXENTRY_SIZE      ((2 * SZREG) + 16)
+
+#define VZTLBCTX_SIZE() (((((mips32_getconfig1() & CFG1_MMUS_MASK) >> \
+                          CFG1_MMUS_SHIFT) + 1) * \
+                          sizeof(struct vztlbctx_entry)) + \
+                          sizeof(struct linkctx))
+#define VZTLBCTX_MAXSIZE        (VZTLBCTXCTX_ENTRY + \
+                                  (sizeof(vztlbctx_entry) * 64))
+
 #define LINKCTX_TYPE_MSA        0x004D5341
 #define LINKCTX_TYPE_FP32       0x46503332
 #define LINKCTX_TYPE_FP64       0x46503634
 #define LINKCTX_TYPE_FMSA       0x463D5341
 #define LINKCTX_TYPE_DSP        0x00445350
 #define LINKCTX_TYPE_STKSWP     0x53574150
-#define LINKCTX_TYPE_XPA	0x00585041
+#define LINKCTX_TYPE_XPA        0x00585041
+#define LINKCTX_TYPE_VZROOT     0x565a4254
+#define LINKCTX_TYPE_VZGUEST    0x565a4754
+#define LINKCTX_TYPE_VZTLBCTX   0x47544c42
 
 #define LINKCTX_ID      ((SZREG)*0)
 #define LINKCTX_NEXT    ((SZREG)*1)
@@ -375,6 +478,186 @@ extern reg_t _fpctx_save (struct fpctx *ptr);
 extern reg_t _fpctx_load (struct fpctx *ptr);
 extern reg_t _msactx_save (struct msactx *ptr);
 extern reg_t _msactx_load (struct msactx *ptr);
+
+struct vzrootctx
+{
+  struct linkctx link;
+  reg32_t  GuestCtl0;
+  reg32_t  GuestCtl1;
+  reg32_t  GuestCtl2;
+  reg32_t  GuestCtl3;
+  reg32_t  GuestCtl0Ext;
+  reg32_t  GTOffset;
+};
+
+struct vzguestctx
+{
+  struct linkctx link;
+  reg32_t Index;
+  reg64_t EntryLo0;
+  reg64_t EntryLo1;
+  reg_t   Context;
+  reg32_t ContextConfig;
+  reg_t   UserLocal;
+  reg_t   PageMask;
+  reg32_t PageGrain;
+  reg_t   SegCtl0;
+  reg_t   SegCtl1;
+  reg_t   SegCtl2;
+  reg_t   PWBase;
+  reg_t   PWField;
+  reg_t   PWSize;
+  reg32_t Wired;
+  reg32_t PWCtl;
+  reg32_t HWREna;
+  reg_t   BadVAddr;
+  reg32_t BadInstr;
+  reg32_t BadInstrP;
+  reg_t   EntryHi;
+  reg32_t Compare;
+  reg32_t Status;
+  reg32_t IntCtl;
+  reg32_t SRSCtl;
+  reg32_t SRSMap;
+  reg32_t Cause;
+  reg32_t NestedExc;
+  reg_t   EPC;
+  reg_t   NestedEPC;
+  reg_t   EBase;
+  reg32_t Config;
+  reg32_t Config1;
+  reg32_t Config2;
+  reg32_t Config3;
+  reg32_t Config4;
+  reg32_t Config5;
+  reg32_t Config6;
+  reg32_t Config7;
+  reg64_t LLAddr;
+  reg64_t MAARI;
+  reg_t   WatchLo0;
+  reg32_t WatchHi0;
+  reg_t   WatchLo1;
+  reg32_t WatchHi1;
+  reg_t   WatchLo2;
+  reg32_t WatchHi2;
+  reg_t   WatchLo3;
+  reg32_t WatchHi3;
+  reg_t   WatchLo4;
+  reg32_t WatchHi4;
+  reg_t   WatchLo5;
+  reg32_t WatchHi5;
+  reg_t   WatchLo6;
+  reg32_t WatchHi6;
+  reg_t   WatchLo7;
+  reg32_t WatchHi7;
+  reg_t   ErrorEPC;
+  reg_t   KScratch1;
+  reg_t   KScratch2;
+  reg_t   KScratch3;
+  reg_t   KScratch4;
+  reg_t   KScratch5;
+  reg_t   KScratch6;
+  reg32_t PrID;
+  reg64_t MAAR[];
+};
+
+struct vzguestctxmax
+{
+  struct linkctx link;
+  reg32_t Index;
+  reg64_t EntryLo0;
+  reg64_t EntryLo1;
+  reg_t   Context;
+  reg32_t ContextConfig;
+  reg_t   UserLocal;
+  reg_t   PageMask;
+  reg32_t PageGrain;
+  reg_t   SegCtl0;
+  reg_t   SegCtl1;
+  reg_t   SegCtl2;
+  reg_t   PWBase;
+  reg_t   PWField;
+  reg_t   PWSize;
+  reg32_t Wired;
+  reg32_t PWCtl;
+  reg32_t HWREna;
+  reg_t   BadVAddr;
+  reg32_t BadInstr;
+  reg32_t BadInstrP;
+  reg_t   EntryHi;
+  reg32_t Compare;
+  reg32_t Status;
+  reg32_t IntCtl;
+  reg32_t SRSCtl;
+  reg32_t SRSMap;
+  reg32_t Cause;
+  reg32_t NestedExc;
+  reg_t   EPC;
+  reg_t   NestedEPC;
+  reg_t   EBase;
+  reg32_t Config;
+  reg32_t Config1;
+  reg32_t Config2;
+  reg32_t Config3;
+  reg32_t Config4;
+  reg32_t Config5;
+  reg32_t Config6;
+  reg32_t Config7;
+  reg64_t LLAddr;
+  reg64_t MAARI;
+  reg_t   WatchLo0;
+  reg32_t WatchHi0;
+  reg_t   WatchLo1;
+  reg32_t WatchHi1;
+  reg_t   WatchLo2;
+  reg32_t WatchHi2;
+  reg_t   WatchLo3;
+  reg32_t WatchHi3;
+  reg_t   WatchLo4;
+  reg32_t WatchHi4;
+  reg_t   WatchLo5;
+  reg32_t WatchHi5;
+  reg_t   WatchLo6;
+  reg32_t WatchHi6;
+  reg_t   WatchLo7;
+  reg32_t WatchHi7;
+  reg_t   ErrorEPC;
+  reg_t   KScratch1;
+  reg_t   KScratch2;
+  reg_t   KScratch3;
+  reg_t   KScratch4;
+  reg_t   KScratch5;
+  reg_t   KScratch6;
+  reg32_t PrID;
+  reg64_t MAAR[64];
+};
+
+struct vztlbctx_entry
+{
+  reg_t EntryHi;
+  reg64_t EntryLo0;
+  reg64_t EntryLo1;
+  reg_t PageMask;
+};
+
+struct vztlbctx
+{
+  struct linkctx link;
+  struct vztlbctx_entry entries[];
+};
+
+struct vztlbctxmax
+{
+  struct linkctx link;
+  struct vztlbctx_entry entries[64];
+};
+
+extern reg_t _vzrootctx_save (struct vzrootctx *ptr);
+extern reg_t _vzrootctx_load (struct vzrootctx *ptr);
+extern reg_t _vzguestctx_save (struct vzguestctx *ptr);
+extern reg_t _vzguestctx_load (struct vzguestctx *ptr);
+extern reg_t _vztlbctx_save (struct vztlbctx *ptr);
+extern reg_t _vztlbctx_load (struct vztlbctx *ptr);
 
 /* Fall back exception handlers:
    _mips_handle_exception - May be implemented by a user but is aliased
