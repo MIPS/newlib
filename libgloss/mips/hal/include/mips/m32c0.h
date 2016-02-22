@@ -70,7 +70,22 @@
 #define EXC_RES29	29
 #define EXC_RES30	30
 #define EXC_RES31	31
+#define EXC_GEXC	27	/* guest exception in root context */
 
+/*
+ * MIPS32 Guest Exception Codes
+ */
+#define GEXC_GPSI	 0	/* Guest Privileged Sensitive instruction */
+#define GEXC_GSFC	 1	/* Guest Software Field Change event */
+#define GEXC_HC  	 2	/* Hypercall */
+#define GEXC_GRR 	 3	/* Guest Reserved Instruction Redirect */
+#define GEXC_IMP1	 4	/* Implementation specific */
+#define GEXC_IMP2	 5	/* Implementation specific */
+#define GEXC_IMP3	 6 	/* Implementation specific */
+#define GEXC_IMP4	 7 	/* Implementation specific */
+#define GEXC_GVA 	 8	/* Guest initiated TLB has GVA available */
+#define GEXC_GHFC	 9	/* Guest Hardware Field Change event */
+#define GEXC_GPA 	10	/* Guest initiated TLB has GPA available */
 
 /*
  * MIPS32 Cause Register (CP0 Register 13, Select 0)
@@ -260,6 +275,55 @@
 #define SRSCTL_PSS_SHIFT	 6
 #define SRSCTL_CSS	0x0000000f	/* current shadow set */
 #define SRSCTL_CSS_SHIFT	 0
+
+/*
+ * MIPS32r5 GuestCtl0 Register  (CP0 Register 12, Select 6)
+ */
+#define GUESTCTL0_GM	0x80000000	/* Guest Mode */
+#define	GUESTCTL0_GM_SHIFT		31
+#define GUESTCTL0_RI	0x40000000	/* Guest Reserved Instruction Redirect */
+#define	GUESTCTL0_RI_SHIFT		30
+#define GUESTCTL0_MC	0x20000000	/* Guest Mode-Change exception enable */
+#define	GUESTCTL0_MC_SHIFT		29
+#define GUESTCTL0_CP0	0x10000000	/* Guest access to coprocessor 0 */
+#define	GUESTCTL0_CP0_SHIFT		28
+#define GUESTCTL0_AT	0x0c000000	/* Guest Address Translation control */
+#define	GUESTCTL0_AT_SHIFT		26
+#define GUESTCTL0_AT_BITS	 	 2
+#define GUESTCTL0_GT	0x02000000	/* Timer register access */
+#define	GUESTCTL0_GT_SHIFT		25
+#define GUESTCTL0_CG	0x01000000	/* Cache Instruction Guest-mode enable */
+#define	GUESTCTL0_CG_SHIFT		24
+#define GUESTCTL0_CF	0x00800000	/* Config register access */
+#define	GUESTCTL0_CF_SHIFT		23
+#define GUESTCTL0_G1	0x00400000	/* GuestCtl1 register implemented */
+#define	GUESTCTL0_G1_SHIFT		22
+#define GUESTCTL0_IMPL	0x00300000	/* Implementation defined */
+#define GUESTCTL0_IMPL_SHIFT	20
+#define GUESTCTL0_IMPL_BITS		 2
+#define GUESTCTL0_G0E	0x00080000	/* GuestCtl0Ext register implemented */
+#define GUESTCTL0_G0E_SHIFT		19
+#define GUESTCTL0_PT	0x00040000	/* Defines the existence of the Pending Interrupt Passthrough feature */
+#define GUESTCTL0_PT_SHIFT		18
+#define GUESTCTL0_ASE	0x00030000	/* Reserved for MCU Module Pending Interrupt Passthrough */
+#define GUESTCTL0_ASE_SHIFT		16
+#define GUESTCTL0_ASE_BITS		 2
+#define GUESTCTL0_PIP	0x0000fc00	/* Pending Interrupt Passthrough */
+#define GUESTCTL0_PIP_SHIFT		10
+#define GUESTCTL0_PIP_BITS		 6
+#define GUESTCTL0_RAD	0x00000200	/* Root ASID Dealias */
+#define GUESTCTL0_RAD_SHIFT		 9
+#define GUESTCTL0_DRG	0x00000100	/*	Direct Root to Guest */
+#define GUESTCTL0_DRG_SHIFT		 8
+#define GUESTCTL0_G2 	0x00000080	/* GuestCtl2 register implemented */
+#define GUESTCTL0_G2_SHIFT		 7
+#define GUESTCTL0_GEXCCODE	  0x7c	/* Hypervisor exception cause code */
+#define GUESTCTL0_GEXCCODE_SHIFT 2
+#define GUESTCTL0_GEXCCODE_BITS  5
+#define GUESTCTL0_SFC2	0x00000002	/* Guest Software Field Change exception enabled for Guest.StatusCU[2] */
+#define GUESTCTL0_SFC2_SHIFT	 1
+#define GUESTCTL0_SFC1	0x00000001	/* Guest Software Field Change exception enabled for Guest.StatusCU[1] */
+#define GUESTCTL0_SFC1_SHIFT	 0
 
 /*
  * MIPS32 BEVVA Register (CP0 Register 15, Select 4)
@@ -703,6 +767,66 @@
 #define C0_ENTRYHI_ASID_BITS	8
 #define C0_ENTRYHI_ASID_SHIFT	0
 
+/* MIPS32r5 GuestCtl1 register (CP0 Register 10, Select 4) */
+#define GUESTCTL1_EID	0xff000000	/* External Interrupt Controller Guest ID */
+#define	GUESTCTL1_EID_SHIFT		24
+#define GUESTCTL1_EID_BITS		 8
+#define GUESTCTL1_RID	0x00ff0000	/* Root control Guest ID */
+#define	GUESTCTL1_RID_SHIFT		16
+#define GUESTCTL1_RID_BITS		 8
+#define GUESTCTL1_ID	0x000000ff	/* Guest control Guest ID */
+#define	GUESTCTL1_ID_SHIFT		 0
+#define GUESTCTL1_ID_BITS		 8
+
+/* MIPS32r5 GuestCtl2 register (CP0 Register 10, Select 5) */
+#define GUESTCTL2_ASE	0xc0000000	/* MCU Module extension for HC */
+#define	GUESTCTL2_ASE_SHIFT	30
+#define GUESTCTL2_ASE_BITS	 2
+#define GUESTCTL2_HC	0x3f000000	/* Hardware Clear for GuestCtl2.VIP */
+#define	GUESTCTL2_HC_SHIFT		24
+#define GUESTCTL2_HC_BITS		 2
+#define GUESTCTL2_GRIPL	0x3f000000	/* Guest RIPL */
+#define	GUESTCTL2_GRIPL_SHIFT	24
+#define GUESTCTL2_GRIPL_BITS	 2
+#define GUESTCTL2_ASEVIP 0x00030000	/* MCU Module extension for VIP */
+#define	GUESTCTL2_ASEVIP_SHIFT	16
+#define GUESTCTL2_ASEVIP_BITS	 2
+#define GUESTCTL2_GEICSS 0x003c0000 /* Guest EICSS */
+#define GUESTCTL2_GEICSS_SHIFT	18
+#define GUESTCTL2_GEICSS_BITS	 2
+#define GUESTCTL2_VIP	0x0000fc00	/* Virtual Interrupt Pending */
+#define	GUESTCTL2_VIP_SHIFT		10
+#define GUESTCTL2_VIP_BITS		 2
+#define GUESTCTL2_IMPL	0x0000001f	/* Virtual Interrupt Pending */
+#define	GUESTCTL2_IMPL_SHIFT	 0
+#define GUESTCTL2_IMPL_BITS		 5
+#define GUESTCTL2_GVEC	0x0000ffff	/* Virtual Interrupt Pending */
+#define	GUESTCTL2_GVEC_SHIFT	 0
+#define GUESTCTL2_GVEC_BITS		16
+
+/* MIPS32r5 GuestCtl3 register (CP0 Register 10, Select 6) */
+#define GUESTCTL2_GLSS	0x0000000f	/* Guest Lowest Shadow Set number */
+#define	GUESTCTL2_GLSS_SHIFT	 0
+#define GUESTCTL2_GLSS_BITS		 8
+
+/* MIPS32r5 GuestCtl0Ext register (CP0 Register 11, Select 4) */
+#define GUESTCTL0EXT_GLSS	0x00000300	/* Root Page Walk configuration */
+#define	GUESTCTL0EXT_GLSS_SHIFT	 	 8
+#define GUESTCTL0EXT_GLSS_BITS		 2
+#define GUESTCTL0EXT_NCC	0x000000c0	/* Root Page Walk configuration */
+#define	GUESTCTL0EXT_NCC_SHIFT	 	 6
+#define GUESTCTL0EXT_NCC_BITS		 2
+#define GUESTCTL0EXT_CGI	0x00000010	/* Allow CACHE(E) Index Invalidate operations in guest mode */
+#define	GUESTCTL0EXT_CGI_SHIFT	 	 4
+#define GUESTCTL0EXT_FCD	0x00000008	/* Disables Guest Software/Hardware Field Change Exceptions */
+#define	GUESTCTL0EXT_FCD_SHIFT	 	 3
+#define GUESTCTL0EXT_OG		0x00000004	/* Other GPSI Enable */
+#define	GUESTCTL0EXT_OG_SHIFT	 	 2
+#define GUESTCTL0EXT_BG		0x00000002	/* Bad register GPSI Enable */
+#define	GUESTCTL0EXT_BG_SHIFT	 	 1
+#define GUESTCTL0EXT_MG		0x00000001	/* MMU GPSI Enable */
+#define	GUESTCTL0EXT_MG_SHIFT	 	 0
+
 /* MIPS32 EntryLo0 register (CP0 Register 2, select 0) */
 #define ENTRYLO064_RI_MASK	0x8000000000000000
 #define ENTRYLO064_RI_BITS	1
@@ -876,6 +1000,12 @@
 #define C0_KSCRATCH4	$31,5
 #define C0_KSCRATCH5	$31,6
 #define C0_KSCRATCH6	$31,7
+#define C0_GUESTCTL0	$12,6
+#define C0_GUESTCTL1	$10,4
+#define C0_GUESTCTL2	$10,5
+#define C0_GUESTCTL3	$10,6
+#define C0_GUESTCTL0EXT	$11,4
+#define C0_GTOFFSET	$12,7
 
 $index		=	$0
 $random		=	$1
@@ -1020,6 +1150,12 @@ typedef signed long long	sreg_t;
 #define C0_KSCRATCH4	0x51F
 #define C0_KSCRATCH5	0x61F
 #define C0_KSCRATCH6	0x71F
+#define C0_GUESTCTL0 0x60c
+#define C0_GUESTCTL1 0x40a
+#define C0_GUESTCTL2 0x50a
+#define C0_GUESTCTL3 0x60a
+#define C0_GUESTCTL0EXT 0x40b
+#define C0_GTOFFSET 0x70c
 
 #ifdef __cplusplus
 extern "C" {
