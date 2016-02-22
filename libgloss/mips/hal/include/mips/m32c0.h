@@ -840,6 +840,8 @@
 #define C0_CONFIG3	$16,3
 #define C0_CONFIG4	$16,4
 #define C0_CONFIG5	$16,5
+#define C0_CONFIG6	$16,6
+#define C0_CONFIG7	$16,7
 #define C0_LLADDR	$17
 #define C0_MAAR		$17,1
 #define C0_MAARI	$17,2
@@ -982,6 +984,8 @@ typedef signed long long	sreg_t;
 #define C0_CONFIG3	0x310
 #define C0_CONFIG4	0x410
 #define C0_CONFIG5	0x510
+#define C0_CONFIG6	0x610
+#define C0_CONFIG7	0x710
 #define C0_LLADDR	17
 #define C0_MAAR		0x111
 #define C0_MAARI	0x111
@@ -1136,6 +1140,20 @@ __extension__ ({ \
 #define mips32_bicconfig5(clr)	mips32_bc_c0(C0_CONFIG5,clr)
 #define mips32_bisconfig5(set)	mips32_bs_c0(C0_CONFIG5,set)
 #define mips32_bcsconfig5(c,s)	mips32_bcs_c0(C0_CONFIG5,c,s)
+
+#define mips32_getconfig6()	mips32_get_c0(C0_CONFIG6)
+#define mips32_setconfig6(v)	mips32_set_c0(C0_CONFIG6,v)
+#define mips32_xchconfig6(v)	mips32_xch_c0(C0_CONFIG6,v)
+#define mips32_bicconfig6(clr)	mips32_bc_c0(C0_CONFIG6,clr)
+#define mips32_bisconfig6(set)	mips32_bs_c0(C0_CONFIG6,set)
+#define mips32_bcsconfig6(c,s)	mips32_bcs_c0(C0_CONFIG6,c,s)
+
+#define mips32_getconfig7()	mips32_get_c0(C0_CONFIG7)
+#define mips32_setconfig7(v)	mips32_set_c0(C0_CONFIG7,v)
+#define mips32_xchconfig7(v)	mips32_xch_c0(C0_CONFIG7,v)
+#define mips32_bicconfig7(clr)	mips32_bc_c0(C0_CONFIG7,clr)
+#define mips32_bisconfig7(set)	mips32_bs_c0(C0_CONFIG7,set)
+#define mips32_bcsconfig7(c,s)	mips32_bcs_c0(C0_CONFIG7,c,s)
 
 /* MIPS32 Debug register */
 #define mips32_getdebug()	mips32_get_c0(C0_DEBUG)
