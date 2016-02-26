@@ -51,6 +51,8 @@ mips_excpt_handler.o: $(srcdir)/hal/lib/mips/mips_excpt_handler.c
 	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -DVERBOSE_EXCEPTIONS=1 -O2 $(INCLUDES) -c $(CFLAGS) $<
 mips_excpt_handler_quiet.o: $(srcdir)/hal/lib/mips/mips_excpt_handler.c
 	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
+mips_intctrl.o: $(srcdir)/hal/lib/mips/mips_intctrl.c
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
 %.o: $(srcdir)/hal/lib/mips/%.S
 	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
 

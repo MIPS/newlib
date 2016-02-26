@@ -36,64 +36,60 @@
 #include <mips/asm.h>
 #include <mips/cpu.h>
 
-#define VEC_SPACE (SZPTR * 8)
+.set	noat
+.extern	__isr_vec_fallback
 
+#ifdef ZERO
 LEAF(__isr_vec)
-	.set	push
-	.set	noat
-AENT(__isr_vec_sw0)
-.weak   _mips_isr_sw0
-	LA	k1, _mips_isr_sw0
-	beqz	k1, 1f
+#else
+_TEXT_SECTION_NAMED(DEF)
+#endif
+
+#define	__isr_vec_0 __isr_vec_sw0
+#define	__isr_vec_1 __isr_vec_sw1
+#define	__isr_vec_2 __isr_vec_hw0
+#define	__isr_vec_3 __isr_vec_hw1
+#define	__isr_vec_4 __isr_vec_hw2
+#define	__isr_vec_5 __isr_vec_hw3
+#define	__isr_vec_6 __isr_vec_hw4
+#define	__isr_vec_7 __isr_vec_hw5
+
+#define	_mips_isr_0 _mips_isr_sw0
+#define	_mips_isr_1 _mips_isr_sw1
+#define	_mips_isr_2 _mips_isr_hw0
+#define	_mips_isr_3 _mips_isr_hw1
+#define	_mips_isr_4 _mips_isr_hw2
+#define	_mips_isr_5 _mips_isr_hw3
+#define	_mips_isr_6 _mips_isr_hw4
+#define	_mips_isr_7 _mips_isr_hw5
+
+.weak	ISR
+.extern	REF
+
+AENT(DEF)
+	mtc0	k1, C0_KSCRATCH1
+	LA	k1, ISR
+	beqz	k1, __isr_vec_fallback
 	jr	k1
-.org	VEC_SPACE
-AENT(__isr_vec_sw1)
-.weak   _mips_isr_sw1
-	LA	k1, _mips_isr_sw1
-	beqz	k1, 1f
-	jr	k1
-.org	2 * VEC_SPACE
-AENT(__isr_vec_hw0)
-.weak   _mips_isr_hw0
-	LA	k1, _mips_isr_hw0
-	beqz	k1, 1f
-	jr	k1
-.org	3 * VEC_SPACE
-AENT(__isr_vec_hw1)
-.weak   _mips_isr_hw1
-	LA	k1, _mips_isr_hw1
-	beqz	k1, 1f
-	jr	k1
-.org	4 * VEC_SPACE
-AENT(__isr_vec_hw2)
-.weak   _mips_isr_hw2
-	LA	k1, _mips_isr_hw2
-	beqz	k1, 1f
-	jr	k1
-.org	5 * VEC_SPACE
-AENT(__isr_vec_hw3)
-.weak   _mips_isr_hw3
-	LA	k1, _mips_isr_hw3
-	beqz	k1, 1f
-	jr	k1
-.org	6 * VEC_SPACE
-AENT(__isr_vec_hw4)
-.weak   _mips_isr_hw4
-	LA	k1, _mips_isr_hw4
-	beqz	k1, 1f
-	jr	k1
-.org	7 * VEC_SPACE
-AENT(__isr_vec_hw5)
-.weak   _mips_isr_hw5
-	LA	k1, _mips_isr_hw5
-	beqz	k1, 1f
-	jr	k1
-.org	8 * VEC_SPACE
-AENT(__isr_vec_fallback)
-.weak   _mips_interrupt
-1:
-	LA      k1, _mips_interrupt
-	beqz    k1, 1b
-	jr      k1
-	.set    pop
-END(__isr_vec)
+	# Padding required for successful link
+
+	nop
+#if SZPTR==8
+	nop
+	nop
+	nop
+	nop
+#endif
+
+#ifdef __mips_micromips
+	nop
+	nop
+	nop
+
+#if SZPTR==8
+	nop
+	nop
+	nop
+	nop
+#endif
+#endif

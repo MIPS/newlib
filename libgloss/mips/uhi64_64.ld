@@ -21,8 +21,10 @@ EXTERN(__exception_entry)
  * informative
  */
 EXTERN(__exception_handle_verbose)
-/* Force the interrupt handlers to tbe included in the link */
+/* Force the interrupt handlers to be included in the link */
 EXTERN(__isr_vec)
+/* Force ISRs 0-7 to be included in the link */
+EXTERN(_isr_vec_7)
 /* Require the UHI getargs support */
 EXTERN(__getargs)
 
@@ -39,8 +41,8 @@ PROVIDE (__memory_size = 3M);
 /* Base of the memory returned by _get_ram_range */
 PROVIDE (__memory_base = 0xffffffff80000000);
 
-/* Stride length for tlb software invalidate for tlbinvf 
- * (mipsXXr3+). Some MIPS implementations may layout the sets/ways 
+/* Stride length for tlb software invalidate for tlbinvf
+ * (mipsXXr3+). Some MIPS implementations may layout the sets/ways
  * differently in the index register. Either sets LSB or ways LSB.
  *
  * By setting this to 1 we presume that sets come first. The default boot
