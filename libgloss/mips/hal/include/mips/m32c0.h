@@ -1361,6 +1361,13 @@ extern "C" {
     __v; \
 })
 
+/* MIPS32r2 atomic interrupt disable */
+#define _mips_intenable() __extension__({ \
+    unsigned int __v; \
+    __asm__ __volatile__ ("ei %0; ehb" : "=d" (__v)); \
+    __v; \
+})
+
 /* MIPS32r2 atomic interrupt restore */
 #define _mips_intrestore(x) \
     mips_setsr (x)
