@@ -36,9 +36,11 @@
 # Used to support an alternate entry point that overlays the TLB refill
 # exception entry point.  This flag must be cleared before exceptions
 # are ready to be handled.
+.data
 EXPORTS(__first_boot, 4)
 	.word	0x1
 
+_TEXT_SECTION
 
 #
 # FUNCTION:	__register_excpt_handler
