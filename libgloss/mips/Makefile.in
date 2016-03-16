@@ -92,7 +92,7 @@ HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb_ops.o \
   mips_excpt_register.o mips_excpt_boot.o mips_excpt_isr.o \
   m64tlb_ops.o mxxtlb_ops.o mips_l2size.o mips_xpa.o
 
-HALINCLUDE = -I $(srcdir)/hal/include
+HALINCLUDE = -I $(srcdir)/include
 BOOTOBJ = reset.o init_cp0.o init_caches.o init_tlb.o init_l23caches.o
 
 CM3OBJ_IMPL = mips_cm3_l2size.o init_cm3l2.o
@@ -105,7 +105,11 @@ NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
 EXAMPLES = custom_excpt fault_recovery interrupt_handler isr_vector_space \
 	   romable romable_minimal romable_predef
 
-CFLAGS = -g
+CFLAGS = -g \
+	 -fdebug-prefix-map=$(srcdir)=toolchain/share/mips \
+	 -fdebug-prefix-map=$(srcdir)/include=toolchain/$(target_alias)/include \
+	 -Wa,--debug-prefix-map=$(srcdir)=toolchain/share/mips \
+	 -Wa,--debug-prefix-map=$(srcdir)/include=toolchain/$(target_alias)/include
 
 GCC_LDFLAGS = `if [ -d ${objroot}/../gcc ] ; \
 	then echo -L${objroot}/../gcc ; fi`
@@ -246,40 +250,40 @@ install:
 	@for file in $(CRT0) $(PCRT0) $(BSP); do \
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$${file}; \
 	done
-	$(INSTALL_DATA) ${srcdir}/hal/lib/mips/libcm3.a $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/libcm3.a
+	$(INSTALL_DATA) ${srcdir}/hal/libcm3.a $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/libcm3.a
 	@for script in ${SCRIPTS}; do\
 	  $(INSTALL_DATA) ${srcdir}/$${script}.ld $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$${script}.ld; \
 	done
 	mkdir -p $(DESTDIR)$(tooldir)/include/mips
-	@for header in ${srcdir}/hal/include/mips/*.h; do\
+	@for header in ${srcdir}/include/mips/*.h; do\
 	  $(INSTALL_DATA) $${header} $(DESTDIR)$(tooldir)/include/mips; \
 	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/boot
-	@for file in ${srcdir}/hal/boot/*.[hS] ; do\
+	@for file in ${srcdir}/boot/*.[hS] ; do\
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/boot/; \
 	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/hal
-	@for file in ${srcdir}/hal/lib/mips/*.[hSc] ${srcdir}/crt0.S; do\
+	@for file in ${srcdir}/hal/*.[hSc]; do\
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/hal/; \
 	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/uhi
-	@for file in ${srcdir}/uhi_*.c ${srcdir}/yamon_*.c ${srcdir}/syscalls.c; do\
+	@for file in ${srcdir}/uhi/uhi_*.[hSc] ${srcdir}/uhi/yamon_*.[hSc]; do\
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/uhi/; \
 	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/rules
-	@$(INSTALL_DATA) ${srcdir}/hal/mipshal.mk $(DESTDIR)$(exec_prefix)/share/mips/rules/
+	@$(INSTALL_DATA) ${srcdir}/rules/mipshal.mk $(DESTDIR)$(exec_prefix)/share/mips/rules/
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples
 	for example in $(EXAMPLES); do\
 	  mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}; \
-	  $(INSTALL_DATA) ${srcdir}/hal/examples/$${example}/Makefile \
+	  $(INSTALL_DATA) ${srcdir}/examples/$${example}/Makefile \
 	    $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
-	  $(INSTALL_DATA) ${srcdir}/hal/examples/$${example}/README.txt \
+	  $(INSTALL_DATA) ${srcdir}/examples/$${example}/README.txt \
 	    $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
-	  for file in ${srcdir}/hal/examples/$${example}/*.[cS]; do\
+	  for file in ${srcdir}/examples/$${example}/*.[cS]; do\
 	    $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}/; \
 	  done; \
 	done
-	$(INSTALL_PROGRAM) ${srcdir}/hal/examples/romable_minimal/makescripts.sh \
+	$(INSTALL_PROGRAM) ${srcdir}/examples/romable_minimal/makescripts.sh \
 	  $(DESTDIR)$(exec_prefix)/share/mips/examples/romable_minimal/makescripts.sh
 
 info:
@@ -289,42 +293,43 @@ clean-info:
 test.o:	${srcdir}/test.c
 
 # these are for the BSPs
-crt0.o: ${srcdir}/crt0.S
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) ${srcdir}/crt0.S -o crt0.o
-pcrt0.o: ${srcdir}/crt0.S
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) -DGCRT0 ${srcdir}/crt0.S -o ${PCRT0}
+crt0.o: ${srcdir}/hal/crt0.S
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) $^ -o $@
+pcrt0.o: ${srcdir}/hal/crt0.S
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $(HALINCLUDE) -DGCRT0 $^ -o ${PCRT0}
 crt0_cfe.o: ${srcdir}/crt0_cfe.S
 crt0_cygmon.o: ${srcdir}/crt0_cygmon.S
 idtmon.o: ${srcdir}/idtmon.S
 pmon.o: ${srcdir}/pmon.S
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $(PART_SPECIFIC_DEFINES) ${srcdir}/pmon.S -o pmon.o
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $(PART_SPECIFIC_DEFINES) $^ -o $@
 vr4300.o: ${srcdir}/vr4300.S
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/vr4300.S
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $^ -o $@
 vr5xxx.o: ${srcdir}/vr5xxx.S
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/vr5xxx.S
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $^ -o $@
 lsipmon.o: $(srcdir)/lsipmon.S $(srcdir)/pmon.S
-__exit.o: ${srcdir}/__exit.c
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/__exit.c -o $@
+__exit.o: ${srcdir}/hal/__exit.c
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $^ -o $@
 jmr3904-io.o: ${srcdir}/jmr3904-io.c
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/jmr3904-io.c -o $@
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $^ -o $@
 cfe.o: ${srcdir}/cfe.c ${srcdir}/cfe_api.h
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/cfe.c -o $@
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $< -o $@
 cfe_api.o: ${srcdir}/cfe_api.c ${srcdir}/cfe_api.h ${srcdir}/cfe_api_int.h
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/cfe_api.c -o $@
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $< -o $@
 cfe_mem.o: ${srcdir}/cfe_mem.c ${srcdir}/cfe_api.h
-	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) ${srcdir}/cfe_mem.c -o $@
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $< -o $@
 
 # cma101 can not be compiled mips16, if a mips16 version is needed then
 # it will have to be built, then this rule can be scrapped, allowing
 # the implicit rule to run.
 cma101.o: ${srcdir}/cma101.c
-	$(CC) -c $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) $(CFLAGS) -mno-mips16 ${srcdir}/cma101.c
+	$(CC) -c $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) $(CFLAGS) -mno-mips16 $^
 
 # cygmon can not be compiled as mips16 since it uses the syscall instruction
 cygmon.o: ${srcdir}/cygmon.c
-	$(CC) -c $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) $(CFLAGS) -mno-mips16 ${srcdir}/cygmon.c
+	$(CC) -c $(CFLAGS_FOR_TARGET) -O2 $(INCLUDES) $(CFLAGS) -mno-mips16 $^
 
-syscalls.o: ${srcdir}/syscalls.c
+syscalls.o: ${srcdir}/hal/syscalls.c
+	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) $< -o $@
 
 # target specific makefile fragment comes in here.
 @target_makefile_frag@
