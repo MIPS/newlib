@@ -301,32 +301,32 @@ LEAF(_vzguestctx_save)
 	PTR_S		t0, VZGUESTCTX_SEGCTL2(a0)
 
 1:	ext		a1, ta0, CFG4_KSCREXIST_SHIFT + 1, 1
-	move 		t0, zero
+	move		t0, zero
 	beqz		a1, 1f
 	PTR_MFGC0	t0, C0_KSCRATCH1
 1:	PTR_S		t0, VZGUESTCTX_KSCRATCH1(a0)
 	ext		a1, ta0, CFG4_KSCREXIST_SHIFT + 2, 1
-	move 		t0, zero
+	move		t0, zero
 	beqz		a1, 1f
 	PTR_MFGC0	t0, C0_KSCRATCH2
 1:	PTR_S		t0, VZGUESTCTX_KSCRATCH2(a0)
 	ext		a1, ta0, CFG4_KSCREXIST_SHIFT + 3, 1
-	move 		t0, zero
+	move		t0, zero
 	beqz		a1, 1f
 	PTR_MFGC0	t0, C0_KSCRATCH3
 1:	PTR_S		t0, VZGUESTCTX_KSCRATCH3(a0)
 	ext		a1, ta0, CFG4_KSCREXIST_SHIFT + 4, 1
-	move 		t0, zero
+	move		t0, zero
 	beqz		a1, 1f
 	PTR_MFGC0	t0, C0_KSCRATCH4
 1:	PTR_S		t0, VZGUESTCTX_KSCRATCH4(a0)
 	ext		a1, ta0, CFG4_KSCREXIST_SHIFT + 5, 1
-	move 		t0, zero
+	move		t0, zero
 	beqz		a1, 1f
 	PTR_MFGC0	t0, C0_KSCRATCH5
 1:	PTR_S		t0, VZGUESTCTX_KSCRATCH5(a0)
 	ext		a1, ta0, CFG4_KSCREXIST_SHIFT + 6, 1
-	move 		t0, zero
+	move		t0, zero
 	beqz		a1, 1f
 	PTR_MFGC0	t0, C0_KSCRATCH6
 1:	PTR_S		t0, VZGUESTCTX_KSCRATCH6(a0)
@@ -732,10 +732,39 @@ NESTED(_vztlbctx_save, (VZTLBCTXENTRY_SIZE + 4), ra)
 	PTR_MFGC0	t0, C0_PAGEMASK
 	PTR_S		t0, 4 + VZTLBCTXENTRY_PAGEMASK(sp)
 
-	# Put the number of TLB entries in a1
-	mfc0		t0, C0_CONFIG1
+	# Figure out if we are on a pre-R6 or R6 ISA.
+	mfgc0		t0, C0_CONFIG
+	ext		a1, t0, CFG0_AR_SHIFT, CFG0_AR_BITS
+	xori		a1, a1, 2
+	bnez		a1, 1f
+
+	# R6: Check Config_MT
+	mfgc0		t0, C0_CONFIG
+	ext		a1, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
+	li		a2, 1
+	beq		a1, a2, 2f
+	li		a2, 4
+	beq		a1, a2, 2f
+	b		3f
+
+	# pre-R6: Check Config4_MMUExtDef
+1:	mfgc0		t0, C0_CONFIG4
+	ext		a1, t0, CFG4_MMUED_SHIFT, CFG4_MMUED_BITS
+	li		a2, 3
+	bne		a1, a3, 3f
+
+2:	mfgc0		t0, C0_CONFIG4
+	ext		a1, t0, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
+	sll		a1, a1, CFG1_MMUS_BITS
+	mfgc0		t0, C0_CONFIG1
+	ext		a2, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
+	or		a1, a1, a2
+	b		1f
+
+      # Put the number of TLB entries in a1
+3:	mfgc0		t0, C0_CONFIG1
 	ext		a1, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
-	addiu		a1, 1
+1:	addiu		a1, 1
 
 	# Compute initial address in t0
 	li		t0, VZTLBCTX_ENTRY
@@ -819,10 +848,40 @@ NESTED(_vztlbctx_load, (VZTLBCTXENTRY_SIZE + 4), ra)
 	PTR_MFGC0	t0, C0_PAGEMASK
 	PTR_S		t0, 4 + VZTLBCTXENTRY_PAGEMASK(sp)
 
-	# Put the number of TLB entries in a1
-	mfc0		t0, C0_CONFIG1
+	# Figure out if we are on a pre-R6 or R6 ISA.
+	mfgc0		t0, C0_CONFIG
+	ext		a1, t0, CFG0_AR_SHIFT, CFG0_AR_BITS
+	xori		a1, a1, 2
+	bnez		a1, 1f
+
+	# R6: Check Config_MT
+	mfgc0		t0, C0_CONFIG
+	ext		a1, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
+	li		a2, 1
+	beq		a1, a2, 2f
+	li		a2, 4
+	beq		a1, a2, 2f
+	b		3f
+
+	# pre-R6: Check Config4_MMUExtDef
+1:	mfgc0		t0, C0_CONFIG4
+	ext		a1, t0, CFG4_MMUED_SHIFT, CFG4_MMUED_BITS
+	li		a2, 3
+	bne		a1, a3, 3f
+
+2:
+	mfgc0		t0, C0_CONFIG4
+	ext		a1, t0, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
+	sll		a1, a1, CFG1_MMUS_BITS
+	mfgc0		t0, C0_CONFIG1
+	ext		a2, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
+	or		a1, a1, a2
+	b		1f
+
+      # Put the number of TLB entries in a1
+3:	mfgc0		t0, C0_CONFIG1
 	ext		a1, t0, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
-	addiu		a1, 1
+1:	addiu		a1, 1
 
 	# Compute initial address in t0
 	li		t0, VZTLBCTX_ENTRY
