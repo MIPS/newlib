@@ -309,8 +309,8 @@
 #define VZGUESTCTX_WATCHHI5       (VZGUESTCTX_WATCHHI4 + 4)
 #define VZGUESTCTX_WATCHHI6       (VZGUESTCTX_WATCHHI5 + 4)
 #define VZGUESTCTX_WATCHHI7       (VZGUESTCTX_WATCHHI6 + 4)
-#define VZGUESTCTX_PRID           (VZGUESTCTX_WATCHHI7 + 4)
-#define VZGUESTCTX_MAAR           (VZGUESTCTX_PRID + 4)
+// Bump by 4 to account for the gap between the WatchHI7 and MAAR fields.
+#define VZGUESTCTX_MAAR           (VZGUESTCTX_WATCHHI7 + 4 + 4)
 
 #define VZTLBCTXENTRY_PAGEMASK  (0)
 #define VZTLBCTXENTRY_ENTRYHI   (VZTLBCTXENTRY_PAGEMASK + SZREG)
@@ -572,7 +572,6 @@ struct vzguestctx
   reg32_t WatchHi5;
   reg32_t WatchHi6;
   reg32_t WatchHi7;
-  reg32_t PrID;
 
   reg64_t MAAR[];
 };
@@ -658,7 +657,6 @@ struct vzguestctxmax
   reg32_t WatchHi5;
   reg32_t WatchHi6;
   reg32_t WatchHi7;
-  reg32_t PrID;
 
   reg64_t MAAR[64];
 };
