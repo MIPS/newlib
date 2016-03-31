@@ -388,7 +388,7 @@ LEAF(_vzguestctx_save)
 	PTR_MFC0	a1, C0_MAARI
 	PTR_MTC0	t0, C0_MAARI
 	ehb
-	ei		t2
+	mtc0		t2, C0_SR
 	addiu		a1, 1
 
 	# Save guest MAARI via a2/a3
@@ -660,7 +660,7 @@ $Ldone_wr:
 	PTR_MFC0	a1, C0_MAARI
 	PTR_MTC0	t0, C0_MAARI
 	ehb
-	ei		t2
+	mtc0		t2, C0_SR
 	addiu		a1, 1
 
 	# Compute initial address in t0
