@@ -763,7 +763,7 @@ NESTED(_vztlbctx_save, (VZTLBCTXENTRY_SIZE + 4), ra)
 1:	addiu		a1, 1
 
 	# Compute initial address in t0
-	li		t0, VZTLBCTX_ENTRY
+	li		t0, VZTLBCTX_ENTRIES
 	add		t0, a0
 
 	# Loop over all guest TLBs
@@ -880,7 +880,7 @@ NESTED(_vztlbctx_load, (VZTLBCTXENTRY_SIZE + 4), ra)
 1:	addiu		a1, 1
 
 	# Compute initial address in t0
-	li		t0, VZTLBCTX_ENTRY
+	li		t0, VZTLBCTX_ENTRIES
 	add		t0, a0
 
 	# Loop over all guest TLBs
