@@ -121,15 +121,7 @@
 #define DSPCTX_LO3	(DSPCTX_LO2 + SZREG)
 #define DSPCTX_SIZE	(DSPCTX_LO3 + SZREG)
 
-#define FPCTX_LINK	(0)
-#define FPCTX_FCSR	(FPCTX_LINK + LINKCTX_SIZE)
-#define FPCTX_RESERVED	(FPCTX_FCSR + SZREG)
-#define _FPCTX_SIZE	(FPCTX_RESERVED + SZREG)
-#if defined(__ASSEMBLER__)
-#define FPCTX_SIZE	(_FPCTX_SIZE)
-#else
 #define FPCTX_SIZE	(mips_getsr() & SR_FR ? FP64CTX_SIZE : FP32CTX_SIZE)
-#endif
 
 #define MSACTX_LINK	(0)
 #define MSACTX_FCSR	(MSACTX_LINK + LINKCTX_SIZE)
@@ -172,8 +164,10 @@
 #define MSACTX_30	(MSACTX_0 + (30 * 16))
 #define MSACTX_31	(MSACTX_0 + (31 * 16))
 
-#define FP32CTX_FP	(0)
-#define FP32CTX_D	(FP32CTX_FP + _FPCTX_SIZE)
+#define FP32CTX_LINK	(0)
+#define FP32CTX_CSR	(FP32CTX_LINK + LINKCTX_SIZE)
+// Account for the reserved field.
+#define FP32CTX_D	(FP32CTX_CSR + SZREG + SZREG)
 #define FP32CTX_S	(FP32CTX_D)
 #define FP32CTX_SIZE	(FP32CTX_D + 8 * 16)
 
@@ -194,9 +188,10 @@
 #define FP32CTX_28	(FP32CTX_0 + (14 * 8))
 #define FP32CTX_30	(FP32CTX_0 + (15 * 8))
 
-#define FP64CTX_FP	(0)
-#define FP64CTX_D	(FP64CTX_FP + _FPCTX_SIZE)
-#define FP64CTX_S	(FP64CTX_D)
+#define FP64CTX_LINK	(FP32CTX_LINK)
+#define FP64CTX_CSR	(FP32CTX_CSR)
+#define FP64CTX_D	(FP32CTX_D)
+#define FP64CTX_S	(FP32CTX_S)
 #define FP64CTX_SIZE	(FP64CTX_D + 8 * 32)
 
 #define FP64CTX_0	(FP64CTX_D)
