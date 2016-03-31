@@ -232,6 +232,8 @@ LEAF(_vzguestctx_save)
 	PTR_S		t0, VZGUESTCTX_USERLOCAL(a0)
 	PTR_MFGC0	t0, C0_ERRPC
 	PTR_S		t0, VZGUESTCTX_ERROREPC(a0)
+	mfgc0	        t0, C0_COUNT
+	sw		t0, VZGUESTCTX_COUNT(a0)
 
 	mfgc0		a1, C0_CONFIG3
 	ext		v0, a1, CFG3_BI_SHIFT, 1
