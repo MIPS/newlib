@@ -149,6 +149,11 @@ AENT(m64_tlbinvalall)
 	PTR_MTC0 zero, C0_ENTRYLO1
 	PTR_MTC0 zero, C0_PAGEMASK
 
+	// Fetch size & number of sets in v0, v1.
+	move	t8, ra
+	jal	mips_tlb_size
+	move	ra, t8
+
 	mfc0	t9, C0_CONFIG3
 	ext	t9, t9, CFG3_M_SHIFT, 1
 	beqz	t9, 9f
@@ -157,6 +162,10 @@ AENT(m64_tlbinvalall)
 	mfc0	t9, C0_CONFIG4
 	ext     t2, t9, CFG4_IE_SHIFT, CFG4_IE_BITS
 	beqz	t2, 9f
+
+	// If Config4[IE] = 1, EHINV loop.
+	li	t1, (CFG4_IE_EHINV >> CFG4_IE_SHIFT)
+	beq	t1, t2, 14f
 
 	// If Config[MT] = 1,  one instruction required
 	li	t0, (CFG0_MT_TLB >> CFG0_MT_SHIFT)
@@ -192,10 +201,6 @@ AENT(m64_tlbinvalall)
 	 * at the last VTLB entry.
 	 */
 
-	move	t8, ra
-	jal	mips_tlb_size
-	move	ra, t8
-
 	# Clear VTLB
 	mtc0	zero, C0_INDEX
 	ehb
@@ -224,12 +229,29 @@ AENT(m64_tlbinvalall)
 
 	b	11f
 
-9:	# Clean invalidate TLB for R1 onwards by loading
+14:	/*
+	 * Config4[IE] = 1. EHINV supported, but not tlbinvf.
+	 *
+	 * Invalidate the TLB for R3 onwards by loading EHINV and writing to all
+	 * TLB entries.
+	 */
+
+	move	v1, zero
+	li	t1, C0_ENTRYHI_EHINV_MASK
+	mtc0	t1, C0_ENTRYHI
+15:
+	mtc0	v1, C0_INDEX
+	ehb					# mtc0, hazard on tlbwi
+
+	tlbwi
+	addiu	v1, v1, 1
+	bne	v0, v1, 15b
+
+	b	11f
+
+9:	# Perform a basic invalidation of the TLB for R1 onwards by loading
 	# 0x(FFFFFFFF)KSEG0_BASE into EntryHi and writing it into index 0
 	# incrementing by a pagesize, writing into index 1, etc.
-	move	t8, ra
-	jal	mips_tlb_size
-	move	ra, t8
 
 	# If large physical addressing is enabled, load 0xFFFFFFFF
 	# into the top half of EntryHi.
