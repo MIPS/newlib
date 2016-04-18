@@ -63,10 +63,11 @@
 #define _mips_intpatch(INT, ISR) __extension__				       \
 ({									       \
 	extern void m32_sync_icache(unsigned kva, size_t n);		       \
+	extern void *__isr_vec_space;				               \
 	uint16_t *patch;						       \
 	uintptr_t handler = _mips_intpatch_clean((ISR));		       \
-	uintptr_t isrbase =						       \
-	   (uintptr_t) (mips32_getebase() & EBASE_BASE) + 0x200 + ((INT) * 32);\
+	uintptr_t isrbase = (uintptr_t) (mips32_getebase() & EBASE_BASE)       \
+                + 0x200 + ((INT) * ((uintptr_t) &__isr_vec_space));            \
 	handler += (handler & 0x8000) << 1;				       \
 	patch = (uint16_t *) (isrbase + _mips_intpatch_isroff1);	       \
 	*patch = (uint16_t) (handler >> 16);			/* %hi */      \
@@ -78,10 +79,12 @@
 #define _mips_intpatch(INT, ISR) __extension__				       \
 ({									       \
 	extern void m32_sync_icache(unsigned kva, size_t n);		       \
+	extern void *__isr_vec_space;				               \
+	uint16_t *patch;						       \
 	uint16_t *patch;						       \
 	uintptr_t handler = _mips_intpatch_clean((ISR));		       \
-	uintptr_t isrbase =						       \
-	   (uintptr_t) (mips32_getebase() & EBASE_BASE) + 0x200 + ((INT) * 64);\
+	uintptr_t isrbase = (uintptr_t) (mips32_getebase() & EBASE_BASE)       \
+                + 0x200 + ((INT) * ((uintptr_t) &__isr_vec_space));            \
 	handler += (handler & 0x800080008000) << 1;			       \
 	patch = (uint16_t *) (isrbase + _mips_intpatch_isroff1);	       \
 	*patch = (uint16_t) (handler >> 48);			/* %highest */ \
