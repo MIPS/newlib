@@ -136,7 +136,7 @@ SECTIONS
     KEEP(* (SORT(.text.__isr_vec*)))
     /* Leave space for all the vector entries */
     . = __base + 0x200 + (__isr_vec_space * __isr_vec_count);
-    ASSERT(__isr_vec_space == (DEFINED(__isr_vec_sw0)
+    ASSERT(__isr_vec_space == (DEFINED(__isr_vec_sw1)
 			       ? __isr_vec_sw1 - __isr_vec_sw0
 			       : __isr_vec_space),
 	   "Actual ISR vector spacing does not match __isr_vec_space");
