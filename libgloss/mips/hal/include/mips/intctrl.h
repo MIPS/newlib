@@ -33,7 +33,7 @@
  * level.
  */
 
-#if !defined(_mips_intpatch) || !defined(_mips_intmask) || !define(_mips_intack)
+#if !defined(_mips_intpatch) || !defined(_mips_intmask) || !defined(_mips_intack)
 #include <mips/m32c0.h>
 #endif
 
