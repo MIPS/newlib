@@ -177,6 +177,8 @@
 #define SR_SINT0	0x00000100	/* enable s/w interrupt 0 */
 
 /* alternative interrupt mask naming */
+#define SR_IM9		0x00040000      /* 1st MUCON ASE interrupt */
+#define SR_IM8		0x00010000	/* 2nd MUCON ASE interrupt */
 #define SR_IM7		0x00008000
 #define SR_IM6		0x00004000
 #define SR_IM5		0x00002000
