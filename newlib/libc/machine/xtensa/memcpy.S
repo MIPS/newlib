@@ -56,12 +56,12 @@
 
 	.text
 	.begin schedule
-	.align	XCHAL_INST_FETCH_WIDTH
+	/*.align	XCHAL_INST_FETCH_WIDTH*/
 	.literal_position
 __memcpy_aux:
 
 	/* Skip bytes to get proper alignment for three-byte loop */
-.skip XCHAL_INST_FETCH_WIDTH - 3
+/*.skip XCHAL_INST_FETCH_WIDTH - 3*/
 
 .Lbytecopy:
 #if XCHAL_HAVE_LOOPS

@@ -641,14 +641,14 @@ strcmp:
 	bnone	a8, a7, .Leq	// if byte 3 is zero
 	/* align (1 mod 4) */
 #else
-	const16	a5, MASK1@h	// mask for byte 1
-	const16	a5, MASK1@l
+	//const16	a5, MASK1@h	// mask for byte 1
+	//const16	a5, MASK1@l
 	bnone	a8, a5, .Leq	// if byte 1 is zero
-	const16	a6, MASK2@h	// mask for byte 2
-	const16	a6, MASK2@l
+	//const16	a6, MASK2@h	// mask for byte 2
+	//const16	a6, MASK2@l
 	bnone	a8, a6, .Leq	// if byte 2 is zero
-	const16	a7, MASK3@h	// mask for byte 3
-	const16	a7, MASK3@l
+	//const16	a7, MASK3@h	// mask for byte 3
+	//const16	a7, MASK3@l
 	bnone	a8, a7, .Leq	// if byte 3 is zero
 	/* align (2 mod 4) */
 #endif /* XCHAL_HAVE_L32R */
