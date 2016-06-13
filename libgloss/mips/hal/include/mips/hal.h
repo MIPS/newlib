@@ -418,6 +418,17 @@ extern int __attribute__((nomips16))
 extern int __attribute__((nomips16))
   __exit (int);
 
+/* UHI assert support.  This function can return.  */
+extern void __attribute__((nomips16))
+  __uhi_assert (const char *, const char *, int32_t);
+
+#ifdef NDEBUG           /* required by ANSI standard */
+# define uhi_assert(__e) ((void)0)
+#else
+# define uhi_assert(__e) ((__e) ? (void)0 : \
+			   __uhi_assert (#__e, __FILE__, __LINE__))
+#endif
+
 #endif
 
 #ifdef __cplusplus
