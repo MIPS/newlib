@@ -57,7 +57,8 @@
 #include "yamon_syscalls.h"
 #include <mips/uhi_syscalls.h>
 
-int32_t write (int32_t fd, void *buffer, int32_t count)
+int32_t __attribute__((nomips16))
+write (int32_t fd, void *buffer, int32_t count)
 {
   register int32_t arg1 asm ("$4") = fd;
   register void *arg2 asm ("$5") = buffer;

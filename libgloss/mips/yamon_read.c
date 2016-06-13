@@ -58,7 +58,8 @@
 #include <mips/uhi_syscalls.h>
 
 
-int32_t read (int32_t fd, void *buffer, int32_t len)
+int32_t __attribute__((nomips16))
+read (int32_t fd, void *buffer, int32_t len)
 {
   register int32_t arg1 asm ("$4") = fd;
   register void *arg2 asm ("$5") = buffer;

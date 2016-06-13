@@ -56,7 +56,7 @@ void __return_to_boot (int32_t exit_code) __attribute__((noreturn))
 extern char __use_excpt_boot[];
 
 /* _exit has been declared weak to allow its defination in the application */
-void
+void __attribute__((nomips16))
 __exit (int32_t exit_code)
 {
   register int32_t arg1 asm ("$4") = exit_code;

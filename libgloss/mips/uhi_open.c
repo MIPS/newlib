@@ -49,7 +49,7 @@
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
 
-int
+int __attribute__((nomips16))
 open (const char *file_name, int flags, mode_t mode)
 {
   register const char * arg1 asm ("$4") = file_name;

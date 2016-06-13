@@ -52,7 +52,8 @@
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
 
-int32_t close (int32_t fd)
+int32_t __attribute__((nomips16))
+close (int32_t fd)
 {
   register int32_t arg1 asm ("$4") = fd;
   register int32_t op asm ("$25") = __MIPS_UHI_CLOSE;

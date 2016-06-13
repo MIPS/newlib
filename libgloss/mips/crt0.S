@@ -16,11 +16,7 @@
 
 /* This file does not use any floating-point ABI.  */
 	.gnu_attribute 4,0
-
-#ifdef __mips16
-/* This file contains 32 bit assembly code.  */
 	.set nomips16
-#endif
 
 #include <mips/regdef.h>
 #include <mips/m32c0.h>

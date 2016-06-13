@@ -47,7 +47,7 @@
 #include <stdint.h>
 #include <mips/hal.h>
 
-int32_t
+int32_t __attribute__((nomips16))
 __uhi_exception (struct gpctx *ctx, int32_t abi)
 {
   return -1;

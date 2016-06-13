@@ -35,7 +35,7 @@
 extern char __attribute__((weak)) __memory_size[];
 extern char __attribute__((weak)) __memory_base[];
 
-void
+void __attribute__((nomips16))
 _get_ram_range (void **ram_base, void **ram_extent)
 {
   register int32_t op asm ("$25") = __MIPS_UHI_RAMRANGE;

@@ -54,7 +54,7 @@
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
 
-int
+int __attribute__((nomips16))
 link (const char *oldname, const char *newname)
 {
   register const char *arg1 asm ("$4") = oldname;

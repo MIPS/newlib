@@ -28,11 +28,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <mips/asm.h>
-#include <mips/regdef.h>
-#include <mips/m32c0.h>
-#include <mips/hal.h>
-
 #if __mips_isa_rev < 6 || !defined(__mips_micromips)
 .module hardfloat
 .module doublefloat
@@ -40,6 +35,11 @@
 .module fp=64
 .module msa
 
+.set nomips16
+#include <mips/asm.h>
+#include <mips/regdef.h>
+#include <mips/m32c0.h>
+#include <mips/hal.h>
 
 #
 # FUNCTION:	_msactx_save

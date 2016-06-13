@@ -29,13 +29,13 @@
 */
 
 #define _RESETCODE
+.set nomips16
 
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>
 #include "predef.h"
 
-    .set nomips16
     .set push
     .set nomicromips
 LEAF(__reset_vector)

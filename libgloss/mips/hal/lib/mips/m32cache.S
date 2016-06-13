@@ -28,6 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+.set nomips16
 #include "m32cache.h"
 /*
  * void m32_size_cache()

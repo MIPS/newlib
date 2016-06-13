@@ -28,6 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+.set nomips16
 #include <mips/regdef.h>
 #include <mips/asm.h>
 #include <mips/cpu.h>
