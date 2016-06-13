@@ -48,7 +48,7 @@
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
 
-int
+int __attribute__((nomips16))
 read (int fd, void *buffer, size_t len)
 {
   register int32_t arg1 asm ("$4") = fd;

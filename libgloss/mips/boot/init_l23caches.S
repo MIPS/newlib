@@ -29,6 +29,8 @@
 */
 
 #define _BOOTCODE
+.set nomips16
+
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>

@@ -52,9 +52,10 @@
 
 #include <stdint.h>
 #include <errno.h>
+#include <mips/hal.h>
 #include <mips/uhi_syscalls.h>
 
-int32_t
+int32_t __attribute__((nomips16))
 __plog (int8_t *fmt, int32_t num)
 {
   register int8_t *arg1 asm ("$4") = fmt;

@@ -28,14 +28,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+.module hardfloat
+.module doublefloat
+.set nomips16
 #include <mips/asm.h>
 #include <mips/regdef.h>
 #include <mips/m32c0.h>
 #include <mips/hal.h>
 
 #undef fp
-.module hardfloat
-.module doublefloat
 
 #
 # FUNCTION:	_fpctx_save

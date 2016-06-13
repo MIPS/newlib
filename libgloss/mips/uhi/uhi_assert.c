@@ -55,16 +55,15 @@
 */
 
 #include <stdint.h>
+#include <mips/hal.h>
 #include <mips/uhi_syscalls.h>
 
-void
-__assert_func (const char *filename, int32_t line_num, const char *func,
-	       const char *expr)
+void __attribute__((nomips16))
+__uhi_assert (const char *message, const char *filename, int32_t line_num)
 {
-  register const char *arg1 asm ("$4") = filename;
-  register int32_t arg2 asm ("$5") = line_num;
-  register const char *arg3 asm ("$6") = func;
-  register const char *arg4 asm ("$7") = expr;
+  register const char *arg1 asm ("$4") = message;
+  register int32_t arg2 asm ("$5") = filename;
+  register const char *arg3 asm ("$6") = line_num;
   register int32_t op asm ("$25") = __MIPS_UHI_ASSERT;
   register int32_t ret1 asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t ret2 asm ("$3") = 0;
@@ -72,5 +71,5 @@ __assert_func (const char *filename, int32_t line_num, const char *func,
   __asm__ __volatile__ (" # __assert_func(%0, %1, %2, %3, %4, %5) op=%6\n"
 			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
 			: "+r" (ret1), "+r" (ret2), "+r" (arg1), "+r" (arg2)
-			: "r" (arg3), "r" (arg4), "r" (op));
+			: "r" (arg3), "r" (op));
 }

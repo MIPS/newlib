@@ -85,10 +85,10 @@ putsns (const char *pre, reg_t value, const char *post)
 
 /* Handle an exception */
 #ifdef VERBOSE_EXCEPTIONS
-void
+void __attribute__((nomips16))
 __exception_handle_verbose (struct gpctx *ctx, int exception)
 #else
-void
+void __attribute__((nomips16))
 __exception_handle_quiet (struct gpctx *ctx, int exception)
 #endif
 {

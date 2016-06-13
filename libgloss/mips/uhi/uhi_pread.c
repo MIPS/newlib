@@ -50,7 +50,7 @@
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
 
-ssize_t
+ssize_t __attribute__((nomips16))
 pread (int fd, void *buf, size_t count, off_t offset)
 {
   register int32_t arg1 asm ("$4") = fd;

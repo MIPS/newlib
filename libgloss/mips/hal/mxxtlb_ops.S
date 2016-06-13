@@ -33,6 +33,7 @@
  * mips_xxtlb_ops.S: Generic MIPS TLB support functions
  *
  */
+.set nomips16
 #include <mips/m32c0.h>
 #include <mips/asm.h>
 #include <mips/regdef.h>

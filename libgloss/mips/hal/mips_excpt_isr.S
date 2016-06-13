@@ -31,6 +31,7 @@
 #
 # Keep each function in a separate named section
 #define _FUNCTION_SECTIONS_
+.set nomips16
 
 #include <mips/regdef.h>
 #include <mips/asm.h>

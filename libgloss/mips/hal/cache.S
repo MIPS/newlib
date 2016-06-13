@@ -28,6 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+.set nomips16
 #include "cache.h"
 
 DECL(mips_icache_size,-1)

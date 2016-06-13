@@ -369,40 +369,65 @@ struct xpactx
   reg64_t badvaddr;
 };
 
-extern reg_t _xpa_save (struct xpactx *ptr);
+extern reg_t __attribute__((nomips16))
+  _xpa_save (struct xpactx *ptr);
 
-extern reg_t _fpctx_save (struct fpctx *ptr);
-extern reg_t _fpctx_load (struct fpctx *ptr);
-extern reg_t _msactx_save (struct msactx *ptr);
-extern reg_t _msactx_load (struct msactx *ptr);
+extern reg_t __attribute__((nomips16))
+  _fpctx_save (struct fpctx *ptr);
+extern reg_t __attribute__((nomips16))
+  _fpctx_load (struct fpctx *ptr);
+extern reg_t __attribute__((nomips16))
+  _msactx_save (struct msactx *ptr);
+extern reg_t __attribute__((nomips16))
+  _msactx_load (struct msactx *ptr);
 
 /* Fall back exception handlers:
    _mips_handle_exception - May be implemented by a user but is aliased
 			    to __exception_handle by default.
    __exception_handle	  - Toolchain provided fallback handler.
 */
-extern void _mips_handle_exception (struct gpctx *ctx, int exception);
-extern void __exception_handle (struct gpctx *ctx, int exception);
+extern void __attribute__((nomips16))
+  _mips_handle_exception (struct gpctx *ctx, int exception);
+extern void __attribute__((nomips16))
+  __exception_handle (struct gpctx *ctx, int exception);
 
 /* Obtain the largest available region of RAM */
-extern void _get_ram_range (void **ram_base, void **ram_extent);
+extern void __attribute__((nomips16))
+  _get_ram_range (void **ram_base, void **ram_extent);
 
 /* Invoke a UHI operation via SDBBP using the provided context */
-extern int __uhi_indirect (struct gpctx *);
+extern int __attribute__((nomips16))
+  __uhi_indirect (struct gpctx *);
 
 /* Report an unhandled exception */
-extern int32_t __uhi_exception (struct gpctx *, int32_t);
+extern int32_t __attribute__((nomips16))
+  __uhi_exception (struct gpctx *, int32_t);
 
 /* Print a message to a logger.  Minimal formatting support for one
    integer argument.  */
-extern int32_t __plog (int8_t *, int32_t);
+extern int32_t __attribute__((nomips16))
+  __plog (int8_t *, int32_t);
 
 /* Boot context support functions */
-extern int __get_startup_BEV (void) __attribute__((weak));
-extern int __chain_uhi_excpt (struct gpctx *) __attribute__((weak));
+extern int __attribute__((nomips16))
+  __get_startup_BEV (void) __attribute__((weak));
+extern int __attribute__((nomips16))
+  __chain_uhi_excpt (struct gpctx *) __attribute__((weak));
 
 /* Emergency exit, use it when unrecoverable errors occur */
-extern int __exit (int);
+extern int __attribute__((nomips16))
+  __exit (int);
+
+/* UHI assert support.  This function can return.  */
+extern void __attribute__((nomips16))
+  __uhi_assert (const char *, const char *, int32_t);
+
+#ifdef NDEBUG           /* required by ANSI standard */
+# define uhi_assert(__e) ((void)0)
+#else
+# define uhi_assert(__e) ((__e) ? (void)0 : \
+			   __uhi_assert (#__e, __FILE__, __LINE__))
+#endif
 
 #endif
 

@@ -33,6 +33,8 @@
  * m64tlb_ops.S: MIPS XPA TLB support functions
  *
  */
+
+.set nomips16
 #include <mips/m64tlb.h>
 #include <mips/asm.h>
 #include <mips/endian.h>
