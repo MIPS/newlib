@@ -370,6 +370,11 @@ struct xpactx
 };
 
 extern reg_t __attribute__((nomips16))
+  _dspctx_save (struct dspctx *ptr);
+extern reg_t __attribute__((nomips16))
+  _dspctx_load (struct dspctx *ptr);
+
+extern reg_t __attribute__((nomips16))
   _xpa_save (struct xpactx *ptr);
 
 extern reg_t __attribute__((nomips16))
