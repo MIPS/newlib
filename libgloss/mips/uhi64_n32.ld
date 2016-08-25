@@ -127,7 +127,7 @@ SECTIONS
   .exception_vector ALIGN(__app_start, 0x1000) :
   AT (__flash_app_start)
   {
-    __excpt_ebase = ABSOLUTE(.);
+    PROVIDE (__excpt_ebase = ABSOLUTE(.));
     __base = .;
     KEEP(* (.text.__exception_entry))
     . = __base + 0x200;
