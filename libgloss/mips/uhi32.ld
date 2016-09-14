@@ -108,12 +108,14 @@ PROVIDE (__isr_vec_count = 9);
  * from flash to RAM at runtime before being executed.
  */
 PROVIDE (__flash_start = DEFINED(__reset_vector) ? 0xbfc00000 : __app_start);
+/* Set the default execution address for boot code. */
+PROVIDE (__bev_override = 0x9fc00000);
 
 SECTIONS
 {
   /* Start of bootrom */
-  .bootrom 0x9fc00000 : /* Runs uncached (from 0x9fc00000) until I$ is
-			   initialized. */
+  .bootrom __bev_override : /* Runs uncached (from 0x9fc00000) until I$ is
+			       initialized. */
   AT (__flash_start)
   {
     *(.reset)		/* Reset entry point. */

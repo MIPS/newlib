@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ * Copyright 2014-2016, Imagination Technologies Limited and/or its
  *                      affiliated group companies.
  * All rights reserved.
  *
@@ -92,6 +92,7 @@ __cache_error_loop:
 	jr	k1
 
 	.org 0x180
+__general_exception_loop:
 	# Free up k1, defering sp adjustment until later
 	REG_S	k1, (-CTX_SIZEROUND + CTX_K1)(sp)
 
