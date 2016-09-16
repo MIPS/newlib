@@ -254,6 +254,9 @@ install:
 	@for header in ${srcdir}/hal/include/mips/*.h; do\
 	  $(INSTALL_DATA) $${header} $(DESTDIR)$(tooldir)/include/mips; \
 	done
+	@for file in ${srcdir}/include/mips/*.S; do\
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(tooldir)/include/mips; \
+	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/boot
 	@for file in ${srcdir}/hal/boot/*.[hS] ; do\
 	  $(INSTALL_DATA) $${file} $(DESTDIR)$(exec_prefix)/share/mips/boot/; \
