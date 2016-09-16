@@ -92,9 +92,17 @@ ALEAF(__def_cache_size_hook, __cache_size_hook)
 	addiu	tmp, tmp, 6
 	sllv	scachesize, scachesize, tmp
 
-	sw	scachesize, mips_scache_size
-	sw	slinesize, mips_scache_linesize
-	sw	sways, mips_scache_ways
+.set noat
+	lui	AT, mips_scache_size
+	sw	scachesize, 0(AT)
+	#sw	scachesize, mips_scache_size
+	lui	AT, mips_scache_linesize
+	sw	slinesize, 0(AT)
+	#sw	slinesize, mips_scache_linesize
+	lui	AT, mips_scache_ways
+	sw	sways, 0(AT)	
+	#sw	sways, mips_scache_ways
+.set at
 3:
 	# Return
 	jr	ra

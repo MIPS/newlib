@@ -305,8 +305,8 @@ LEAF(MEMCPY_NAME)
 	PTR_SUBU t0,t1,t2
 	sltu	t2,t0,a2
 	la	t9,memmove
-	beq	t2,zero,L(memcpy)
-	jr	t9
+	beqc	t2,zero,L(memcpy)
+	jrc 	t9
 L(memcpy):
 #endif
 
@@ -320,7 +320,7 @@ L(memcpy):
 #else
 	move	v0,a0
 #endif
-	bne	t2,zero,L(lastb)
+	bnec	t2,zero,L(lastb)
 
 #if !defined (R6_CODE)
 
@@ -333,11 +333,11 @@ L(memcpy):
 	xor	t8,a1,a0
 	andi	t8,t8,(NSIZE-1)		/* t8 is a0/a1 word-displacement */
 	PTR_SUBU a3, zero, a0
-	bne	t8,zero,L(unaligned)
+	bnec	t8,zero,L(unaligned)
 
 	andi	a3,a3,(NSIZE-1)		/* copy a3 bytes to align a0/a1	  */
 	PTR_SUBU a2,a2,a3		/* a2 is the remining bytes count */
-	beq	a3,zero,L(aligned)	/* if a3=0, it is already aligned */
+	beqc	a3,zero,L(aligned)	/* if a3=0, it is already aligned */
 
 	C_LDHI	t8,0(a1)
 	PTR_ADDU a1,a1,a3
@@ -354,7 +354,7 @@ L(memcpy):
 	andi	t8,a0,7
 #ifdef __mips_micromips
 	auipc	t9,%pcrel_hi(L(atable))
-	addiu	t9,t9,%pcrel_lo(L(atable)+4)
+	addiu	t9,t9,%pcrel_lo(L(atable))
 	PTR_LSA	t9,t8,t9,1
 #else
 	lapc	t9,L(atable)
@@ -402,7 +402,7 @@ L(lb0):
 	andi	t8,a1,(NSIZE-1)
 #ifdef __mips_micromips
 	auipc	t9,%pcrel_hi(L(jtable))
-	addiu	t9,t9,%pcrel_lo(L(jtable)+4)
+	addiu	t9,t9,%pcrel_lo(L(jtable))
 	PTR_LSA	t9,t8,t9,1
 #else
 	lapc	t9,L(jtable)
@@ -434,7 +434,7 @@ L(aligned):
 
 	andi	t8,a2,NSIZEDMASK /* any whole 64-byte/128-byte chunks? */
 	PTR_SUBU a3,a2,t8	 /* subtract from a2 the reminder */
-	beq	a2,t8,L(chkw)	 /* if a2==t8, no 64-byte/128-byte chunks */
+	beqc	a2,t8,L(chkw)	 /* if a2==t8, no 64-byte/128-byte chunks */
 	PTR_ADDU a3,a0,a3	 /* Now a3 is the final dst after loop */
 
 /* When in the loop we may prefetch with the 'prepare to store' hint,
@@ -540,7 +540,7 @@ L(skip_pref):
 	C_ST	REG7,UNIT(15)(a0)
 	PTR_ADDIU a0,a0,UNIT(16)	/* adding 64/128 to dest */
 	PTR_ADDIU a1,a1,UNIT(16)	/* adding 64/128 to src */
-	bne	a0,a3,L(loop16w)
+	bnec	a0,a3,L(loop16w)
 	move	a2,t8
 
 /* Here we have src and dest word-aligned but less than 64-bytes or
@@ -553,7 +553,7 @@ L(chkw):
 	PREFETCH_FOR_LOAD (0, a1)
 	andi	t8,a2,NSIZEMASK	/* Is there a 32-byte/64-byte chunk.  */
 				/* The t8 is the reminder count past 32-bytes */
-	beq	a2,t8,L(chk1w)	/* When a2=t8, no 32-byte chunk  */
+	beqc	a2,t8,L(chk1w)	/* When a2=t8, no 32-byte chunk  */
 	C_LD	t0,UNIT(0)(a1)
 	C_LD	t1,UNIT(1)(a1)
 	C_LD	REG2,UNIT(2)(a1)
@@ -583,7 +583,7 @@ L(chkw):
 L(chk1w):
 	andi	a2,t8,(NSIZE-1)	/* a2 is the reminder past one (d)word chunks */
 	PTR_SUBU a3,t8,a2	/* a3 is count of bytes in one (d)word chunks */
-	beq	a2,t8,L(lastb)
+	beqc	a2,t8,L(lastb)
 	PTR_ADDU a3,a0,a3	/* a3 is the dst address after loop */
 
 /* copying in words (4-byte or 8-byte chunks) */
@@ -592,20 +592,20 @@ L(wordCopy_loop):
 	PTR_ADDIU a0,a0,UNIT(1)
 	PTR_ADDIU a1,a1,UNIT(1)
 	C_ST	REG3,UNIT(-1)(a0)
-	bne	a0,a3,L(wordCopy_loop)
+	bnec	a0,a3,L(wordCopy_loop)
 
 /* Copy the last 8 (or 16) bytes */
 L(lastb):
 	PTR_ADDU a3,a0,a2	/* a3 is the last dst address */
-	blez	a2,L(leave)
+	blezc	a2,L(leave)
 L(lastbloop):
 	lb	v1,0(a1)
 	PTR_ADDIU a0,a0,1
 	PTR_ADDIU a1,a1,1
 	sb	v1,-1(a0)
-	bne	a0,a3,L(lastbloop)
+	bnec	a0,a3,L(lastbloop)
 L(leave):
-	jr	ra
+	jrc	ra
 
 #if !defined (R6_CODE)
 /*
@@ -620,7 +620,7 @@ L(leave):
 L(unaligned):
 	andi	a3,a3,(NSIZE-1)	/* copy a3 bytes to align a0/a1 */
 	PTR_SUBU a2,a2,a3	/* a2 is the remining bytes count */
-	beqz	a3,L(ua_chk16w) /* if a3=0, it is already aligned */
+	beqzc	a3,L(ua_chk16w) /* if a3=0, it is already aligned */
 
 	C_LDHI	v1,UNIT(0)(a1)
 	C_LDLO	v1,UNITM1(1)(a1)
@@ -639,7 +639,7 @@ L(unaligned):
 L(ua_chk16w):
 	andi	t8,a2,NSIZEDMASK /* any whole 64-byte/128-byte chunks? */
 	PTR_SUBU a3,a2,t8	 /* subtract from a2 the reminder */
-	beq	a2,t8,L(ua_chkw) /* if a2==t8, no 64-byte/128-byte chunks */
+	beqc	a2,t8,L(ua_chkw) /* if a2==t8, no 64-byte/128-byte chunks */
 	PTR_ADDU a3,a0,a3	 /* Now a3 is the final dst after loop */
 
 #if defined(USE_PREFETCH) && (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
@@ -730,7 +730,7 @@ L(ua_skip_pref):
 	C_ST	REG7,UNIT(15)(a0)
 	PTR_ADDIU a0,a0,UNIT(16)	/* adding 64/128 to dest */
 	PTR_ADDIU a1,a1,UNIT(16)	/* adding 64/128 to src */
-	bne	a0,a3,L(ua_loop16w)
+	bnec	a0,a3,L(ua_loop16w)
 	move	a2,t8
 
 /* Here we have src and dest word-aligned but less than 64-bytes or
@@ -776,7 +776,7 @@ L(ua_chkw):
 L(ua_chk1w):
 	andi	a2,t8,(NSIZE-1)	/* a2 is the reminder past one (d)word chunks */
 	PTR_SUBU a3,t8,a2	/* a3 is count of bytes in one (d)word chunks */
-	beq	a2,t8,L(ua_smallCopy)
+	beqc	a2,t8,L(ua_smallCopy)
 	PTR_ADDU a3,a0,a3	/* a3 is the dst address after loop */
 
 /* copying in words (4-byte or 8-byte chunks) */
@@ -786,20 +786,20 @@ L(ua_wordCopy_loop):
 	PTR_ADDIU a0,a0,UNIT(1)
 	PTR_ADDIU a1,a1,UNIT(1)
 	C_ST	v1,UNIT(-1)(a0)
-	bne	a0,a3,L(ua_wordCopy_loop)
+	bnec	a0,a3,L(ua_wordCopy_loop)
 
 /* Copy the last 8 (or 16) bytes */
 L(ua_smallCopy):
 	PTR_ADDU a3,a0,a2	/* a3 is the last dst address */
-	beqz	a2,L(leave)
+	beqzc	a2,L(leave)
 L(ua_smallCopy_loop):
 	lb	v1,0(a1)
 	PTR_ADDIU a0,a0,1
 	PTR_ADDIU a1,a1,1
 	sb	v1,-1(a0)
-	bne	a0,a3,L(ua_smallCopy_loop)
+	bnec	a0,a3,L(ua_smallCopy_loop)
 
-	jr	ra
+	jrc	ra
 
 #else /* R6_CODE */
 
@@ -814,7 +814,7 @@ L(ua_smallCopy_loop):
 	andi	REG7, a2, (NSIZE-1);/* REG7 is # of bytes to by bytes.     */ \
 	PTR_SUBU a3, a2, REG7;	/* a3 is number of bytes to be copied in   */ \
 				/* (d)word chunks.			   */ \
-	beq	REG7, a2, L(lastb); /* Check for bytes to copy by word	   */ \
+	beqc	REG7, a2, L(lastb); /* Check for bytes to copy by word	   */ \
 	move	a2, REG7;	/* a2 is # of bytes to copy byte by byte   */ \
 				/* after word loop is finished.		   */ \
 	PTR_ADDU REG6, a0, a3;	/* REG6 is the dst address after loop.	   */ \
@@ -828,8 +828,8 @@ L(r6_ua_wordcopy##BYTEOFFSET):						      \
 	PTR_ADDIU REG2, REG2, UNIT(1); /* Increment aligned source pointer.*/ \
 	move	t0, t1;		/* Move second part of source to first.	   */ \
 	C_ST	REG3, UNIT(-1)(a0);					      \
-	bne	a0, REG6,L(r6_ua_wordcopy##BYTEOFFSET);			      \
-	j	L(lastb);						      \
+	bnec	a0, REG6,L(r6_ua_wordcopy##BYTEOFFSET);			      \
+	bc	L(lastb);						      \
 
 	/* We are generating R6 code, the destination is 4 byte aligned and
 	   the source is not 4 byte aligned. t8 is 1, 2, or 3 depending on the

@@ -68,7 +68,7 @@ IMPORT(mips_scache_ways,4)
 	PTR_ADDU maxaddr,kva,n ;	\
 	/* align to line boundaries */	\
 	PTR_SUBU mask,linesize,1 ;	\
-	not	mask ;			\
+	nor	mask, mask, mask ;	\
 	and	addr,kva,mask ;		\
 	PTR_SUBU addr,linesize ;	\
 	PTR_ADDU maxaddr,-1 ;		\
@@ -93,11 +93,13 @@ IMPORT(mips_scache_ways,4)
 
 /* caches may not have been sized yet */
 #define SIZE_CACHE(reg,which)		\
-	lw	reg,which;		\
+	lui	AT, which;		\
+	lw	reg,0(AT);		\
 	move	v1,ra;			\
 	bgez	reg,9f;			\
 	bal	m32_size_cache;		\
-	lw	reg,which;		\
+	lui	AT, which;		\
+	lw	reg,0(AT);		\
 	move	ra,v1;			\
 9:	blez	reg,9f;			\
 	sync

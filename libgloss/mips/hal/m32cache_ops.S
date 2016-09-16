@@ -28,6 +28,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+#if (__mips_isa_rev > 6)
+#define	LW(rt, base) \
+	lui	AT, base;	\  
+	lw	rt, 0(AT);	
+#else
+#define	LW	lw	rt, base	
+#endif
+
 .set nomips16
 #include "m32cache.h"
 
@@ -40,18 +48,18 @@ LEAF(m32_flush_cache)
 	SIZE_CACHE(a1,mips_dcache_size)
 
 	/* writeback and invalidate primary caches individually */
-	lw	a2,mips_dcache_linesize
+	LW	(a2,mips_dcache_linesize)
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Writeback_Inv_D)
 
-9:	lw	a1,mips_icache_size
-	lw	a2,mips_icache_linesize
+9:	LW	(a1,mips_icache_size)
+	LW	(a2,mips_icache_linesize)
 	blez	a1,9f
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Invalidate_I)
 
-9:	lw	a1,mips_scache_size
-	lw	a2,mips_scache_linesize
+9:	LW	(a1,mips_scache_size)
+	LW	(a2,mips_scache_linesize)
 	blez	a1,9f
 	sync
 	li	a0,KSEG0_BASE
@@ -70,12 +78,12 @@ LEAF(m32_flush_dcache)
 	SIZE_CACHE(a1,mips_dcache_size)
 
 	/* writeback and invalidate primary data cache */
-	lw	a2,mips_dcache_linesize
+	LW	(a2,mips_dcache_linesize)
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Writeback_Inv_D)
 
-9:	lw	a1,mips_scache_size
-	lw	a2,mips_scache_linesize
+9:	LW	(a1,mips_scache_size)
+	LW	(a2,mips_scache_linesize)
 	blez	a1,9f
 	sync
 	li	a0,KSEG0_BASE
@@ -94,13 +102,13 @@ LEAF(m32_flush_icache)
 	SIZE_CACHE(a1,mips_icache_size)
 
 	/* writeback and invalidate primary instruction cache */
-	lw	a2,mips_icache_linesize
+	LW	(a2,mips_icache_linesize)
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Invalidate_I)
 
-9:	lw	a1,mips_scache_size
+9:	LW	(a1,mips_scache_size)
 	blez	a1,9f
-	lw	a2,mips_scache_linesize
+	LW	(a2,mips_scache_linesize)
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Writeback_Inv_S)
 
@@ -117,11 +125,11 @@ LEAF(m32_clean_cache)
 	SIZE_CACHE(a2,mips_dcache_linesize)
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_D)
 
-9:	lw	a2,mips_icache_linesize
+9:	LW	(a2,mips_icache_linesize)
 	blez	a2,9f
 	vcacheop(a0,a1,a2,Hit_Invalidate_I)
 
-9:	lw	a2,mips_scache_linesize
+9:	LW	(a2,mips_scache_linesize)
 	blez	a2,9f
 
 	sync
@@ -151,7 +159,7 @@ LEAF(m32_sync_icache)
 
 	/* align to line boundaries */
 	PTR_SUBU	mask,a2,1
-	not	mask
+	nor	mask, mask, mask
 	and	addr,a0,mask
 	PTR_SUBU   	addr,a2
 	and	maxaddr,mask
@@ -174,7 +182,7 @@ LEAF(m32_clean_dcache)
 	SIZE_CACHE(a2,mips_dcache_linesize)
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_D)
 
-9:	lw	a2,mips_scache_linesize
+9:	LW	(a2,mips_scache_linesize)
 	blez	a2,9f
 	sync
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
@@ -193,7 +201,7 @@ LEAF(m32_clean_dcache_nowrite)
 	SIZE_CACHE(a2,mips_dcache_linesize)
 	vcacheop(a0,a1,a2,Hit_Invalidate_D)
 
-9:	lw	a2,mips_scache_linesize
+9:	LW	(a2,mips_scache_linesize)
 	blez	a2,9f
 	vcacheop(a0,a1,a2,Hit_Invalidate_S)
 

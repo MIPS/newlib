@@ -39,6 +39,12 @@
 #include <mips/asm.h>
 #include <mips/endian.h>
 
+#if (__mips_isa_rev > 6)
+# define JRHB(R)        jrc.hb R
+#else
+# define JRHB(R)        jr.hb R
+#endif
+	
 #define PTR_XO32_MTC0(top, bot, reg)	\
 #if BYTE_ORDER == BIG_ENDIAN		\
 	mtc0	bot, reg; 		\
@@ -108,7 +114,7 @@ LEAF(m64_tlbwi2)
 	tlbwi
 	.set	push
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 
@@ -143,7 +149,7 @@ LEAF(m64_tlbwr2)
 	tlbwr
 	.set	push
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 
@@ -196,7 +202,7 @@ LEAF(m64_tlbrwr2)
 #endif /* _MIPS_SIM==_ABIO32 */
 	.set	push
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 
@@ -208,7 +214,7 @@ LEAF(m64_tlbrwr2)
 #endif /* _MIPS_SIM==_ABIO32 */
 	.set	push
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 
@@ -313,7 +319,7 @@ LEAF(m64_tlbprobe2)
 #endif /* _MIPS_SIM==_ABIO32 */
 	.set	push
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 
@@ -326,7 +332,7 @@ LEAF(m64_tlbprobe2)
 
 	.set	push
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 
@@ -377,7 +383,8 @@ LEAF(m64_tlbinval)
 #if _MIPS_SIM==_ABIO32
 2:	li	t1, -1
 	li	v1, (KSEG0_BASE - 2<<13)
-5:	addiu	v1, v1, (2<<13)
+5:	lui	AT, (2<<13)
+	addu	v1, v1, AT
 	PTR_XO32_MTC0(t1, v1, C0_ENTRYHI)
 	ehb				# mtc0, Hazard on tlbp
 
@@ -417,7 +424,7 @@ LEAF(m64_tlbinval)
 #endif /* _MIPS_SIM==_ABIO32 */
 	.set	push
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 

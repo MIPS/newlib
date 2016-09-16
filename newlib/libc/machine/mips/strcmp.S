@@ -44,7 +44,7 @@
 
 /* Testing on a little endian machine showed using CLZ was a
    performance loss, so we are not turning it on by default.  */
-#if defined(ENABLE_CLZ) && (__mips_isa_rev > 1)
+#if defined(__mips_xlp) || (defined(ENABLE_CLZ) && (__mips_isa_rev > 1))
 # define USE_CLZ
 #endif
 
@@ -79,24 +79,24 @@ LEAF(STRCMP_NAME)
 	.set	nomips16
 
 	or	t0, a0, a1
-	andi	t0,0x3
-	lui	t8, 0x0101
-	bne	t0, zero, L(byteloop)
+	andi	t0, t0, 0x3
+	bnec	t0, zero, L(byteloop)
 
 /* Both strings are 4 byte aligned at this point.  */
 
-	ori	t8, t8, 0x0101
-	lui	t9, 0x7f7f
-	ori	t9, 0x7f7f
+	lui	t8, 0x01010
+	ori	t8, t8, 0x101
+	lui	t9, 0x7f7f7
+	ori	t9, t9, 0xf7f
 
 #define STRCMP32(OFFSET) \
 	lw	v0, OFFSET(a0); \
 	lw	v1, OFFSET(a1); \
 	subu	t0, v0, t8; \
 	nor	t1, v0, t9; \
-	bne	v0, v1, L(worddiff); \
+	bnec	v0, v1, L(worddiff); \
 	and	t0, t0, t1; \
-	bne	t0, zero, L(returnzero)
+	bnec	t0, zero, L(returnzero)
 
 L(wordloop):
 	STRCMP32(0)
@@ -110,16 +110,16 @@ L(wordloop):
 	lw	v1, 28(a1)
 	subu	t0, v0, t8
 	nor	t1, v0, t9
-	bne	v0, v1, L(worddiff)
+	bnec	v0, v1, L(worddiff)
 	and	t0, t0, t1
 	PTR_ADDIU a0, a0, 32
-	bne	t0, zero, L(returnzero)
+	bnec	t0, zero, L(returnzero)
 	PTR_ADDIU a1, a1, 32
-	b	L(wordloop)
+	bc 	L(wordloop)
 
 L(returnzero):
 	move	v0, zero
-	jr	ra
+	jrc	ra
 
 L(worddiff):
 #ifdef USE_CLZ
@@ -143,78 +143,78 @@ L(worddiff):
 	and	v0, v0, 0xff
 	and	v1, v1, 0xff
 	subu	v0, v0, v1
-	jr	ra
+	jrc	ra
 #else /* USE_CLZ */
 # if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	andi	t0, v0, 0xff
 	andi	t1, v1, 0xff
-	beq	t0, zero, L(wexit01)
+	beqc	t0, zero, L(wexit01)
 	srl	t8, v0, 8
-	bne	t0, t1, L(wexit01)
+	bnec	t0, t1, L(wexit01)
 
 	srl	t9, v1, 8
 	andi	t8, t8, 0xff
 	andi	t9, t9, 0xff
-	beq	t8, zero, L(wexit89)
+	beqc	t8, zero, L(wexit89)
 	srl	t0, v0, 16
-	bne	t8, t9, L(wexit89)
+	bnec	t8, t9, L(wexit89)
 
 	srl	t1, v1, 16
 	andi	t0, t0, 0xff
 	andi	t1, t1, 0xff
-	beq	t0, zero, L(wexit01)
+	beqc	t0, zero, L(wexit01)
 	srl	t8, v0, 24
-	bne	t0, t1, L(wexit01)
+	bnec	t0, t1, L(wexit01)
 
 	srl	t9, v1, 24
 # else /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
 	srl	t0, v0, 24
 	srl	t1, v1, 24
-	beq	t0, zero, L(wexit01)
+	beqc	t0, zero, L(wexit01)
 	srl	t8, v0, 16
-	bne	t0, t1, L(wexit01)
+	bnec	t0, t1, L(wexit01)
 
 	srl	t9, v1, 16
 	andi	t8, t8, 0xff
 	andi	t9, t9, 0xff
-	beq	t8, zero, L(wexit89)
+	beqc	t8, zero, L(wexit89)
 	srl	t0, v0, 8
-	bne	t8, t9, L(wexit89)
+	bnec	t8, t9, L(wexit89)
 
 	srl	t1, v1, 8
 	andi	t0, t0, 0xff
 	andi	t1, t1, 0xff
-	beq	t0, zero, L(wexit01)
+	beqc	t0, zero, L(wexit01)
 	andi	t8, v0, 0xff
-	bne	t0, t1, L(wexit01)
+	bnec	t0, t1, L(wexit01)
 
 	andi	t9, v1, 0xff
 # endif /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
 
 L(wexit89):
 	subu	v0, t8, t9
-	jr	ra
+	jrc	ra
 L(wexit01):
 	subu	v0, t0, t1
-	jr	ra
+	jrc	ra
 #endif /* USE_CLZ */
 
-/* It might seem better to do the 'beq' instruction between the two 'lbu'
+/* It might seem better to do the 'beqc' instruction between the two 'lbu'
    instructions so that the nop is not needed but testing showed that this
    code is actually faster (based on glibc strcmp test).  */
 #define BYTECMP01(OFFSET) \
 	lbu	v1, OFFSET(a1); \
 	nop; \
-	beq	v0, zero, L(bexit01); \
+	beqc	v0, zero, L(bexit01); \
 	lbu	t8, OFFSET+1(a0); \
-	bne	v0, v1, L(bexit01)
+	bnec	v0, v1, L(bexit01)
 
 #define BYTECMP89(OFFSET) \
 	lbu	t9, OFFSET(a1); \
 	nop;	\
-	beq	t8, zero, L(bexit89); \
+	beqc	t8, zero, L(bexit89); \
 	lbu	v0, OFFSET+1(a0); \
-	bne	t8, t9, L(bexit89)
+	bnec	t8, t9, L(bexit89)
 
 L(byteloop):
 	lbu	v0, 0(a0)
@@ -227,18 +227,18 @@ L(byteloop):
 	BYTECMP01(6)
 	lbu	t9, 7(a1)
 	nop
-	beq	t8, zero, L(bexit89)
+	beqc	t8, zero, L(bexit89)
 	PTR_ADDIU a0, a0, 8
-	bne	t8, t9, L(bexit89)
+	bnec	t8, t9, L(bexit89)
 	PTR_ADDIU a1, a1, 8
-	b	L(byteloop)
+	bc	L(byteloop)
 
 L(bexit01):
 	subu	v0, v0, v1
-	jr	ra
+	jrc	ra
 L(bexit89):
 	subu	v0, t8, t9
-	jr	ra
+	jrc	ra
 
 	.set	at
 

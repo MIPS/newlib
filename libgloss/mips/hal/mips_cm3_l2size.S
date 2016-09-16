@@ -103,9 +103,14 @@ LEAF(__cache_size_hook)
 	mul	tmp, tmp, sways			# Get total number of sets
 	mul	scachesize, slinesize, tmp	# L2 cache size
 
-	sw	scachesize, mips_scache_size
-	sw	slinesize, mips_scache_linesize
-	sw	sways, mips_scache_ways
+.set noat
+	lui	AT, mips_scache_size
+	sw	scachesize, 0(AT)
+	lui	AT, mips_scache_linesize
+	sw	slinesize, 0(AT)
+	lui	AT, mips_scache_ways
+	sw	sways, 0(AT)
+.set at
 
 3:
 	# Return
