@@ -103,7 +103,7 @@ LEAF(_size_cache)
 	sllv	icachesize, icachesize, tmp
 
 	# Store icache config
-        w      AT, mips_icache_size 
+        lui     AT, mips_icache_size 
    	sw	icachesize, 0(AT)
 	lui	AT, mips_icache_linesize
 	sw	ilinesize, 0(AT)

@@ -305,7 +305,8 @@ init:
 	beqz	a0, 1f
 	/* if a0 < -1 then we have undefined behaviour so assume no
 	   arguments have been set up */
-	slti	a0, a0, -1
+	li	t0, -1
+	slt	a0, a0, t0
 	bnez	a0, 1f
 
 	/* a0 == -1 */
