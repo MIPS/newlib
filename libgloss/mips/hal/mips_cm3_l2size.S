@@ -34,6 +34,13 @@
 #include <mips/cm3.h>
 #include <mips/m32c0.h>
 
+#define SW(rt,addr)			\
+	.set    noat;			\
+	lui     AT, %hi(addr);		\
+	lw      t0, %lo(addr)(AT) ;	\
+	.set    at
+	
+	
 #define tmp		t0
 #define cfg		t1
 #define scachesize	t8
@@ -104,12 +111,12 @@ LEAF(__cache_size_hook)
 	mul	scachesize, slinesize, tmp	# L2 cache size
 
 .set noat
-	lui	AT, mips_scache_size
-	sw	scachesize, 0(AT)
-	lui	AT, mips_scache_linesize
-	sw	slinesize, 0(AT)
-	lui	AT, mips_scache_ways
-	sw	sways, 0(AT)
+	#sw	scachesize,mips_scache_size
+	SW	(scachesize,mips_scache_size)
+	#sw	slinesize,mips_scache_linesize
+	SW	(slinesize,mips_scache_linesize)
+	#sw	sways,mips_scache_ways
+	SW	(sways,mips_scache_ways)
 .set at
 
 3:

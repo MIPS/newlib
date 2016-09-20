@@ -242,8 +242,11 @@ LEAF(mips_tlbinval)
 	b	3f
 
 2:	li	t1, (KSEG0_BASE - 2<<13)
-5:	li	AT, 2<<13
+5:	
+.set noat	
+	li	AT, 2<<13
 	addu	t1, t1, AT
+.set at
 	#addiu	t1, t1, 2<<13
 	mtc0	t1, C0_ENTRYHI
 	ehb				# mtc0, Hazard on tlbp

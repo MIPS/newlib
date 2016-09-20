@@ -28,14 +28,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#if (__mips_isa_rev > 6)
-#define	LW(rt, base) \
-	lui	AT, base;	\  
-	lw	rt, 0(AT);	
-#else
-#define	LW	lw	rt, base	
-#endif
-
 .set nomips16
 #include "m32cache.h"
 
@@ -49,17 +41,22 @@ LEAF(m32_flush_cache)
 
 	/* writeback and invalidate primary caches individually */
 	LW	(a2,mips_dcache_linesize)
+	#lw	a2,mips_dcache_linesize
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Writeback_Inv_D)
 
 9:	LW	(a1,mips_icache_size)
+	#lw	a1,mips_icache_size
 	LW	(a2,mips_icache_linesize)
+	#lw	a2,mips_icache_linesize
 	blez	a1,9f
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Invalidate_I)
 
 9:	LW	(a1,mips_scache_size)
+	#lw	a1,mips_scache_size
 	LW	(a2,mips_scache_linesize)
+	#lw	a2,mips_scache_linesize
 	blez	a1,9f
 	sync
 	li	a0,KSEG0_BASE
@@ -78,12 +75,15 @@ LEAF(m32_flush_dcache)
 	SIZE_CACHE(a1,mips_dcache_size)
 
 	/* writeback and invalidate primary data cache */
+	#lw	a2,mips_dcache_linesize
 	LW	(a2,mips_dcache_linesize)
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Writeback_Inv_D)
 
 9:	LW	(a1,mips_scache_size)
+	#lw	a1,mips_scache_size
 	LW	(a2,mips_scache_linesize)
+	#lw	a2,mips_scache_linesize
 	blez	a1,9f
 	sync
 	li	a0,KSEG0_BASE
@@ -102,13 +102,16 @@ LEAF(m32_flush_icache)
 	SIZE_CACHE(a1,mips_icache_size)
 
 	/* writeback and invalidate primary instruction cache */
+	#lw	a2,mips_icache_linesize
 	LW	(a2,mips_icache_linesize)
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Invalidate_I)
 
 9:	LW	(a1,mips_scache_size)
+	#lw	a1,mips_scache_size
 	blez	a1,9f
 	LW	(a2,mips_scache_linesize)
+	#lw	a2,mips_scache_linesize
 	li	a0,KSEG0_BASE
 	cacheop(a0,a1,a2,Index_Writeback_Inv_S)
 
@@ -126,10 +129,12 @@ LEAF(m32_clean_cache)
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_D)
 
 9:	LW	(a2,mips_icache_linesize)
+	#lw	a2,mips_icache_linesize
 	blez	a2,9f
 	vcacheop(a0,a1,a2,Hit_Invalidate_I)
 
 9:	LW	(a2,mips_scache_linesize)
+	#lw	a2,mips_scache_linesize
 	blez	a2,9f
 
 	sync
@@ -183,6 +188,7 @@ LEAF(m32_clean_dcache)
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_D)
 
 9:	LW	(a2,mips_scache_linesize)
+	#lw	a2,mips_scache_linesize
 	blez	a2,9f
 	sync
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
@@ -202,6 +208,7 @@ LEAF(m32_clean_dcache_nowrite)
 	vcacheop(a0,a1,a2,Hit_Invalidate_D)
 
 9:	LW	(a2,mips_scache_linesize)
+	#lw	a2,mips_scache_linesize
 	blez	a2,9f
 	vcacheop(a0,a1,a2,Hit_Invalidate_S)
 

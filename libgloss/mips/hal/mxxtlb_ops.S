@@ -279,7 +279,7 @@ AENT(m64_tlbinvalall)
 	move	v1, zero
 .set noat
 12:	li      AT, (2<<13)
-	addu    t1, t1, a0
+	addu    t1, t1, AT
 .set at
 	#addiu	t1, t1, (2<<13)
 	PTR_MTC0 t1, C0_ENTRYHI

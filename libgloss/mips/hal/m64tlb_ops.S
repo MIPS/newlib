@@ -383,8 +383,12 @@ LEAF(m64_tlbinval)
 #if _MIPS_SIM==_ABIO32
 2:	li	t1, -1
 	li	v1, (KSEG0_BASE - 2<<13)
-5:	lui	AT, (2<<13)
+5:	
+.set noat	
+	lui	AT, (2<<13)
 	addu	v1, v1, AT
+.set at
+	#addiu	v1, v1, (2<<13)
 	PTR_XO32_MTC0(t1, v1, C0_ENTRYHI)
 	ehb				# mtc0, Hazard on tlbp
 

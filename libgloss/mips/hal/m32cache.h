@@ -93,13 +93,11 @@ IMPORT(mips_scache_ways,4)
 
 /* caches may not have been sized yet */
 #define SIZE_CACHE(reg,which)		\
-	lui	AT, which;		\
-	lw	reg,0(AT);		\
+        LW	(reg,which);		\
 	move	v1,ra;			\
 	bgez	reg,9f;			\
 	bal	m32_size_cache;		\
-	lui	AT, which;		\
-	lw	reg,0(AT);		\
+        LW	(reg,which);		\
 	move	ra,v1;			\
 9:	blez	reg,9f;			\
 	sync
@@ -120,3 +118,16 @@ IMPORT(mips_scache_ways,4)
 #define tmp3		a1
 #define tmp4		a2
 #define tmp5		a3
+
+
+#define LW(rt,addr)		     \
+     .set    noat;		     \
+     lui     AT, %hi(addr);          \
+     lw      t0, %lo(addr)(AT);	     \
+     .set    at
+
+#define SW(rt,addr)		  \
+  .set    noat;			  \
+  lui     AT, %hi(addr);          \
+  lw      t0, %lo(addr)(AT);      \
+  .set    at
