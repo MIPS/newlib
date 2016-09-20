@@ -333,6 +333,7 @@ init:
 	BZ	(eq, a0, 1f)
 	/* if a0 < -1 then we have undefined behaviour so assume no
 	   arguments have been set up */
+
 	PTR_ADDIU a0, a0, 1
 	BZ	(ne, a0, 1f)
 
