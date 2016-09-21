@@ -70,7 +70,8 @@ __tlb_refill_loop:
 	beqz	k1, 1f
 	# The start code is responsible for clearing __first_boot prior
 	# to installing the exception handlers.
-	j	_start
+	LA	k1, _start
+	jr	k1
 1:
 	LA	k1, _mips_tlb_refill
 	beqz	k1, __tlb_refill_loop
