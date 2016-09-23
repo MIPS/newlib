@@ -200,5 +200,13 @@ END(__boot_general_exception)
 
 LEAF(__boot_debug_exception)
 .org 0x480 				# EJTAG Debug (with ProbEn = 0 in the EJTAG Control Register)
-1:  b   1b  /* Stay here */
+    PTR_MFC0  k1, C0_DEPC
+    PTR_MTC0  k1, C0_DESAVE
+    lui	      k1, %hi(1f)
+    addiu     k1, %lo(1f)
+    PTR_MTC0  k1, C0_DEPC
+    ehb
+    deret
+1:  wait
+    b 1b  /* Stay here */
 END(__boot_debug_exception)
