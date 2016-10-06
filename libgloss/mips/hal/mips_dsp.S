@@ -133,4 +133,4 @@ LEAF(_dsp_load)
 	# Don't recognise this context, fail
 	move	v0, zero
 	jr ra
-END(_dsp_save)
+END(_dsp_load)
