@@ -159,8 +159,8 @@ END(__cpu_init)
 /* NOTE: the linker script must insure that this code starts at start + 0x200 so the exception */
 /* vectors will be addressed properly. All .org assume this! */
 /* TLB refill, 32 bit task. */
-LEAF(__boot_tlb_refill)
 .org 0x200				# TLB refill, 32 bit task.
+LEAF(__boot_tlb_refill)
     move  k0, t9			# Preserve t9
     move  k1, a0			# Preserve a0
     li	  $25, 15			# UHI exception operation
@@ -168,8 +168,8 @@ LEAF(__boot_tlb_refill)
     sdbbp 1				# Invoke UHI operation
 END(__boot_tlb_refill)
 
-LEAF(__boot_xtlb_refill)
 .org 0x280				# XTLB refill, 64 bit task. BEV + 0x280
+LEAF(__boot_xtlb_refill)
     move  k0, t9			# Preserve t9
     move  k1, a0			# Preserve a0
     li	  $25, 15			# UHI exception operation
@@ -177,8 +177,8 @@ LEAF(__boot_xtlb_refill)
     sdbbp 1				# Invoke UHI operation
 END(__boot_xtlb_refill)
 
-LEAF(__boot_cache_error)
 .org 0x300				# Cache error exception. BEV + 0x300
+LEAF(__boot_cache_error)
     move  k0, t9			# Preserve t9
     move  k1, a0			# Preserve a0
     li	  $25, 15			# UHI exception operation
@@ -186,8 +186,8 @@ LEAF(__boot_cache_error)
     sdbbp 1				# Invoke UHI operation
 END(__boot_cache_error)
 
-LEAF(__boot_general_exception)
 .org 0x380				# General exception. BEV + 0x380
+LEAF(__boot_general_exception)
     move  k0, t9			# Preserve t9
     move  k1, a0			# Preserve a0
     li	  $25, 15			# UHI exception operation
@@ -198,7 +198,15 @@ END(__boot_general_exception)
 # If you want the above code to fit into 1k flash you will need to leave out the
 # code below. This is the code that covers the debug exception which you normally will not get.
 
-LEAF(__boot_debug_exception)
 .org 0x480 				# EJTAG Debug (with ProbEn = 0 in the EJTAG Control Register)
-1:  b   1b  /* Stay here */
+LEAF(__boot_debug_exception)
+    PTR_MFC0  k1, C0_DEPC
+    PTR_MTC0  k1, C0_DESAVE
+    lui	      k1, %hi(1f)
+    addiu     k1, %lo(1f)
+    PTR_MTC0  k1, C0_DEPC
+    ehb
+    deret
+1:  wait
+    b 1b  /* Stay here */
 END(__boot_debug_exception)

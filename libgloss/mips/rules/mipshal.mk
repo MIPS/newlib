@@ -96,7 +96,7 @@ else
   endif
 endif
 
-ifdef ROMABLE
+ifeq ($(ROMABLE),1)
   MIPS_HAL_LDFLAGS += -T bootcode.ld
 endif
 
