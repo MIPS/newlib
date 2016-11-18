@@ -159,7 +159,7 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEROUND + ADJ, zero)
 	ext	a1, e_CR, CR_X_SHIFT, CR_X_BITS
 
 	/* Move the gp_ctx pointer for argument 0.  */
-	mov	a0, k1
+	move	a0, k1
 
 	/* Create the argument space.  */
 	addiu	sp, a0, -ADJ
