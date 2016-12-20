@@ -273,6 +273,9 @@ L(set0):
 	PTR_ADDU a0,a0,t2
 #else /* R6_CODE */
 	andi	t2,a0,7
+#if __mips_isa_rev >= 7
+	brsc	t2
+#else
 #ifdef __mips_micromips
 	auipc	t9,%pcrel_hi(L(atable))
 	addiu	t9,t9,%pcrel_lo(L(atable)+4)
@@ -282,6 +285,7 @@ L(set0):
 	PTR_LSA	t9,t2,t9,2
 #endif
 	jrc	t9
+#endif
 L(atable):
 	PTR_BC	L(aligned)
 	PTR_BC	L(lb7)

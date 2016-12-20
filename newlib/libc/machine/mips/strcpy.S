@@ -43,10 +43,14 @@ LEAF(mystrcpy)
 unaligned:
 /* Align the destination (a0) */
 	andi	t8, a0, 7
+#if __mips_isa_rev >= 7
+	brsc	t8
+#else
 	auipc	t9, %pcrel_hi(jtable)
 	addiu	t9, t9, %pcrel_lo(jtable)
 	lsa	t9, t8, t9, 1
 	jrc	t9
+#endif
 jtable:
 	bc	lb0
 	bc	lb3
