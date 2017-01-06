@@ -47,8 +47,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
+#include <mips/hal.h>
 
-int __attribute__((nomips16))
+int _MIPS_HAL_NOMIPS16
 write (int fd, const void *buf, size_t count)
 {
   register int32_t arg1 asm ("$4") = fd;

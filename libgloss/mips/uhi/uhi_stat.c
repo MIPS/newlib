@@ -38,6 +38,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <mips/uhi_syscalls.h>
+#include <mips/hal.h>
 #include "uhi_stat.h"
 
 int

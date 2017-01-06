@@ -51,8 +51,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
+#include <mips/hal.h>
 
-int __attribute__((nomips16))
+int _MIPS_HAL_NOMIPS16
 unlink (const char *file)
 {
   register const char *arg1 asm ("$4") = file;
