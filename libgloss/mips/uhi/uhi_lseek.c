@@ -48,8 +48,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
+#include <mips/hal.h>
 
-off_t __attribute__((nomips16))
+off_t _MIPS_HAL_NOMIPS16
 lseek (int fd, off_t offset, int whence)
 {
   register int32_t arg1 asm ("$4") = fd;

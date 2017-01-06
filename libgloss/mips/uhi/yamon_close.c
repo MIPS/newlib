@@ -51,8 +51,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
+#include <mips/hal.h>
 
-int32_t __attribute__((nomips16))
+int32_t _MIPS_HAL_NOMIPS16
 close (int32_t fd)
 {
   register int32_t arg1 asm ("$4") = fd;

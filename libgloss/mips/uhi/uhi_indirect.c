@@ -31,7 +31,7 @@
 #include <mips/hal.h>
 
 /* Forward a UHI SYSCALL operation to SDBPP interface.  */
-int __attribute__((nomips16))
+int _MIPS_HAL_NOMIPS16
 __uhi_indirect (struct gpctx *ctx)
 {
   register reg_t arg1 asm ("$4") = ctx->a[0];
