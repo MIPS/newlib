@@ -814,10 +814,18 @@ L(ua_smallCopy_loop):
 
 # if __MIPSEB
 #  define SWAP_REGS(X,Y) X, Y
-#  define ALIGN_OFFSET(N) (N)
+#   if __mips_isa_rev >= 7
+#     define ALIGN_OFFSET(N) (8*(4-N))
+#   else
+#     define ALIGN_OFFSET(N) (N)
+#   endif
 # else
 #  define SWAP_REGS(X,Y) Y, X
-#  define ALIGN_OFFSET(N) (NSIZE-N)
+#   if __mips_isa_rev >= 7
+#     define ALIGN_OFFSET(N) ((NSIZE*8)-(8*(4-N)))
+#   else
+#     define ALIGN_OFFSET(N) (NSIZE-N)
+#   endif
 # endif
 # define R6_UNALIGNED_WORD_COPY(BYTEOFFSET) \
 	andi	REG7, a2, (NSIZE-1);/* REG7 is # of bytes to by bytes.     */ \
