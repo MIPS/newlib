@@ -110,7 +110,7 @@ WLEAF(__register_excpt_boot)
 
 	# Check if we booted with BEV==1
 	lui	$11, %hi(SR_BEV)
-	and	$11, $8, $11
+	and	$11, $5, $11
 	beqz	$11, 1f
 
 	# BEV==0 - set chain_ebase to 0xbfc00200
