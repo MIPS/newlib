@@ -690,6 +690,16 @@ _ELIDABLE_INLINE int __sputc_r(struct _reent *_ptr, int _c, FILE *_p) {
 
 #if ( defined (__mips_clib_small) || defined (__mips_clib_tiny) )
 
+#undef	stdin
+#undef	stdout
+#undef	stderr
+extern FILE *__stdin;
+extern FILE *__stdout;
+extern FILE *__stderr;
+#define	stdin	__stdin
+#define	stdout	__stdout
+#define	stderr	__stderr
+
 #if defined (__mips_fio_float__)
 char * asnprintf_float (char *str, size_t *size, const char *fmt, ...);
 int asprintf_float (char **str, const char *fmt, ...);
