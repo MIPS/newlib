@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ * Copyright 2017, Imagination Technologies Limited and/or its
  *                      affiliated group companies.
  * All rights reserved.
  *
@@ -28,43 +28,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+ * @Synopsis     void __uhi_break (struct gp_ctx *ctx);
+ *
+ *               Parameters:
+ *                 $4 - GP context
+ *
+ *               Arguments to break:
+ *                 $25 - Operation code for __uhi_break
+ *                 $4 - GP context
+ *
+ *               Return from break:
+ *                 $2 - Return 1 if breakpoint exception is handled else 0
+ *
+ * @Description  Handle a breakpoint exception
+*/
 
-#ifndef _UHI_SYSCALLS_
-#define _UHI_SYSCALLS_
+#include <stdint.h>
+#include <mips/uhi_syscalls.h>
+#include <mips/hal.h>
 
-#define __MIPS_UHI_EXIT        1
-#define __MIPS_UHI_OPEN        2
-#define __MIPS_UHI_CLOSE       3
-#define __MIPS_UHI_READ        4
-#define __MIPS_UHI_WRITE       5
-#define __MIPS_UHI_LSEEK       6
-#define __MIPS_UHI_UNLINK      7
-#define __MIPS_UHI_FSTAT       8
-#define __MIPS_UHI_ARGC        9
-#define __MIPS_UHI_ARGLEN      10
-#define __MIPS_UHI_ARGN        11
-#define __MIPS_UHI_RAMRANGE    12
-#define __MIPS_UHI_LOG         13
-#define __MIPS_UHI_ASSERT      14
-#define __MIPS_UHI_EXCEPTION   15
-#define __MIPS_UHI_PREAD       19
-#define __MIPS_UHI_PWRITE      20
-#define __MIPS_UHI_LINK        22
-#define __MIPS_UHI_BOOTFAIL    23
-#define __MIPS_UHI_BREAK       24
+/* Forward a breakpoint exception to boot.  */
+int __attribute__((nomips16))
+__uhi_break (struct gpctx *ctx)
+{
+  register reg_t arg1 asm ("$4") = (reg_t) ctx;
+  register int32_t op asm ("$25") = __MIPS_UHI_BREAK;
+  register int32_t ret asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
 
-#define __MIPS_UHI_BF_CACHE    1
-
-#define __xstr(s) __str(s)
-#define __str(s) #s
-#define __MIPS_UHI_SYSCALL_NUM 1
-
-#ifdef __MIPS_SDBBP__
-	#define SYSCALL(NUM) "\tsdbbp " __xstr (NUM)
-	#define ASM_SYSCALL(NUM) sdbbp NUM
-#else
-	#define SYSCALL(NUM) "\tsyscall " __xstr (NUM)
-	#define ASM_SYSCALL(NUM) syscall NUM
-#endif
-
-#endif // _UHI_SYSCALLS_
+  __asm__ __volatile__ (" # %0 = __uhi_break(%1) op=%2\n"
+			SYSCALL (__MIPS_UHI_SYSCALL_NUM)
+			: "+r" (ret)
+			: "r" (arg1), "r" (op));
+  return ret;
+}

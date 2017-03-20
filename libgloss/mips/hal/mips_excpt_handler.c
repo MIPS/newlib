@@ -159,6 +159,9 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
       return;
     case EXC_BP:
       PUTSNS ("Breakpoint @0x", ctx->epc, "\n");
+      /* Return from exception handler if breakpoint is handled */
+      if (__uhi_break (ctx))
+        return;
       break;
     case EXC_RI:
       PUTSNS ("Illegal instruction @0x", ctx->epc, "\n");
