@@ -37,12 +37,8 @@
  */
 LEAF(m32_size_cache)
 	lw	t0, mips_icache_size
-	move	tmp3, ra
 	bgtz	t0, 8f				# already known?
-
-	bal	_size_cache
-	move	ra, tmp3
-
+	b	_size_cache
 8:	# Return
 	jr	ra
 END(m32_size_cache)

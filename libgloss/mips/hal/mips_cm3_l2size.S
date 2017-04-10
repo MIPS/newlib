@@ -78,8 +78,8 @@ LEAF(__cache_size_hook)
 	# Read CMGCRBase to find CMGCR_BASE_ADDR
 	PTR_MFC0 tmp,C0_CMGCRBASE
 	sll	tmp, tmp, 4
-	lui	tmp2, 0xb000	 # Make it virtual
-	or	tmp, tmp, tmp2
+	lui	tmp5, 0xb000	 # Make it virtual
+	or	tmp, tmp, tmp5
 
 	# Read GCR_L2_CONFIG
 	PTR_L	tmp, GCR_L2_CONFIG(tmp)
@@ -89,13 +89,13 @@ LEAF(__cache_size_hook)
 
 	# Check for no cache
 	beqz	slinesize, 3f
-	li	tmp2, 2
-	sllv	slinesize, tmp2, slinesize	# Now have true L2 line size
+	li	tmp5, 2
+	sllv	slinesize, tmp5, slinesize	# Now have true L2 line size
 
 	# Extract sets/way
 	ext	sways, tmp, GCR_L2_SS_SHIFT, GCR_L2_SS_BITS
-	li	tmp2, 64
-	sllv	sways, tmp2, sways		# Now we have true L2 sets/way
+	li	tmp5, 64
+	sllv	sways, tmp5, sways		# Now we have true L2 sets/way
 
 	# Extract L2 associativity
 	ext	tmp, tmp, GCR_L2_SA_SHIFT, GCR_L2_SA_BITS
