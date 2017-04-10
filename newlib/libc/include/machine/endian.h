@@ -1,8 +1,11 @@
 #ifndef __MACHINE_ENDIAN_H__
 #define	__MACHINE_ENDIAN_H__
 
+#ifndef __ASSEMBLER__
 #include <sys/cdefs.h>
 #include <sys/_types.h>
+#endif
+
 #include <machine/_endian.h>
 
 #if _BYTE_ORDER == _LITTLE_ENDIAN
@@ -20,6 +23,7 @@
 #define	BYTE_ORDER	_BYTE_ORDER
 #endif
 
+#ifndef __ASSEMBLER__
 #ifdef __GNUC__
 #define	__bswap16(_x)	__builtin_bswap16(_x)
 #define	__bswap32(_x)	__builtin_bswap32(_x)
@@ -65,5 +69,6 @@ __bswap64(__uint64_t _x)
 #define	__ntohs(_x)	((__uint16_t)(_x))
 #endif
 #endif /* __machine_host_to_from_network_defined */
+#endif /* __ASSEMBLER__ */
 
 #endif /* __MACHINE_ENDIAN_H__ */
