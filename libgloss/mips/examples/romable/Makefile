@@ -1,0 +1,61 @@
+# Copyright 2015, Imagination Technologies Limited and/or its
+#                 affiliated group companies.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# 3. Neither the name of the copyright holder nor the names of its
+# contributors may be used to endorse or promote products derived from this
+# software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+# Variables that mipshal.mk will expand to compiler/linker arguments must be
+# defined before inclusion of mipshal.mk
+
+# Indicate the application should start via the reset vector
+ROMABLE = 1
+# Default to o32 ABI
+ABI ?= 32
+
+# Set up a 1:1 mapping for physical to virtual addresses
+ifeq ($(ABI), 64)
+APP_START = 0xFFFFFFFF80000000
+else
+APP_START = 0x80000000
+endif
+
+include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
+
+CFLAGS += -g -O1
+LDFLAGS += -g
+OBJS = romable.o
+APP = romable.elf
+
+all: $(APP)
+
+$(APP): $(OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+.PHONY: clean
+clean:
+	rm -f $(APP) $(OBJS)
