@@ -25,8 +25,6 @@ EXTERN(__exception_entry)
  * informative
  */
 EXTERN(__exception_handle_verbose)
-/* Force the interrupt handlers to be included in the link */
-EXTERN(__isr_vec)
 /* Force ISRs 0-7 to be included in the link */
 EXTERN(_isr_vec_7)
 /* Require the UHI getargs support */
