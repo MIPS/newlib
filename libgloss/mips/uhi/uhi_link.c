@@ -53,9 +53,8 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
-#include <mips/hal.h>
 
-int _MIPS_HAL_NOMIPS16
+int __attribute__((nomips16))
 link (const char *oldname, const char *newname)
 {
   register const char *arg1 asm ("$4") = oldname;

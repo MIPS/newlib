@@ -36,6 +36,12 @@
 #include <mips/regdef.h>
 #include "predef.h"
 
+#if (__mips_isa_rev > 6)
+# define JRHB(R)        jrc.hb R
+#else
+# define JRHB(R)        jr.hb R
+#endif
+
 /*
  * void __init_tlbl()
  *
@@ -153,7 +159,7 @@ LEAF(__init_tlb)
 	PTR_MTC0 zero,C0_ENTRYHI	# Unset EntryHI, top half
 	.set	push			# cleared implicitly.
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 END(__init_tlb)

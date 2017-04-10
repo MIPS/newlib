@@ -13,7 +13,7 @@ extern int errno;
 #include "warning.h"
 
 int
-#if defined(__mips__) && defined(__mips16)
+#if defined(__mips__)
 __attribute__((nomips16))
 #endif
 _DEFUN (_fstat, (fildes, st),

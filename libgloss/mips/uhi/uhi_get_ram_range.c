@@ -31,12 +31,11 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
-#include <mips/hal.h>
 
 extern char __attribute__((weak)) __memory_size[];
 extern char __attribute__((weak)) __memory_base[];
 
-void _MIPS_HAL_NOMIPS16
+void __attribute__((nomips16))
 _get_ram_range (void **ram_base, void **ram_extent)
 {
   register int32_t op asm ("$25") = __MIPS_UHI_RAMRANGE;

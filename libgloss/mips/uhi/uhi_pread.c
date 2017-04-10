@@ -49,9 +49,8 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
-#include <mips/hal.h>
 
-ssize_t _MIPS_HAL_NOMIPS16
+ssize_t __attribute__((nomips16))
 pread (int fd, void *buf, size_t count, off_t offset)
 {
   register int32_t arg1 asm ("$4") = fd;

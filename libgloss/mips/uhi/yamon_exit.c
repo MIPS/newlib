@@ -44,10 +44,8 @@
 #include <errno.h>
 #include "yamon_syscalls.h"
 #include <mips/uhi_syscalls.h>
-#include <mips/hal.h>
 
-__attribute__ ((weak)) int _MIPS_HAL_NOMIPS16
-__exit (int exit_code)
+__attribute__ ((weak)) void __exit (int32_t exit_code)
 {
   typedef void (*funcptr) (int32_t);
   extern funcptr __yamon_functions[];
@@ -57,6 +55,5 @@ __exit (int exit_code)
   (yamonexit) (exit_code);
 
   __exit (exit_code);    /* just to avoide the warning */
-  return exit_code;
 }
 

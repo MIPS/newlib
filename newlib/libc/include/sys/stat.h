@@ -146,7 +146,7 @@ struct	stat
 
 int	_EXFUN(chmod,( const char *__path, mode_t __mode ));
 int     _EXFUN(fchmod,(int __fd, mode_t __mode));
-#if defined(__mips__) && defined(__mips16)
+#if defined(__mips__)
 int __attribute__((nomips16)) _EXFUN(fstat,( int __fd, struct stat *__sbuf ));
 #else
 int	_EXFUN(fstat,( int __fd, struct stat *__sbuf ));

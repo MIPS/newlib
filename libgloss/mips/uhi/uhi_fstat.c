@@ -55,16 +55,16 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <stddef.h>
 #include <mips/uhi_syscalls.h>
-#include <mips/hal.h>
 #include "uhi_stat.h"
 
 /* This macro declares a dummy type with -ve size if CONDITION is false */
 #define __paste(STR1, STR2) STR1##STR2
 #define __check(LINE, CONDITION) typedef char __paste(assertion_failed_at_line_, LINE) [(int)(CONDITION)-1]
 
-int _MIPS_HAL_NOMIPS16
+int __attribute__((nomips16))
 fstat (int file, struct stat *sbuf)
 {
   struct uhi_stat hbuf = {0,};

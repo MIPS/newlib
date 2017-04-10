@@ -48,7 +48,7 @@
 #include <mips/uhi_syscalls.h>
 #include <mips/hal.h>
 
-int32_t _MIPS_HAL_NOMIPS16
+int32_t __attribute__((nomips16))
 __uhi_exception (struct gpctx *ctx, int32_t abi)
 {
   register struct gpctx *arg1 asm ("$4") = ctx;

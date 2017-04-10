@@ -56,9 +56,8 @@
 #include <errno.h>
 #include "yamon_syscalls.h"
 #include <mips/uhi_syscalls.h>
-#include <mips/hal.h>
 
-int32_t _MIPS_HAL_NOMIPS16
+int32_t __attribute__((nomips16))
 write (int32_t fd, void *buffer, int32_t count)
 {
   register int32_t arg1 asm ("$4") = fd;

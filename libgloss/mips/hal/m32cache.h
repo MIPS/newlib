@@ -68,7 +68,7 @@ IMPORT(mips_scache_ways,4)
 	PTR_ADDU maxaddr,kva,n ;	\
 	/* align to line boundaries */	\
 	PTR_SUBU mask,linesize,1 ;	\
-	not	mask ;			\
+	nor	mask, mask, mask ;	\
 	and	addr,kva,mask ;		\
 	PTR_SUBU addr,linesize ;	\
 	PTR_ADDU maxaddr,-1 ;		\

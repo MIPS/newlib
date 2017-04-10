@@ -19,7 +19,7 @@
  * fstat -- Since we have no file system, we just return an error.
  */
 int
-#if defined(__mips__) && defined(__mips16)
+#if defined(__mips__)
 __attribute__((nomips16))
 #endif
 _DEFUN (fstat, (fd, buf),

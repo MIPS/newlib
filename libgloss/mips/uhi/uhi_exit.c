@@ -47,8 +47,8 @@
 #include <stdint.h>
 #include <errno.h>
 #include <mips/uhi_syscalls.h>
-#include <mips/hal.h>
 
+int __get_startup_BEV (void) __attribute__((weak));
 void __return_to_boot (int32_t exit_code) __attribute__((noreturn))
   __attribute__((weak));
 
@@ -56,8 +56,8 @@ void __return_to_boot (int32_t exit_code) __attribute__((noreturn))
 extern char __use_excpt_boot[];
 
 /* _exit has been declared weak to allow its defination in the application */
-int _MIPS_HAL_NOMIPS16
-__exit (int exit_code)
+void __attribute__((nomips16))
+__exit (int32_t exit_code)
 {
   register int32_t arg1 asm ("$4") = exit_code;
   register int32_t op asm ("$25") = __MIPS_UHI_EXIT;
@@ -85,5 +85,4 @@ __exit (int exit_code)
 
   /* Infinite loop if control returns.  */
   __exit (exit_code);
-  return exit_code;
 }

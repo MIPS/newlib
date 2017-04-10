@@ -151,7 +151,7 @@ LEAF(m32_sync_icache)
 
 	/* align to line boundaries */
 	PTR_SUBU	mask,a2,1
-	not	mask
+	nor	mask, mask, mask
 	and	addr,a0,mask
 	PTR_SUBU   	addr,a2
 	and	maxaddr,mask

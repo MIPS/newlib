@@ -33,6 +33,13 @@
  * mips_xxtlb_ops.S: Generic MIPS TLB support functions
  *
  */
+
+#if (__mips_isa_rev > 6)
+# define JRHB(R)        jrc.hb R
+#else
+# define JRHB(R)        jr.hb R
+#endif
+
 .set nomips16
 #include <mips/m32c0.h>
 #include <mips/asm.h>
@@ -270,7 +277,10 @@ AENT(m64_tlbinvalall)
 10:	li	t1, (KSEG0_BASE - 2<<13)
 
 	move	v1, zero
-12:	addiu	t1, t1, (2<<13)
+.set noat
+12:	li      AT, (2<<13)
+	addu    t1, t1, AT
+.set at
 	PTR_MTC0 t1, C0_ENTRYHI
 
 	beqz	t0, 13f
@@ -298,7 +308,7 @@ AENT(m64_tlbinvalall)
 					# autmatically as mtc0 writes zeroes
 	.set	push
 	.set	noreorder
-	jr.hb	ra
+	JRHB	(ra)
 	nop
 	.set	pop
 END(mips_tlbinvalall)

@@ -77,6 +77,12 @@
 #define CONFIG	      a2
 #define TEMP	      a3
 
+#if (__mips_isa_rev > 6)
+# define JRHB(R)	jrc.hb R
+#else
+# define JRHB(R)	jr.hb R
+#endif
+
     .set    noat  // Don't allow the assembler to use r1(at) for synthetic instr.
 
 /**************************************************************************************
@@ -171,7 +177,7 @@ $Lset_kseg0_cca:
     mtc0  CONFIG, C0_CONFIG			  // write C0_Config
     .set push
     .set noreorder
-    jr.hb ra					  // Must not fill the delay slot
+    JRHB (ra)					  // Must not fill the delay slot
     nop
     .set pop
 
