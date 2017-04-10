@@ -304,7 +304,7 @@ else
 	ln $(DESTDIR)$(toollibdir)/libc.a $(DESTDIR)$(toollibdir)/libg.a >/dev/null 2>/dev/null || cp $(DESTDIR)$(toollibdir)/libc.a $(DESTDIR)$(toollibdir)/libg.a
 endif
 	$(MULTIDO) $(AM_MAKEFLAGS) DO=install multi-do # $(MAKE)
-	-if [ -z "$(MULTISUBDIR)" ]; then \
+	-if [ -z "$(MULTISUBDIR)" -o -n "$(MULTIDIRS)" ]; then \
 	  $(mkinstalldirs) $(DESTDIR)$(tooldir)/include; \
 	  for i in $(srcdir)/libc/include/*.h; do \
 	   $(INSTALL_DATA) $$i $(DESTDIR)$(tooldir)/include/`basename $$i`; \

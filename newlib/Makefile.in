@@ -1051,7 +1051,7 @@ install-data-local:	install-toollibLIBRARIES
 @USE_LIBTOOL_FALSE@	rm -f $(DESTDIR)$(toollibdir)/libg.a
 @USE_LIBTOOL_FALSE@	ln $(DESTDIR)$(toollibdir)/libc.a $(DESTDIR)$(toollibdir)/libg.a >/dev/null 2>/dev/null || cp $(DESTDIR)$(toollibdir)/libc.a $(DESTDIR)$(toollibdir)/libg.a
 	$(MULTIDO) $(AM_MAKEFLAGS) DO=install multi-do # $(MAKE)
-	-if [ -z "$(MULTISUBDIR)" ]; then \
+	-if [ -z "$(MULTISUBDIR)" -o -n "$(MULTIDIRS)" ]; then \
 	  $(mkinstalldirs) $(DESTDIR)$(tooldir)/include; \
 	  for i in $(srcdir)/libc/include/*.h; do \
 	   $(INSTALL_DATA) $$i $(DESTDIR)$(tooldir)/include/`basename $$i`; \
