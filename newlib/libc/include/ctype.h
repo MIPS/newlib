@@ -164,6 +164,23 @@ const char *__locale_ctype_ptr_l (locale_t);
 /* For C++ backward-compatibility only.  */
 extern	__IMPORT const char	_ctype_[];
 
+#ifdef __mips_clib_tiny
+#undef isalpha
+#undef isupper
+#undef islower
+#undef isdigit
+#undef isxdigit
+#undef isspace
+#undef ispunct
+#undef isalnum
+#undef isprint
+#undef isgraph
+#undef iscntrl
+#undef isblank
+#undef tolower
+#undef toupper
+#endif
+
 _END_STD_C
 
 #endif /* _CTYPE_H_ */
