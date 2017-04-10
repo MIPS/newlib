@@ -13,6 +13,7 @@
  * they apply.
  */
 #include "glue.h"
+void _exit(int);
 
 /*
  * kill -- go out via exit...
