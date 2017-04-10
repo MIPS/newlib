@@ -2,14 +2,11 @@
    workspace.  This linker script links ISA64r2 programs for use with the
    simulator.  We set the ISA explicitly so that we can link objects of
    different ISAs that are subsets of ISA64r2 but are not extensions of
-   each other (e.g., MIPS32r2 and MIPS64).
-
-   It differs from mti64.ld by using the n32 ABI targets instead of the
-   o32 ABI targets in OUTPUT_FORMAT.  */
+   each other (e.g., MIPS32r2 and MIPS64).  */
 
 ENTRY(_start)
-OUTPUT_FORMAT("elf32-ntradlittlemips", "elf32-ntradbigmips", "elf32-ntradlittlemips")
-GROUP(-lc -lidt -lgcc)
+OUTPUT_FORMAT("elf32-tradlittlemips", "elf32-tradbigmips", "elf32-tradlittlemips")
+GROUP(-lc -luhi -lgcc)
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 STARTUP(crt0.o)
@@ -20,6 +17,9 @@ STARTUP(crt0.o)
  */
 PROVIDE (__stack = 0);
 /* PROVIDE (__global = 0); */
+
+/* Size of the memory returned by get_mem_info */
+PROVIDE (__memory_size = 1M);
 
 /*
  * Initalize some symbols to be zero so we can reference them in the
@@ -147,7 +147,6 @@ SECTIONS
     *(COMMON)
   }
 
-  . = ALIGN(4);
   PROVIDE (end = .);
   _end = .;
 

@@ -1,25 +1,85 @@
-/* The following TEXT start address leaves space for the monitor
-   workspace.  This linker script links ISA64r2 programs for use with the
-   simulator.  We set the ISA explicitly so that we can link objects of
-   different ISAs that are subsets of ISA64r2 but are not extensions of
-   each other (e.g., MIPS32r2 and MIPS64).
+/*
+ * A platform and target independent link script to produce UHI
+ * compliant binaries with varying levels of system initialization
+ * support.
+ */
 
-   It differs from mti64.ld by using the n32 ABI targets instead of the
-   o32 ABI targets in OUTPUT_FORMAT.  */
-
-ENTRY(_start)
+__entry = DEFINED(__reset_vector) ? 0xbfc00000 : _start;
+ENTRY(__entry)
 OUTPUT_FORMAT("elf32-ntradlittlemips", "elf32-ntradbigmips", "elf32-ntradlittlemips")
-GROUP(-lc -lidt -lgcc)
+GROUP(-lc -luhi -lgcc -lhal)
 SEARCH_DIR(.)
 __DYNAMIC  =  0;
 STARTUP(crt0.o)
+/* Force the exception handler to be registered */
+EXTERN(__register_excpt_handler)
+/* Force the exception handler to be included in the link */
+EXTERN(__exception_entry)
+/*
+ * Require verbose exceptions. This can be changed to pull in
+ * __exception_handle_quiet to reduce code size but be less
+ * informative
+ */
+EXTERN(__exception_handle_verbose)
+/* Force the interrupt handlers to tbe included in the link */
+EXTERN(__isr_vec)
+/* Require the UHI getargs support */
+EXTERN(__getargs)
 
 /*
- * Allocate the stack to be at the top of memory, since the stack
- * grows down
+ * Set the location of the top of the stack.  A value of 0 means
+ * that it will be automatically placed at the highest address
+ * available as described by the __memory_* setttings
  */
 PROVIDE (__stack = 0);
-/* PROVIDE (__global = 0); */
+
+/* Size of the memory returned by _get_ram_range */
+PROVIDE (__memory_size = 3M);
+
+/* Base of the memory returned by _get_ram_range */
+PROVIDE (__memory_base = 0x80000000);
+
+/* Stride length for tlb software invalidate for tlbinvf 
+ * (mipsXXr3+). Some MIPS implementations may layout the sets/ways 
+ * differently in the index register. Either sets LSB or ways LSB.
+ *
+ * By setting this to 1 we presume that sets come first. The default boot
+ * code will decrement this value from the Number of TLB entries.
+ */
+PROVIDE (__tlb_stride_length = 1);
+
+/* By default, XPA is not used even if available. To enable XPA,
+ * __enable_xpa should be 1.
+ */
+PROVIDE (__enable_xpa = 0);
+
+/*
+ * 0 = Do not use exception handler present in boot for UHI
+ * 1 = Use exception handler present in boot for UHI if BEV is 0 at
+ *     startup
+ * 2 = Always use exception handler present in boot for UHI
+ */
+PROVIDE (__use_excpt_boot = 1);
+/*
+ * Include the code to be able to return to boot context.  This is
+ * necessary if __use_excpt_boot != 0.
+ */
+EXTERN (__register_excpt_boot);
+
+ASSERT (DEFINED(__register_excpt_boot) || __use_excpt_boot == 0,
+	"Registration for boot context is required for UHI chaining")
+
+/* Control if subnormal floating-point values are flushed to zero in
+   hardware.  This applies to both FPU and MSA operations.  */
+PROVIDE (__flush_to_zero = 1);
+
+/* Set up the public symbols depending on whether the user has chosen
+   quiet or verbose exception handling above */
+EXTERN (__exception_handle);
+PROVIDE(__exception_handle = (DEFINED(__exception_handle_quiet)
+				      ? __exception_handle_quiet
+				      : __exception_handle_verbose));
+PROVIDE(_mips_handle_exception = __exception_handle);
 
 /*
  * Initalize some symbols to be zero so we can reference them in the
@@ -34,9 +94,56 @@ PROVIDE (hardware_hazard_hook = 0);
 PROVIDE (hardware_init_hook = 0);
 PROVIDE (software_init_hook = 0);
 
+/* The default base address for application code is 0x80200000 which
+   leaves 2M of space at the start of KSEG0 for a bootloader. */
+PROVIDE (__app_start = DEFINED(__reset_vector) ? 0x80000000 : 0x80200000);
+/* Set default vector spacing to 32 bytes. */
+PROVIDE (__isr_vec_space = 32);
+/* Leave space for 9 vector entries by default. 8 entry points and one
+   fallback handler. */
+PROVIDE (__isr_vec_count = 9);
+/*
+ * The start of flash must be set if including boot code.  By default
+ * the use of boot code will mean that application code is copied
+ * from flash to RAM at runtime before being executed.
+ */
+PROVIDE (__flash_start = DEFINED(__reset_vector) ? 0xbfc00000 : __app_start);
+
 SECTIONS
 {
-  . = 0x80020000;
+  /* Start of bootrom */
+  .bootrom 0x9fc00000 : /* Runs uncached (from 0x9fc00000) until I$ is
+			   initialized. */
+  AT (__flash_start)
+  {
+    *(.reset)		/* Reset entry point. */
+    *(.boot)		/* Boot code. */
+    . = ALIGN(8);
+  } = 0
+
+  PROVIDE (__flash_app_start = SIZEOF(.bootrom) + __flash_start);
+
+  /* Start of the application */
+  .exception_vector ALIGN(__app_start, 0x1000) :
+  AT (__flash_app_start)
+  {
+    __excpt_ebase = ABSOLUTE(.);
+    __base = .;
+    KEEP(* (.text.__exception_entry))
+    . = __base + 0x200;
+    KEEP(* (SORT(.text.__isr_vec*)))
+    /* Leave space for all the vector entries */
+    . = __base + 0x200 + (__isr_vec_space * __isr_vec_count);
+    ASSERT(__isr_vec_space == (DEFINED(__isr_vec_sw0)
+			       ? __isr_vec_sw1 - __isr_vec_sw0
+			       : __isr_vec_space),
+	   "Actual ISR vector spacing does not match __isr_vec_space");
+    ASSERT(__base + 0x200 == (DEFINED(__isr_vec_sw0)
+			      ? __isr_vec_sw0 : __base + 0x200),
+	   "__isr_vec_sw0 is not placed at EBASE + 0x200");
+    . = ALIGN(8);
+  } = 0
+
   .text : {
      _ftext = . ;
     PROVIDE (eprol  =  .);
@@ -150,6 +257,11 @@ SECTIONS
   . = ALIGN(4);
   PROVIDE (end = .);
   _end = .;
+  /* Now place the data that is only needed within start.S and can be
+     overwritten by the heap.  */
+  .startdata : {
+    *(.startdata)
+  }
 
   /* DWARF debug sections.
      Symbols in the DWARF debugging sections are relative to
