@@ -436,6 +436,10 @@ extern int _MIPS_HAL_NOMIPS16
 extern void _MIPS_HAL_NOMIPS16
   __uhi_assert (const char *, const char *, int32_t);
 
+/* Forward a breakpoint exception to boot.  */
+extern int _MIPS_HAL_NOMIPS16
+  __uhi_break (struct gpctx *) __attribute__((weak));
+
 #ifdef NDEBUG           /* required by ANSI standard */
 # define uhi_assert(__e) ((void)0)
 #else
