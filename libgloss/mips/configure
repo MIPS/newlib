@@ -550,7 +550,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 PACKAGE_URL=
 
-ac_unique_file="crt0.S"
+ac_unique_file="hal/crt0.S"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 pcrt0
@@ -2507,6 +2507,7 @@ case "${target}" in
         ;;
   mipsisa32-*-* | mipsisa32el-*-* | \
   mipsisa32r2-*-* | mipsisa32r2el-*-* | \
+  mipsisa32r6-*-* | mipsisa32r6el-*-* | \
   mipsisa64*-*-*)
 	crt0="crt0_cfe.o crt0_cygmon.o crt0.o"
 	pcrt0="pcrt0.o"
@@ -2514,6 +2515,13 @@ case "${target}" in
 	part_specific_defines=
 	script_list="idt32 idt64 cfe"
 	bsp_list="libcygmon.a libidt.a libcfe.a"
+	;;
+  mips*-mti*-* | mips*-img*-*)
+	crt0="crt0.o"
+	part_specific_obj=
+	part_specific_defines=
+	script_list="idt nullmon mti32 mti64_n32 mti64_64 uhi32 uhi64_64 uhi64_n32 malta32-yamon bootcode"
+	bsp_list="libidt.a libnullmon.a libuhi.a libyamon.a libhal.a libcm3_impl.a"
 	;;
   mips*-lsi*-*)
 	part_specific_obj=entry.o
@@ -2536,8 +2544,8 @@ case "${target}" in
 	crt0="crt0_cfe.o crt0.o"
         part_specific_obj="vr4300.o cma101.o"
 	part_specific_defines=
-        script_list="idt pmon ddb ddb-kseg0 lsi cfe idtecoff nullmon sde32 sde64 mti32 mti64 mti64_n32 mti64_64"
-        bsp_list="libidt.a libpmon.a liblsi.a libcfe.a libnullmon.a"
+	script_list="idt pmon ddb ddb-kseg0 lsi cfe idtecoff nullmon sde32 sde64 mti32 mti64 mti64_n32 mti64_64 mti32-uhi mti64-uhi mti64_64-uhi mti64_n32-uhi malta32-yamon bootcode"
+	bsp_list="libidt.a libpmon.a liblsi.a libcfe.a libnullmon.a libuhi.a libyamon.a libhal.a libcm3_impl.a"
         ;;
 esac
 
