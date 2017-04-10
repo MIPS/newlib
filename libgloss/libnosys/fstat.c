@@ -13,6 +13,9 @@ extern int errno;
 #include "warning.h"
 
 int
+#if defined(__mips__) && defined(__mips16)
+__attribute__((nomips16))
+#endif
 _fstat (int          fildes,
         struct stat *st)
 {
