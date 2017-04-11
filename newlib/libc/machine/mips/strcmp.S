@@ -80,12 +80,11 @@ LEAF(STRCMP_NAME)
 
 	or	t0, a0, a1
 	andi	t0,0x3
-	lui	t8, 0x0101
 	bne	t0, zero, L(byteloop)
 
 /* Both strings are 4 byte aligned at this point.  */
 
-	ori	t8, t8, 0x0101
+	li	t8, 0x01010101
 	li	t9, 0x7f7f7f7f
 
 #define STRCMP32(OFFSET) \
