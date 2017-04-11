@@ -317,7 +317,7 @@ EXPORTS(__MIPS_UHI_BAD_POINTER, 32)
 #
 # DESCRIPTION: Convert 64bit pointers to 32bit.
 #
-#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIN32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABIP32
 WLEAF(__convert_argv_pointers)
 	/* Early out if a0 <= 0 */
 	blez	a0, .Lend

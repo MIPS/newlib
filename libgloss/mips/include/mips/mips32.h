@@ -136,6 +136,27 @@ extern "C" {
 #error Unknown ABI
 #endif
 
+#elif __mips_isa_rev >= 7 /*  __mips_isa_rev < 6  */
+
+/* MIP32r7 jr.hb */
+/* FIXME: auipc to be replaced with addiupc48 */
+#if _MIPS_SIM == _ABIP32
+#define mips32_jr_hb() __asm__ __volatile__(	\
+       "auipc	$24,%pcrel_hi(1f)\n"		\
+       "addiu	$24,%pcrel_lo(1f + 4)\n"	\
+       "jr.hb	$24\n"				\
+"1:"						\
+       : : : "$24")
+#elif _MIPS_SIM == _ABIP64
+#define mips32_jr_hb() __asm__ __volatile__(	\
+       "auipc	$24,%pcrel_hi(1f)\n"		\
+       "daddiu	$24,%pcrel_lo(1f + 4)\n"	\
+       "jr.hb	$24\n"				\
+"1:"						\
+       : : : "$24")
+#error Unknown ABI
+#endif
+
 #else /*  __mips_isa_rev < 6  */
 
 /* MIP32r6 jr.hb */

@@ -40,20 +40,40 @@
 #define UHI_ABI 1
 #elif _MIPS_SIM == _ABI64
 #define UHI_ABI 2
+#elif _MIPS_SIM == _ABIP32
+#define UHI_ABI 3
+#elif _MIPS_SIM == _ABIP64
+#define UHI_ABI 4
 #else
 #error "UHI context structure is not defined for current ABI"
 #endif
 
 #define CTX_REG(REGNO)	((SZREG)*((REGNO)-1))
 
-#define CTX_AT		((SZREG)*0)
-#define CTX_V0		((SZREG)*1)
-#define CTX_V1		((SZREG)*2)
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+# define CTX_AT		((SZREG)*24)
+#else
+# define CTX_AT		((SZREG)*0)
+# define CTX_V0		((SZREG)*1)
+# define CTX_V1		((SZREG)*2)
+#endif
 #define CTX_A0		((SZREG)*3)
 #define CTX_A1		((SZREG)*4)
 #define CTX_A2		((SZREG)*5)
 #define CTX_A3		((SZREG)*6)
-#if _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+# define CTX_A4		((SZREG)*7)
+# define CTX_A5		((SZREG)*8)
+# define CTX_A6		((SZREG)*9)
+# define CTX_A7		((SZREG)*10)
+# define CTX_T0		((SZREG)*0)
+# define CTX_T1		((SZREG)*1)
+# define CTX_T2		((SZREG)*2)
+# define CTX_T3		((SZREG)*11)
+# define CTX_T4		((SZREG)*12)
+# define CTX_T5		((SZREG)*13)
+# define CTX_T6		((SZREG)*14)
+#elif _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
 # define CTX_A4		((SZREG)*7)
 # define CTX_A5		((SZREG)*8)
 # define CTX_A6		((SZREG)*9)
@@ -81,7 +101,9 @@
 #define CTX_S6		((SZREG)*21)
 #define CTX_S7		((SZREG)*22)
 #define CTX_T8		((SZREG)*23)
-#define CTX_T9		((SZREG)*24)
+#if _MIPS_SIM!=_ABIP32 && _MIPS_SIM!=_ABIP64
+# define CTX_T9		((SZREG)*24)
+#endif
 #define CTX_K0		((SZREG)*25)
 #define CTX_K1		((SZREG)*26)
 #define CTX_GP		((SZREG)*27)

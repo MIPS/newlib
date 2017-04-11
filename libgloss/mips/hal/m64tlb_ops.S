@@ -89,7 +89,7 @@
  *
  */
 LEAF(m64_tlbwi2)
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(a0, a1, C0_ENTRYHI)
 	PTR_XO32_MTC0(a2, a3, C0_ENTRYLO0)
 
@@ -128,7 +128,7 @@ END(m64_tlbwi2)
  *
  */
 LEAF(m64_tlbwr2)
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(a0, a1, C0_ENTRYHI)
 	PTR_XO32_MTC0(a2, a3, C0_ENTRYLO0)
 
@@ -163,7 +163,7 @@ END(m64_tlbwr2)
  *
  */
 LEAF(m64_tlbrwr2)
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MFC0(t1, t0, C0_ENTRYHI)
 	PTR_XO32_MTC0(a0, a1, C0_ENTRYHI)
 #else /* _MIPS_SIM==_ABIO32 */
@@ -176,7 +176,7 @@ LEAF(m64_tlbrwr2)
 	ehb		# tlbp, hazard on MFCO $index
 
 	mfc0	v0, C0_INDEX
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(a2, a3, C0_ENTRYLO0)
 
 	PTR_L	t2, 20(sp)
@@ -195,7 +195,7 @@ LEAF(m64_tlbrwr2)
 	bltz	v0, 1f	# no matching entry
 
 	tlbwi
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(t1, t0, C0_ENTRYHI)
 #else /* _MIPS_SIM==_ABIO32 */
 	PTR_MTC0 t0, C0_ENTRYHI
@@ -207,7 +207,7 @@ LEAF(m64_tlbrwr2)
 	.set	pop
 
 1:	tlbwr
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(t1, t0, C0_ENTRYHI)
 #else /* _MIPS_SIM==_ABIO32 */
 	PTR_MTC0 t0, C0_ENTRYHI
@@ -229,7 +229,7 @@ END(m64_tlbrwr2)
  *
  */
 LEAF(m64_tlbri2)
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_L   ta0, 16(sp)	# index
 #endif /* _MIPS_SIM==_ABIO32 */
 	mtc0	ta0, C0_INDEX
@@ -237,7 +237,7 @@ LEAF(m64_tlbri2)
 
 	tlbr
 	ehb			# tlbr, hazard on entry*, pagemask
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MFC0(t0, t1, C0_ENTRYHI)
 	PTR_XO32_MFC0(t2, t3, C0_ENTRYLO0)
 	PTR_XO32_MFC0(t4, t5, C0_ENTRYLO1)
@@ -273,7 +273,7 @@ END(m64_tlbri2)
  *
  */
 LEAF(m64_tlbprobe2)
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MFC0(t9, t8, C0_ENTRYHI)
 	PTR_L	t0, 16(sp)
 	PTR_XO32_MTC0(a0, a1, C0_ENTRYHI)
@@ -293,7 +293,7 @@ LEAF(m64_tlbprobe2)
 	tlbr
 	ehb			# tlbr, hazard on entry*, pagemask
 # return entrylo, entrylo1, pagermask
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MFC0(t2, t3, C0_ENTRYLO0)
 	PTR_XO32_MFC0(t4, t5, C0_ENTRYLO1)
 	PTR_XO32_MFC0(t6, t7, C0_PAGEMASK)
@@ -312,7 +312,7 @@ LEAF(m64_tlbprobe2)
 	PTR_S	t3, 0(a3)
 #endif /* _MIPS_SIM==_ABIO32 */
 
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(t9, t8, C0_ENTRYHI)
 #else /* _MIPS_SIM==_ABIO32 */
 	PTR_MTC0 t8, C0_ENTRYHI
@@ -324,7 +324,7 @@ LEAF(m64_tlbprobe2)
 	.set	pop
 
 1:	li	v0,-1
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(t9, t8, C0_ENTRYHI)
 #else /* _MIPS_SIM==_ABIO32 */
 	PTR_MTC0 t8, C0_ENTRYHI
@@ -346,7 +346,7 @@ END(m64_tlbprobe2)
  */
 LEAF(m64_tlbinval)
 
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MFC0(t9, t8, C0_ENTRYHI)
 	PTR_XO32_MTC0(a0, a1, C0_ENTRYHI)
 #else /* _MIPS_SIM==_ABIO32 */
@@ -361,7 +361,7 @@ LEAF(m64_tlbinval)
 	mfc0	v0, C0_INDEX
 	bltz	v0, 4f
 
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(zero, zero, C0_ENTRYLO0)
 	PTR_XO32_MTC0(zero, zero, C0_ENTRYLO1)
 #else
@@ -380,7 +380,7 @@ LEAF(m64_tlbinval)
 	li	v1, C0_ENTRYHI_EHINV_MASK
 	b	3f
 
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 2:	li	t1, -1
 	li	v1, (KSEG0_BASE - 2<<13)
 5:	
@@ -421,7 +421,7 @@ LEAF(m64_tlbinval)
 	ehb			# tlbwi, hazard on C0_ENTRYHI
 
 4:
-#if _MIPS_SIM==_ABIO32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(t9, t8, C0_ENTRYHI)
 #else /* _MIPS_SIM==_ABIO32 */
 	PTR_MTC0 t8, C0_ENTRYHI

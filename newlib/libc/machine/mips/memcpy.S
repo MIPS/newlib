@@ -59,7 +59,8 @@
 #endif
 #endif
 
-#if defined(_MIPS_SIM) && (_MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIN32)
+#if defined(_MIPS_SIM) && ((_MIPS_SIM == _ABI64) || (_MIPS_SIM == _ABIN32) \
+			   || (_MIPS_SIM == _ABIP64))
 #ifndef DISABLE_DOUBLE
 #define USE_DOUBLE
 #endif
@@ -84,7 +85,7 @@
 
 /* Some asm.h files do not have the PTR_ADDIU macro definition.  */
 #ifndef PTR_ADDIU
-#if _MIPS_SIM == _ABI64
+#if _MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIP64
 #define PTR_ADDIU	daddiu
 #else
 #define PTR_ADDIU	addiu
@@ -93,7 +94,7 @@
 
 /* Some asm.h files do not have the PTR_SRA macro definition.  */
 #ifndef PTR_SRA
-#if _MIPS_SIM == _ABI64
+#if _MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIP64
 #define PTR_SRA		dsra
 #else
 #define PTR_SRA		sra
@@ -102,7 +103,7 @@
 
 /* New R6 instructions that may not be in asm.h.  */
 #ifndef PTR_LSA
-#if _MIPS_SIM == _ABI64
+#if _MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIP64
 # define PTR_LSA	dlsa
 #else
 # define PTR_LSA	lsa

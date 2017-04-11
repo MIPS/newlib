@@ -37,7 +37,9 @@
 #  define LA(t,x) la t,x-PICBASE ; addu t,s0,t
 # endif
 #else /* __mips_embedded_pic */
-# if (defined (__mips64) && (defined (_MIPS_SIM) && _MIPS_SIM == _ABI64) \
+# if (defined (__mips64) \
+      && (defined (_MIPS_SIM) && (_MIPS_SIM == _ABI64 \
+				   || _MIPS_SIM == _ABIP64)) \
       || defined (__mips_eabi))
 #  define LA(t,x)	dla	t,x
 #  define PTR_ADDU	daddu
@@ -74,7 +76,7 @@
 #endif
 
 #if (defined (__mips64) && (_MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIO64 || \
-     _MIPS_SIM == _ABIN32 || defined (__mips_eabi)))
+     _MIPS_SIM == _ABIN32 || defined (__mips_eabi)) || _MIPS_SIM == _ABIP32)
 # define REGSIZE 8
 # define LD ld
 # define ST sd
