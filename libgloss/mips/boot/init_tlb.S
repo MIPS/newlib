@@ -32,15 +32,7 @@
  * init_tlb.S: Initialization of the TLB.
  *
  */
-
 #define _BOOTCODE
-
-#if (__mips_isa_rev > 6)
-# define JRHB(R)	jrc.hb R
-#else
-# define JRHB(R)	jr.hb R
-#endif
-
 .set nomips16
 
 #include <mips/m32c0.h>
@@ -276,11 +268,7 @@ SLEAF(__tlbinvalall)
 10:	li	t1, (KSEG0_BASE - 2<<13)
 
 	move	v1, zero
-.set noat
-12:	li	AT, (2<<13)
-	addu	t1, t1, AT
-.set at
-	#addiu	t1, t1, (2<<13)
+12:	addiu	t1, t1, (2<<13)
 	PTR_MTC0 t1, C0_ENTRYHI
 
 	beqz	t0, 13f
@@ -308,7 +296,7 @@ SLEAF(__tlbinvalall)
 					# autmatically as mtc0 writes zeroes
 	.set	push
 	.set	noreorder
-	JRHB	(ra)
+	jr.hb	ra
 	nop
 	.set	pop
 SEND(__tlbinvalall)

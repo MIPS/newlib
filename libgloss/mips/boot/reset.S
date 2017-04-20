@@ -36,9 +36,7 @@
 #include <mips/asm.h>
 
     .set push
-#if (__mips_isa_rev <= 6)
     .set nomicromips
-#endif
 LEAF(__reset_vector)
     lui	  a2, %hi(__cpu_init)
     addiu a2, %lo(__cpu_init)

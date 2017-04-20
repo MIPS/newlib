@@ -130,7 +130,7 @@ l3cache_init:
 next_L3cache_tag:
     cache   Index_Store_Tag_T, 0(a2)	// TCIndexStTag
     addiu   a0, a0, -1			// Decrement set counter
-    addu    a2, a2, a1			// Get next line address
+    add	    a2, a2, a1			// Get next line address
     bnez    a0, next_L3cache_tag
 
 done_l3cache:

@@ -51,6 +51,7 @@ END(m32_size_cache)
 LEAF(m32_clean_icache)
 	SIZE_CACHE(a2, mips_icache_linesize)
 	vcacheop(a0,a1,a2,Hit_Invalidate_I)
+
 	lw	a2, mips_scache_linesize
 	blez	a2, 9f
 	vcacheop(a0,a1,a2,Hit_Writeback_Inv_S)
@@ -97,9 +98,9 @@ LEAF(_size_cache)
 	sllv	icachesize, icachesize, tmp
 
 	# Store icache config
-	sw	icachesize,mips_icache_size
-	sw	ilinesize,mips_icache_linesize
-	sw	iways,mips_icache_ways
+	sw	icachesize, mips_icache_size
+	sw	ilinesize, mips_icache_linesize
+	sw	iways, mips_icache_ways
 
 8:	# No I-cache, check for D-cache
 	ext	tmp, cfg, CFG1_DL_SHIFT, CFG1_DL_BITS
@@ -124,9 +125,9 @@ LEAF(_size_cache)
 	sllv	dcachesize, dcachesize, tmp
 
 	# Store dcache config
-	sw	dcachesize,mips_dcache_size
-	sw	dlinesize,mips_dcache_linesize
-	sw	dways,mips_dcache_ways
+	sw	dcachesize, mips_dcache_size
+	sw	dlinesize, mips_dcache_linesize
+	sw	dways, mips_dcache_ways
 9:
 	LA	tmp, __cache_size_hook
 	move	tmp4, ra

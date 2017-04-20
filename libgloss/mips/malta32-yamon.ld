@@ -227,9 +227,7 @@ SECTIONS
     *(.gnu.linkonce.d.*)
   }
   . = ALIGN(8);
-  MIPS_REVISION = DEFINED (__mips_isa_rev) ? ABSOLUTE(__mips_isa_rev) : 0;
-  GP_OFFSET = (MIPS_REVISION < 7) ? 0x8000 : 0;
-  _gp = . + GP_OFFSET;
+  _gp = . + 0x8000;
   __global = _gp;
   .lit8 : {
     *(.lit8)

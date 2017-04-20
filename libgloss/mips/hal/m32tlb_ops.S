@@ -35,12 +35,6 @@
 #include <mips/m32tlb.h>
 #include <mips/asm.h>
 
-#if (__mips_isa_rev > 6)
-# define JRHB(R)        jrc.hb R
-#else
-# define JRHB(R)        jr.hb R
-#endif
-
 /*
  * void mips_tlbwi2(tlbhi_t hi, tlblo_t lo0, tlblo_t lo1, unsigned mask,
  *			unsigned idx)
@@ -62,7 +56,7 @@ LEAF(mips_tlbwi2)
 	tlbwi
 	.set	push
 	.set	noreorder
-	JRHB	(ra)
+	jr.hb	ra
 	nop
 	.set	pop
 END(mips_tlbwi2)
@@ -85,7 +79,7 @@ LEAF(mips_tlbwr2)
 	tlbwr
 	.set	push
 	.set	noreorder
-	JRHB	(ra)
+	jr.hb	ra
 	nop
 	.set	pop
 END(mips_tlbwr2)
@@ -117,7 +111,7 @@ LEAF(mips_tlbrwr2)
 	mtc0	t0, C0_ENTRYHI
 	.set	push
 	.set	noreorder
-	JRHB	(ra)
+	jr.hb	ra
 	nop
 	.set	pop
 
@@ -125,7 +119,7 @@ LEAF(mips_tlbrwr2)
 	mtc0	t0, C0_ENTRYHI
 	.set	push
 	.set	noreorder
-	JRHB	(ra)
+	jr.hb	ra
 	nop
 	.set	pop
 END(mips_tlbrwr2)
@@ -195,7 +189,7 @@ LEAF(mips_tlbprobe2)
 	sw	t2, 0(a3)
 	.set	push
 	.set	noreorder
-	JRHB	(ra)
+	jr.hb	ra
 	nop
 	.set	pop
 
@@ -203,7 +197,7 @@ LEAF(mips_tlbprobe2)
 	li	v0, -1
 	.set	push
 	.set	noreorder
-	JRHB	(ra)
+	jr.hb	ra
 	nop
 	.set	pop
 END(mips_tlbprobe2)
@@ -241,12 +235,7 @@ LEAF(mips_tlbinval)
 	b	3f
 
 2:	li	t1, (KSEG0_BASE - 2<<13)
-5:
-.set noat
-	li	AT, 2<<13
-	addu	t1, t1, AT
-.set at
-	#addiu	t1, t1, 2<<13
+5:	addiu	t1, t1, 2<<13
 	mtc0	t1, C0_ENTRYHI
 	ehb				# mtc0, Hazard on tlbp
 
@@ -267,7 +256,7 @@ LEAF(mips_tlbinval)
 4:	mtc0	t0,C0_ENTRYHI		# restore entry hi
 	.set	push
 	.set	noreorder
-	JRHB	(ra)
+	jr.hb	ra
 	nop
 	.set	pop
 

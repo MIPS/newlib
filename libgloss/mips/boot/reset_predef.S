@@ -37,10 +37,7 @@
 #include "predef.h"
 
     .set push
-#if (__mips_isa_rev <= 6)
     .set nomicromips
-#endif
-
 LEAF(__reset_vector)
     lui	  k1, %hi(__cpu_init)
     addiu k1, %lo(__cpu_init)

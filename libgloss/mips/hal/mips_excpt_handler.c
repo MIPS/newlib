@@ -176,7 +176,7 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
       WRITE ("Trap\n");
       break;
     case EXC_MSAFPE:
-#if !(__mips_isa_rev >= 6 && defined (__mips_micromips))
+#if !(__mips_isa_rev == 6 && defined (__mips_micromips))
       if (__flush_to_zero
 	  && (msa_getsr () & FPA_CSR_UNI_X)
 	  && (msa_getsr () & FPA_CSR_FS) == 0)

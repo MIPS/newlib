@@ -58,12 +58,12 @@
 #include <mips/hal.h>
 #include <mips/uhi_syscalls.h>
 
-void __attribute__((nomips16))
+void _MIPS_HAL_NOMIPS16
 __uhi_assert (const char *message, const char *filename, int32_t line_num)
 {
   register const char *arg1 asm ("$4") = message;
-  register int32_t arg2 asm ("$5") = filename;
-  register const char *arg3 asm ("$6") = line_num;
+  register const char *arg2 asm ("$5") = filename;
+  register int32_t arg3 asm ("$6") = line_num;
   register int32_t op asm ("$25") = __MIPS_UHI_ASSERT;
   register int32_t ret1 asm ("$2") = __MIPS_UHI_SYSCALL_NUM;
   register int32_t ret2 asm ("$3") = 0;
