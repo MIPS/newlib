@@ -358,8 +358,12 @@ init:
 .Lmain:
 	JAL	(main)				# call the program start function
 
+# ifdef __nanomips
+	# fall through to the "exit" routine with the exit code
+#else
 	# fall through to the "exit" routine
 	move	a0,v0				# pass through the exit code
+#endif
 	JAL	(exit)				# call libc exit to run the G++
 						# destructors
 	.end	init

@@ -435,6 +435,9 @@ L(lastbloop):
 	sb	a1,-1(a0)
 	bne	a0,a3,L(lastbloop)
 L(leave):
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+	move	rv0, v0
+#endif
 	jr	ra
 
 	.set	at

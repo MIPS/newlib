@@ -42,7 +42,11 @@ __asm__(""			/* 64-bit MIPS targets */
 	"	daddiu	$4,$4,1\n"
 	"	bnez	$3,1b\n"
 	"\n"
+#if _MIPS_SIM==_ABIP64
+	"	dsubu	$4,$4,$2\n"
+#else
 	"	dsubu	$2,$4,$2\n"
+#endif
 	"	jr	$31\n"
 	"	.end	strlen\n");
 
@@ -60,7 +64,11 @@ __asm__(""			/* 32-bit MIPS targets */
 	"	addiu	$4,$4,1\n"
 	"	bnez	$3,1b\n"
 	"\n"
+#if _MIPS_SIM==_ABIP32
+	"	subu	$4,$4,$2\n"
+#else
 	"	subu	$2,$4,$2\n"
+#endif
 	"	jr	$31\n"
 	"	.end	strlen\n");
 #endif

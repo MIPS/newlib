@@ -175,7 +175,7 @@ LEAF(m64_tlbrwr2)
 	tlbp
 	ehb		# tlbp, hazard on MFCO $index
 
-	mfc0	v0, C0_INDEX
+	mfc0	rv0, C0_INDEX
 #if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(a2, a3, C0_ENTRYLO0)
 
@@ -192,7 +192,7 @@ LEAF(m64_tlbrwr2)
 	PTR_MTC0 a3, C0_PAGEMASK
 #endif /* _MIPS_SIM==_ABIO32 */
 	ehb		# mtc0, hazard on tlbwi
-	bltz	v0, 1f	# no matching entry
+	bltz	rv0, 1f	# no matching entry
 
 	tlbwi
 #if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
@@ -287,8 +287,8 @@ LEAF(m64_tlbprobe2)
 	tlbp
 	ehb			# tlpb, hazard on index.
 
-	mfc0	v0, C0_INDEX
-	bltz	v0, 1f		# Return -1 if not found.
+	mfc0	rv0, C0_INDEX
+	bltz	rv0, 1f		# Return -1 if not found.
 
 	tlbr
 	ehb			# tlbr, hazard on entry*, pagemask
@@ -323,7 +323,7 @@ LEAF(m64_tlbprobe2)
 	nop
 	.set	pop
 
-1:	li	v0,-1
+1:	li	rv0,-1
 #if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIP32
 	PTR_XO32_MTC0(t9, t8, C0_ENTRYHI)
 #else /* _MIPS_SIM==_ABIO32 */

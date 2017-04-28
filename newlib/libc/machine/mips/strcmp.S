@@ -116,7 +116,7 @@ L(wordloop):
 	bc 	L(wordloop)
 
 L(returnzero):
-	move	v0, zero
+	move	rv0, zero
 	jrc	ra
 
 L(worddiff):
@@ -140,7 +140,7 @@ L(worddiff):
 	rotrv	v1, v1, t1
 	and	v0, v0, 0xff
 	and	v1, v1, 0xff
-	subu	v0, v0, v1
+	subu	rv0, v0, v1
 	jrc	ra
 #else /* USE_CLZ */
 # if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -190,10 +190,10 @@ L(worddiff):
 # endif /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
 
 L(wexit89):
-	subu	v0, t8, t9
+	subu	rv0, t8, t9
 	jrc	ra
 L(wexit01):
-	subu	v0, t0, t1
+	subu	rv0, t0, t1
 	jrc	ra
 #endif /* USE_CLZ */
 
@@ -232,10 +232,10 @@ L(byteloop):
 	bc	L(byteloop)
 
 L(bexit01):
-	subu	v0, v0, v1
+	subu	rv0, v0, v1
 	jrc	ra
 L(bexit89):
-	subu	v0, t8, t9
+	subu	rv0, t8, t9
 	jrc	ra
 
 	.set	at

@@ -51,6 +51,14 @@
 #define a2	$6
 #define	a3	$7
 
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+#define rv0 	a0
+#define rv1	a1
+#else
+#define rv0 	v0
+#define rv1	v1
+#endif
+
 #if _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
 #define a4	$8
 #define a5	$9

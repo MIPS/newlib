@@ -106,13 +106,13 @@ LEAF(mips_tlbrwr2)
 	tlbp
 	ehb		# tlbp, hazard on MFCO C0_INDEX
 
-	mfc0	v0, C0_INDEX
+	mfc0	rv0, C0_INDEX
 	mtc0	a1, C0_ENTRYLO0
 	mtc0	a2, C0_ENTRYLO1
 	mtc0	a3, C0_PAGEMASK
 
 	ehb		# mtc0, hazard on tlbwi
-	bltz	v0, 1f	# no matching entry
+	bltz	rv0, 1f	# no matching entry
 
 	tlbwi
 	mtc0	t0, C0_ENTRYHI
@@ -179,8 +179,8 @@ LEAF(mips_tlbprobe2)
 	tlbp
 	ehb				# tlpb, hazard on index.
 
-	mfc0	v0, C0_INDEX
-	bltz	v0, 1f			# Return -1 if not found.
+	mfc0	rv0, C0_INDEX
+	bltz	rv0, 1f			# Return -1 if not found.
 
 	tlbr
 	ehb				# tlbr, hazard on entry*, pagemask
@@ -201,7 +201,7 @@ LEAF(mips_tlbprobe2)
 	.set	pop
 
 1:	mtc0	t0, C0_ENTRYHI		# restore entry hi
-	li	v0, -1
+	li	rv0, -1
 	.set	push
 	.set	noreorder
 	JRHB	(ra)

@@ -51,7 +51,7 @@
  * int mips_tlb_size();
  *
  * Return number of entries in TLB.
- * Entries in v0, number of sets in v1.
+ * Entries in rv0, number of sets in rv1.
  * Must not use registers t8 or a3
  */
 LEAF(mips_tlb_size)
@@ -59,7 +59,7 @@ AENT(m64_tlb_size)
 	/* first see if we've got a TLB */
 	mfc0	t0, C0_CONFIG
 	mfc0	t1, C0_CONFIG1
-	move	v0, zero
+	move	rv0, zero
 
 	ext	t0, t0, CFG0_MT_SHIFT, CFG0_MT_BITS
 	# No MMU test, 0 entries
@@ -79,8 +79,8 @@ AENT(m64_tlb_size)
 
 	# As per PRA, field holds No. of entries -1
 	# Standard TLBs and Dual TLBs have extension fields.
-	ext	v0, t1, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
-	addiu	v0, v0, 1
+	ext	rv0, t1, CFG1_MMUS_SHIFT, CFG1_MMUS_BITS
+	addiu	rv0, rv0, 1
 
 	mfc0	t1, C0_CONFIG3
 	ext	t1, t1, CFG3_M_SHIFT, 1
@@ -102,13 +102,13 @@ AENT(m64_tlb_size)
 7:
 	ext	t3, t1, CFG4_MMUSE_SHIFT, CFG4_MMUSE_BITS
 	sll	t2, t3, CFG1_MMUS_BITS
-	addu	v0, v0, t2
+	addu	rv0, rv0, t2
 	b	9f
 #endif /* __mips_isa_rev < 6 */
 8:
 	ext	t2, t1, CFG4_VTLBSEXT_SHIFT, CFG4_VTLBSEXT_BITS
 	sll	t2, t2, CFG1_MMUS_BITS
-	addu	v0, v0, t2
+	addu	rv0, rv0, t2
 10:
 	# Skip FTLB size calc if Config MT != 4
 	li	t3, (CFG0_MT_DUAL >> CFG0_MT_SHIFT)
@@ -121,12 +121,12 @@ AENT(m64_tlb_size)
 
 	# Sets per way
 	ext	t3, t1, CFG4_FTLBS_SHIFT, CFG4_FTLBS_BITS
-	li	v1, 1
-	sllv	v1, v1, t3
+	li	rv1, 1
+	sllv	rv1, rv1, t3
 
 	# Total sets
 	sllv	t2, t2, t3
-	addu	v0, v0, t2
+	addu	rv0, rv0, t2
 
 9:	jr	ra
 END(mips_tlb_size)

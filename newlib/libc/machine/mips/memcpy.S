@@ -317,7 +317,7 @@ L(memcpy):
  */
 	slti	t2,a2,(2 * NSIZE)
 #if defined(RETURN_FIRST_PREFETCH) || defined(RETURN_LAST_PREFETCH)
-	move	v0,zero
+	move	rv0,zero
 #else
 	move	v0,a0
 #endif
@@ -615,6 +615,9 @@ L(lastbloop):
 	sb	v1,-1(a0)
 	bnec	a0,a3,L(lastbloop)
 L(leave):
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+	move	rv0, v0
+#endif
 	jrc	ra
 
 #if !defined (R6_CODE)

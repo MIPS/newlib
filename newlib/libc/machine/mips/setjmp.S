@@ -131,8 +131,11 @@ setjmp:
 	FPR_LAYOUT
 #undef GPR_OFFSET
 #undef FPR_OFFSET
-
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+	move	$4,$0
+#else
 	move	$2,$0
+#endif
 	jrc	$31
 
 	.end	setjmp
@@ -153,7 +156,11 @@ longjmp:
 	bne	$5,$0,1f
 	li	$5,1
 1:
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+	move	$4,$5
+#else
 	move	$2,$5
+#endif
 	jrc	$31
 
 	.end longjmp
