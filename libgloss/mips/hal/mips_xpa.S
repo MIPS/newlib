@@ -65,7 +65,9 @@ LEAF(_xpa_save)
 	addiu	v0, v0, %lo(LINKCTX_TYPE_XPA)
 	mfc0	t0, C0_BADVADDR
 	.set push
+#if __mips_isa_rev < 5
 	.set mips32r5
+#endif
 	.set xpa
 	mfhc0	t1, C0_BADVADDR
 	.set pop

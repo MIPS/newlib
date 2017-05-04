@@ -210,7 +210,9 @@ _start:
 	or	v0,v0,v1		/* Enable 64-bit FPU registers.  */
 	li	v1,CFG5_MSAEN
 	.set	push
+#if __mips < 32
 	.set	mips32
+#endif
 	mtc0	v1,C0_CONFIG,5		/* Enable MSA.  */
 	.set	pop
 	B	(2f)

@@ -191,7 +191,9 @@ AENT(m64_tlbinvalall)
 	mtc0	zero, C0_INDEX
 	ehb
 	.set	push
+#if __mips_isa_rev < 3
 	.set	mips32r3
+#endif
 	.set	eva
 	tlbinvf
 	.set	pop
@@ -213,7 +215,9 @@ AENT(m64_tlbinvalall)
 	mtc0	zero, C0_INDEX
 	ehb
 	.set	push
+#if __mips_isa_rev < 3
 	.set	mips32r3
+#endif
 	.set	eva
 	tlbinvf
 	.set	pop
@@ -229,7 +233,9 @@ AENT(m64_tlbinvalall)
 	mtc0	v0, C0_INDEX
 	ehb					# mtc0, hazard on tlbinvf
 	.set	push
+#if __mips_isa_rev < 3
 	.set	mips32r3
+#endif
 	.set	eva
 	tlbinvf
 	.set	pop
