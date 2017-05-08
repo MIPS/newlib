@@ -84,10 +84,8 @@ LEAF(STRCMP_NAME)
 
 /* Both strings are 4 byte aligned at this point.  */
 
-	lui	t8, 0x01010
-	ori	t8, t8, 0x101
-	lui	t9, 0x7f7f7
-	ori	t9, t9, 0xf7f
+	li	t8, 0x01010101
+	li	t9, 0x7f7f7f7f
 
 #define STRCMP32(OFFSET) \
 	lw	v0, OFFSET(a0); \
