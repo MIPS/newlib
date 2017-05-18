@@ -76,7 +76,7 @@
 #endif
 
 #if (defined (__mips64) && (_MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIO64 || \
-     _MIPS_SIM == _ABIN32 || defined (__mips_eabi)) || _MIPS_SIM == _ABIP32)
+     _MIPS_SIM == _ABIN32 || defined (__mips_eabi) || _MIPS_SIM == _ABIP64))
 # define REGSIZE 8
 # define LD ld
 # define ST sd
