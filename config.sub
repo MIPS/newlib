@@ -288,6 +288,7 @@ case $basic_machine in
 	| mipsisa64sr71k | mipsisa64sr71kel \
 	| mipsr5900 | mipsr5900el \
 	| mipstx39 | mipstx39el \
+    | nanomips \
 	| mn10200 | mn10300 \
 	| moxie \
 	| mt \
@@ -406,6 +407,7 @@ case $basic_machine in
 	| mipsisa64sr71k-* | mipsisa64sr71kel-* \
 	| mipsr5900-* | mipsr5900el-* \
 	| mipstx39-* | mipstx39el-* \
+    | nanomips-* \
 	| mmix-* \
 	| mt-* \
 	| msp430-* \
@@ -1586,7 +1588,7 @@ case $basic_machine in
 	mips*-cisco)
 		os=-elf
 		;;
-	mips*-*)
+	mips*-* | nanomips*-*)
 		os=-elf
 		;;
 	or1k-*)

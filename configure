@@ -3483,7 +3483,7 @@ case "${target}" in
   m68*-*-* | fido-*-*)
     libgloss_dir=m68k
     ;;
-  mips*-*-*)
+  mips*-*-* | nanomips*-*-*)
     libgloss_dir=mips
     ;;
   powerpc*-*-*)
@@ -3773,7 +3773,7 @@ case "${target}" in
   microblaze*)
     noconfigdirs="$noconfigdirs gprof"
     ;;
-  mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf*)
+  mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf* | nanomips*-img-elf)
     if test x$with_newlib = xyes; then
       noconfigdirs="$noconfigdirs gprof"
     fi
@@ -6980,6 +6980,9 @@ case "${target}" in
     ;;
   mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf*)
     target_makefile_frag="config/mt-sde"
+    ;;
+  nanomips*-img-elf*)
+    target_makefile_frag="config/mt-nanomips"
     ;;
   mipsisa*-*-elfoabi*)
     target_makefile_frag="config/mt-mips-elfoabi"

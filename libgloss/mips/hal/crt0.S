@@ -59,7 +59,7 @@
 # endif
 #endif /* __mips_embedded_pic */
 
-#if (__mips_isa_rev > 6)
+#if defined (__nanomips)
 # define BZ(CC,R1,T)		b##CC##zc R1,T
 # define BCC(CC,R1,R2,T)	b##CC##c R1,R2,T
 # define B(T)			bc T
