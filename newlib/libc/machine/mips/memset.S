@@ -274,14 +274,10 @@ L(set0):
 	PTR_ADDU a0,a0,t2
 #else /* R6_CODE */
 	andi	t2,a0,7
-#if __mips_isa_rev >= 7
+#if defined (__nanomips)
 	brsc	t2
 #else
-#if defined (__nanomips)
-	aluipc	t9,%pcrel_hi(L(atable))
-	addiu	t9,t9,%lo(L(atable)+4)
-	PTR_LSA	t9,t2,t9,1
-#elif defined (__mips_micromips)
+#ifdef __mips_micromips
 	auipc	t9,%pcrel_hi(L(atable))
 	addiu	t9,t9,%pcrel_lo(L(atable)+4)
 	PTR_LSA	t9,t2,t9,1
