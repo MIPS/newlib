@@ -116,6 +116,23 @@ _BEGIN_STD_C
 # endif
 #endif
 
+#ifdef __nanomips__
+# define _JBTYPE long long
+# ifdef __mips_soft_float
+#  if defined(__mips64)
+#   define _JBLEN 12
+#  else
+#   define _JBLEN (12 / 2)
+#  endif
+# else
+#  if defined(__mips64)
+#   define _JBLEN (12 + 8)
+#  else
+#   define _JBLEN ((12 / 2) + 8)
+#  endif
+# endif
+#endif
+
 #ifdef __m88000__
 #define _JBLEN 21
 #endif
