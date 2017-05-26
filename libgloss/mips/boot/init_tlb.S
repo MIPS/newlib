@@ -41,6 +41,9 @@
 # define JRHB(R)	jr.hb R
 #endif	
 
+#ifdef __nanomips__
+.module tlb
+#endif
 .set nomips16
 
 #include <mips/m32c0.h>

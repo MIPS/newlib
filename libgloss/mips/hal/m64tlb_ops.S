@@ -34,6 +34,9 @@
  *
  */
 
+#ifdef __nanomips__
+.module tlb
+#endif
 .set nomips16
 #include <mips/m64tlb.h>
 #include <mips/asm.h>

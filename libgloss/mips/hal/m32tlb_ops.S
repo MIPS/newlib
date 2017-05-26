@@ -28,6 +28,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef __nanomips__
+.module tlb
+#endif
 .set nomips16
 #include <mips/asm.h>
 #include <mips/regdef.h>
