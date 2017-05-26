@@ -51,7 +51,7 @@
 #			CTX_*:	Type of context stored
 #
 LEAF(_msactx_save)
-#ifndef __nanomips
+#ifndef __nanomips__
 	PTR_S	zero, LINKCTX_NEXT(a0)
 	mfc0	t0, C0_CONFIG5
 	ext	t0, t0, CFG5_MSAEN_SHIFT, 1
@@ -119,7 +119,7 @@ END(_msactx_save)
 #		CTX_*:	Type of context restored
 #
 LEAF(_msactx_load)
-#ifndef __nanomips
+#ifndef __nanomips__
 	REG_L	v0, LINKCTX_ID(a0)
 	# Detect type
 	li	t0, LINKCTX_TYPE_FMSA

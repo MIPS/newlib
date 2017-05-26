@@ -59,7 +59,7 @@
 # endif
 #endif /* __mips_embedded_pic */
 
-#if defined (__nanomips)
+#if defined (__nanomips__)
 # define BZ(CC,R1,T)		b##CC##zc R1,T
 # define BCC(CC,R1,R2,T)	b##CC##c R1,R2,T
 # define B(T)			bc T
@@ -358,7 +358,7 @@ init:
 .Lmain:
 	JAL	(main)				# call the program start function
 
-# ifdef __nanomips
+# ifdef __nanomips__
 	# fall through to the "exit" routine with the exit code
 #else
 	# fall through to the "exit" routine

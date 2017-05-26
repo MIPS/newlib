@@ -43,7 +43,7 @@ LEAF(mystrcpy)
 unaligned:
 /* Align the destination (a0) */
 	andi	t8, a0, 7
-#if defined (__nanomips)
+#if defined (__nanomips__)
 	brsc	t8
 #else
 	auipc	t9, %pcrel_hi(jtable)

@@ -353,7 +353,7 @@ L(memcpy):
  * align instruction.
  */
 	andi	t8,a0,7
-#if defined (__nanomips)
+#if defined (__nanomips__)
 	brsc	t8
 #else
 #ifdef __mips_micromips
@@ -406,7 +406,7 @@ L(lb1):
 L(lb0):
 
 	andi	t8,a1,(NSIZE-1)
-#if defined (__nanomips)
+#if defined (__nanomips__)
 	brsc	t8
 #else
 #ifdef __mips_micromips

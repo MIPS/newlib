@@ -274,7 +274,7 @@ L(set0):
 	PTR_ADDU a0,a0,t2
 #else /* R6_CODE */
 	andi	t2,a0,7
-#if defined (__nanomips)
+#if defined (__nanomips__)
 	brsc	t2
 #else
 #ifdef __mips_micromips

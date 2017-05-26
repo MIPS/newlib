@@ -136,7 +136,7 @@ extern "C" {
 #error Unknown ABI
 #endif
 
-#elif defined (__nanomips) /*  __mips_isa_rev < 6  */
+#elif defined (__nanomips__) /*  __mips_isa_rev < 6  */
 
 /* nanoMIPS jrc.hb */
 #if _MIPS_SIM == _ABIP32
