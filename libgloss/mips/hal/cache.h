@@ -28,6 +28,67 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifndef __ASSEMBLER__
+
+#include <mips/cpu.h>
+#include <mips/cm3.h>
+#define __MIPS_NO_IMPLICIT_EHB	/* No implicit EHB after mtc0 */
+#include <mips/m32c0.h>
+#include <mips/m64c0.h>
+
+#if defined(__mips64) || (__mips == 64)
+#define mips_getentryhi()	mips64_getentryhi()
+#define mips_setentryhi(v)	mips64_setentryhi(v)
+#define mips_getentrylo0()	mips64_getentrylo0()
+#define mips_setentrylo0(v)	mips64_setentrylo0(v)
+#define mips_getentrylo1()	mips64_getentrylo1()
+#define mips_setentrylo1(v)	mips64_setentrylo1(v)
+#define mips_getpagemask()	mips64_getpagemask()
+#define mips_setpagemask(v)	mips64_setpagemask(v)
+#define mips_getindex()		mips64_getindex()
+#define mips_setindex(v)	mips64_setindex(v)
+#define mips_getcmgcrbase()	mips64_get_c0(C0_CMGCRBASE)
+#else
+#define mips_getentryhi()	mips32_getentryhi()
+#define mips_setentryhi(v)	mips32_setentryhi(v)
+#define mips_getentrylo0()	mips32_getentrylo0()
+#define mips_setentrylo0(v)	mips32_setentrylo0(v)
+#define mips_getentrylo1()	mips32_getentrylo1()
+#define mips_setentrylo1(v)	mips32_setentrylo1(v)
+#define mips_getpagemask()	mips32_getpagemask()
+#define mips_setpagemask(v)	mips32_setpagemask(v)
+#define mips_getindex()		mips32_getindex()
+#define mips_setindex(v)	mips32_setindex(v)
+#define mips_getcmgcrbase()	mips32_get_c0(C0_CMGCRBASE)
+#endif
+
+static inline __attribute__((always_inline))
+void mips_cache_op (vaddr_t kva, size_t n, int lsize, const int op);
+
+static inline
+void mips_cache_op (vaddr_t kva, size_t n, int lsize, const int op)
+{
+  vaddr_t addr, maxaddr, mask;
+
+  if (n <= 0)
+    return;
+
+  mask = ~ (lsize - 1);
+  addr = (kva & mask) - lsize;
+  maxaddr = ((kva + n) - 1) & mask;
+
+  do
+    {
+      addr = addr + lsize;
+      mips_cache (op, addr);
+    }
+  while (addr != maxaddr);
+
+  return;
+}
+
+#else	/* __ASSEMBLER__ */
+
 #include <mips/asm.h>
 #include <mips/regdef.h>
 #include <mips/prid.h>
@@ -47,3 +108,5 @@ LEAF(_ASMCONCAT(mips_, name));	\
 	j	_ASMCONCAT(m32_, name); \
 	jr	ra;		\
 END(_ASMCONCAT(mips_, name))
+
+#endif	/* __ASSEMBLER__ */

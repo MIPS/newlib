@@ -34,12 +34,41 @@
 /* Superset of MIPS32 */
 #include <mips/m32c0.h>
 
+typedef union {
+  unsigned long long ll;
+  struct {
+#if defined(_MIPSEB) || defined(MIPSEB)
+    unsigned int hi;
+    unsigned int lo;
+#else
+    unsigned int lo;
+    unsigned int hi;
+#endif
+  } s;
+} __ll_shape_type;
+
 /*
  * Define macros for accessing the MIPS coprocessor 0 registers which are
  * 64 bits wide.
  * Most apart from "set" return the original register value.
  */
 
+#if (_MIPS_SIM == _ABIO32)
+#define mips64_get_c0(selreg) \
+__extension__ ({ \
+  __ll_shape_type __r; \
+  __asm__ __volatile ("mfc0 %0,$%2,%3\n" \
+		      ".set  push\n"\
+		      ".set  mips32r3\n"\
+		      ".set  xpa\n"\
+		      "mfhc0 %1,$%2,%3\n" \
+		      ".set  pop\n" \
+		      : "=r" (__r.s.lo), \
+		        "=r" (__r.s.hi) \
+		      : "JK" (selreg & 0x1F), "JK" (selreg >> 8)); \
+  __r.ll; \
+})
+#else	/* _MIPS_SIM==N32 || _MIPS_SIM==N64 */
 #define mips64_get_c0(selreg) \
 __extension__ ({ \
   register unsigned long __r; \
@@ -48,19 +77,49 @@ __extension__ ({ \
 		      : "JK" (selreg & 0x1F), "JK" (selreg >> 8)); \
   __r; \
 })
+#endif
 
+#undef EHB
+#if defined (__MIPS_NO_IMPLICIT_EHB)
+#define EHB	""
+#else
+#define EHB	"ehb\n"
+#endif
+
+#if (_MIPS_SIM == _ABIO32)
+#define mips64_set_c0(selreg, val) \
+do { \
+    __ll_shape_type __ll; \
+    __ll.ll = (val); \
+    __asm__ __volatile (".set push \n"\
+			".set noreorder\n"\
+			"mtc0 %z0,$%2,%3\n"\
+			".set  mips32r3\n"\
+			".set  xpa\n"\
+			"mthc0 %z1,$%2,%3\n"\
+			EHB \
+			".set pop" \
+			: \
+			: "dJ" ((reg32_t)(__ll.s.lo)),\
+			  "dJ" ((reg32_t)(__ll.s.hi)),\
+			  "JK" (selreg & 0x1F),\
+			  "JK" (selreg >> 8)\
+			: "memory"); \
+} while (0)
+#else	/* _MIPS_SIM==N32 || _MIPS_SIM==N64 */
 #define mips64_set_c0(selreg, val) \
 do { \
     __asm__ __volatile (".set push \n"\
 			".set noreorder\n"\
 			"dmtc0 %z0,$%1,%2\n"\
-			"ehb\n" \
+			EHB \
 			".set pop" \
 			: \
 			: "dJ" ((reg64_t)(val)), "JK" (selreg & 0x1F),\
 			  "JK" (selreg >> 8) \
 			: "memory"); \
 } while (0)
+#endif
 
 #define mips64_xch_c0(selreg, val) \
 __extension__ ({ \
@@ -93,6 +152,24 @@ __extension__ ({ \
     mips64_set_c0 (selreg, (__o & ~(clr)) | (set)); \
     __o; \
 })
+
+/* MIPS64 Entry*, Index, PageMask registers */
+#define mips64_setentryhi(x)	mips64_set_c0(C0_ENTRYHI,x)
+#define mips64_getentryhi()	mips64_get_c0(C0_ENTRYHI)
+#define mips64_setentrylo0(x)	mips64_set_c0(C0_ENTRYLO0,x)
+#define mips64_getentrylo0()	mips64_get_c0(C0_ENTRYLO0)
+#define mips64_setentrylo1(x)	mips64_set_c0(C0_ENTRYLO1,x)
+#define mips64_getentrylo1()	mips64_get_c0(C0_ENTRYLO1)
+#define mips64_setpagemask(x)	mips64_set_c0(C0_PAGEMASK,x)
+#define mips64_getpagemask()	mips64_get_c0(C0_PAGEMASK)
+#define mips64_setindex(x)	mips32_set_c0(C0_INDEX,x)
+#define mips64_getindex(x)	mips32_get_c0(C0_INDEX)
+
+/* MIPS64 Config3 and Config4 registers */
+#define mips64_getconfig3()	mips32_get_c0(C0_CONFIG3)
+#define mips64_setconfig3(x)	mips32_set_c0(C0_CONFIG3,x)
+#define mips64_getconfig4()	mips32_get_c0(C0_CONFIG4)
+#define mips64_setconfig4(x)	mips32_set_c0(C0_CONFIG4,x)
 
 /* MIPS64 TagLo register */
 #define mips64_getitaglo()	mips64_get_c0(C0_TAGLO)		/* alias define */

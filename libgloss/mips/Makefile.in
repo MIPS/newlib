@@ -86,11 +86,12 @@ UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
 
 YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
   yamon_fstat.o yamon_exception.o
-HALOBJ = cache.o cache_ops.o m32cache.o m32cache_ops.o m32tlb_ops.o \
+HALOBJ = mips64_tlb.o mips_clean_cache.o mips_flush_cache.o mips_l2size.o \
+  mips_lock_cache.o mips_size_cache.o mips_sync_cache.o mips_tlb.o \
   mips_fp.o mips_msa.o \
   mips_excpt_entry.o mips_excpt_handler.o mips_excpt_handler_quiet.o \
   mips_excpt_register.o mips_excpt_boot.o mips_excpt_isr.o \
-  m64tlb_ops.o mxxtlb_ops.o mips_l2size.o mips_xpa.o
+  mips_xpa.o
 
 HALINCLUDE = -I $(srcdir)/include
 BOOTOBJ = reset.o init_cp0.o init_caches.o init_tlb.o init_l23caches.o

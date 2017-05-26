@@ -42,17 +42,23 @@ extern "C" {
 #if __mips == 64 && ! __mips16
 
 /* 64-bit count leading zeroes */
+#if !defined(mips_dclz)
 # define mips_dclz(x) __builtin_clzll (x)
+#endif
 
 /* 64-bit count trailing zeroes */
+#if !defined(mips_dctz)
 # define mips_dctz(x) __builtin_ctzll (x)
+#endif
 
+#if !defined(mips_dclo)
 #define mips_dclo(x) __extension__({ \
     unsigned long long __x = (x); \
     unsigned int __v; \
     __asm__ ("dclo %0,%1" : "=d" (__v) : "d" (__x)); \
     __v; \
 })
+#endif
 
 /* MIPS64r2 dshd opcode */
 #define _mips64r2_dshd(x) __extension__({ \

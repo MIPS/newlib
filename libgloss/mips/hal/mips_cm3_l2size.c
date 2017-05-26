@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015, Imagination Technologies Limited and/or its
+ * Copyright 2017, Imagination Technologies Limited and/or its
  *                      affiliated group companies.
  * All rights reserved.
  *
@@ -28,36 +28,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
 */
 
-.set nomips16
 #include "cache.h"
 
-DECL(mips_icache_size,-1)
-DECL(mips_icache_linesize,-1)
-DECL(mips_icache_ways,1)
-
-DECL(mips_dcache_size,-1)
-DECL(mips_dcache_linesize,-1)
-DECL(mips_dcache_ways,1)
-
-DECL(mips_scache_size,-1)
-DECL(mips_scache_linesize,-1)
-DECL(mips_scache_ways,1)
-
-DECL(mips_tcache_size,-1)
-DECL(mips_tcache_linesize,-1)
-DECL(mips_tcache_ways,1)
+void __def_cache_size_hook (void) __attribute__ ((weak));
 
 /*
- * void mips_size_cache (void)
- *
- * Size caches without reinitialising and losing dirty cache lines.
- */
-SWCACHE(size_cache)
+ * Routine for calculating L2 cache size from CM3 configuration
+ * registers.  Sizing information is stored directly to memory. 
+*/
+void __cache_size_hook (void)
+{
+  unsigned long cm_gcr_base, cm_gcr_l2_config;
+  int associ;
 
-/*
- * void mips_clean_icache (vaddr_t va, unsigned int size)
- *
- * Writeback and invalidate a virtual address range in instruction caches.
- * Joint caches (i.e. combined I & D) will be cleaned too.
- */
-SWCACHE(clean_icache)
+  /* 
+   * Fall back to Config2 based L2 if Config3[M] or Config4[M]
+   * or Config5[L2C] is not present.
+  */
+  if ((mips32_getconfig3 () & CFG3_M) == 0
+      || (mips32_getconfig4 () & CFG4_M) == 0
+      || (mips32_getconfig5 () & CFG5_L2C) == 0)
+    {
+      __def_cache_size_hook ();
+      return;
+    }
+
+  /* Read CMGCRBase to find CMGCR_BASE_ADDR */
+  cm_gcr_base = (mips_getcmgcrbase () << 4) | 0xB0000000UL;
+
+  /* Read GCR_L2_CONFIG */
+  cm_gcr_l2_config = * ((unsigned long *) (cm_gcr_base + GCR_L2_CONFIG));
+
+  /* Extract line size */
+  mips_scache_linesize = (cm_gcr_l2_config & GCR_L2_SL_MASK) >> GCR_L2_SL_SHIFT;
+
+  /* Check for no cache */
+  if (mips_scache_linesize == 0)
+    return;
+  
+  /* Now have true L2 line size */
+  mips_scache_linesize = 2 << mips_scache_linesize;
+
+  /* Extract sets/way */
+  mips_scache_ways = (cm_gcr_l2_config & GCR_L2_SS_MASK) >> GCR_L2_SS_SHIFT;
+
+  /* Now we have true L2 sets/way */
+  mips_scache_ways = 64 << mips_scache_ways;
+  
+  /* Extract L2 associativity */
+  associ = (cm_gcr_l2_config & GCR_L2_SA_MASK) >> GCR_L2_SA_SHIFT;
+
+  /* Get total number of sets */
+  associ = (associ + 1) * mips_scache_ways;
+
+  /* L2 cache size */
+  mips_scache_size = mips_scache_linesize * associ;
+
+  return;
+}

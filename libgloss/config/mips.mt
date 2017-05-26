@@ -53,6 +53,8 @@ mips_excpt_handler_quiet.o: $(srcdir)/hal/mips_excpt_handler.c
 	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
 %.o: $(srcdir)/hal/%.S
 	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
+%.o: $(srcdir)/hal/%.c
+	$(CC) $(CFLAGS_FOR_TARGET) $(HALINCLUDE) -O2 $(INCLUDES) -c $(CFLAGS) $< -o $@
 
 # Boot code
 %.o: $(srcdir)/boot/%.S

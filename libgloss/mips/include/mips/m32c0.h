@@ -1044,12 +1044,19 @@ __extension__ ({ \
   __r; \
 })
 
+#undef EHB
+#if defined (__MIPS_NO_IMPLICIT_EHB)
+#define EHB	""
+#else
+#define EHB	"ehb\n"
+#endif
+
 #define mips32_set_c0(selreg, val) \
 do { \
     __asm__ __volatile (".set push \n"\
 			".set noreorder\n"\
 			"mtc0 %z0,$%1,%2\n"\
-			"ehb\n" \
+			EHB \
 			".set pop" \
 			: \
 			: "dJ" ((reg32_t)(val)), "JK" (selreg & 0x1F),\
@@ -1089,9 +1096,76 @@ __extension__ ({ \
     __o; \
 })
 
+/* MIPS instructions */
+#define mips_sync()		\
+  ({__asm__ volatile ("\t sync \n");})
+
+#define mips_synci(ADDR)		\
+  ({__asm__ volatile ("\t synci 0(%0) \n" :: "r" (ADDR));})
+
+#define mips_synci_step()			\
+({						\
+    int _step;					\
+    __asm__ volatile (				\
+      "\t rdhwr %0,$1 \n" : "=r" (_step));	\
+    _step;					\
+})
+
+#define mips_ehb()		\
+  ({__asm__ volatile ("\t ehb \n");})
+
+#define mips_tlbwi()	\
+  ({__asm__ volatile ("\t tlbwi \n");})
+
+#define mips_tlbwr()	\
+  ({__asm__ volatile ("\t tlbwr \n");})
+
+#define mips_tlbp()	\
+  ({__asm__ volatile ("\t tlbp \n");})
+
+#define mips_tlbr()	\
+  ({__asm__ volatile ("\t tlbr \n");})
+
+#define mips_eva_tlbinvf()	\
+({__asm__ volatile (		\
+    "\t .set  push \n"		\
+    "\t .set  mips32r3 \n"	\
+    "\t .set  eva \n"		\
+    "\t tlbinvf \n"		\
+    "\t .set  pop \n"		\
+    );				\
+})
+
+/* Set upper half of EntryHI */
+#define mips32_sethientryhi(VAL)	\
+({__asm__ volatile (		\
+    "\t .set  push \n"		\
+    "\t .set  mips32r3 \n"	\
+    "\t .set  xpa \n"		\
+    "\t mthc0 %0,$10,0 \n"	\
+    "\t .set  pop \n"		\
+    : :"r" (VAL)		\
+    );				\
+})
+
+#define mips_cache(OP,ADDR)	\
+  ({__asm__ volatile ("\t cache %0,0(%1) \n" :: "JK" (OP), "r" (ADDR));})
+
 /* generic equivalents for mips/cpu.h */
 #define _mips_mfc0(r)		mips32_get_c0(r)
 #define _mips_mtc0(r,v)		mips32_set_c0(r,v)
+
+/* MIPS32 Entry*, Index, PageMask registers */
+#define mips32_getentryhi()	mips32_get_c0(C0_ENTRYHI)
+#define mips32_setentryhi(v)	mips32_set_c0(C0_ENTRYHI,v)
+#define mips32_getentrylo0()	mips32_get_c0(C0_ENTRYLO0)
+#define mips32_setentrylo0(v)	mips32_set_c0(C0_ENTRYLO0,v)
+#define mips32_getentrylo1()	mips32_get_c0(C0_ENTRYLO1)
+#define mips32_setentrylo1(v)	mips32_set_c0(C0_ENTRYLO1,v)
+#define mips32_getpagemask()	mips32_get_c0(C0_PAGEMASK)
+#define mips32_setpagemask(v)	mips32_set_c0(C0_PAGEMASK,v)
+#define mips32_getindex()	mips32_get_c0(C0_INDEX)
+#define mips32_setindex(v)	mips32_set_c0(C0_INDEX,v)
 
 /* MIPS32 Config0 register */
 #define mips32_getconfig0()	mips32_get_c0(C0_CONFIG0)

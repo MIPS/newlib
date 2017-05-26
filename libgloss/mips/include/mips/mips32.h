@@ -57,26 +57,33 @@ extern "C" {
 #ifndef __mips64
 
 /* Simulate 64-bit count leading zeroes */
+#if !defined(mips_dclz)
 #define mips_dclz(x) __extension__({ \
     unsigned long long __x = (x); \
     unsigned int __hx = (__x >> 32); \
     __hx ? mips_clz(__hx) : 32 + mips_clz(__x); \
 })
+#endif
 
 /* Simulate 64-bit count leading ones */
+#if !defined(mips_dclo)
 #define mips_dclo(x) __extension__({ \
     unsigned long long __x = (x); \
     unsigned int __hx = (__x >> 32); \
     (~__hx) ? mips_clo(__hx) : 32 + mips_clo(__x); \
 })
+#endif
 
 /* Simulate 64-bit count trailing zeroes */
+#if !defined(mips_dctz)
 #define mips_dctz(x) __extension__({ \
     unsigned long long __dx = (x); \
     unsigned int __ldx = __dx; \
     unsigned int __hdx = __dx >> 32; \
     __ldx ? mips_ctz(__ldx) : (63 ^ mips_clz(__hdx & -__hdx)); \
    })
+#endif
+
 #endif
 
 /* MIPS32r2 wsbh opcode */
