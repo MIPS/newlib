@@ -77,7 +77,7 @@ DVEOBJS = dvemon.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 JMR3904OBJS = jmr3904-io.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 CFEOBJS = cfe.o cfe_api.o cfe_mem.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 CYGMONOBJS = open.o close.o cygmon.o @part_specific_obj@ ${GENOBJS}
-UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
+UHIOBJS = uhi_break.o uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
   uhi_lseek.o uhi_open.o uhi_plog.o \
   uhi_pread.o uhi_pwrite.o uhi_read.o uhi_link.o uhi_stat.o \
   uhi_unlink.o uhi_write.o uhi_getargs.o uhi_exception.o \
