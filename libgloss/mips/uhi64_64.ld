@@ -81,6 +81,10 @@ PROVIDE(__exception_handle = (DEFINED(__exception_handle_quiet)
 				      : __exception_handle_verbose));
 PROVIDE(_mips_handle_exception = __exception_handle);
 
+/* Set the default breakpoint handler */
+EXTERN (_break_handler);
+PROVIDE(_mips_handle_break = _break_handler);
+
 /*
  * Initalize some symbols to be zero so we can reference them in the
  * crt0 without core dumping. These functions are all optional, but
