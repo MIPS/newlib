@@ -422,9 +422,21 @@ extern int __attribute__((nomips16))
 extern void __attribute__((nomips16))
   __uhi_assert (const char *, const char *, int32_t);
 
+/* Fall back handler for EXC_BP (breakpoint exception):
+   _mips_handle_break - May be implemented by a user but is aliased
+		        to _break_handler by default.
+   _break_handler - Toolchain provided fallback handler
+		    aliased to __uhi_break.
+*/
+extern int __attribute__((nomips16))
+  _mips_handle_break (struct gpctx *);
+
 /* Forward a breakpoint exception to boot.  */
 extern int __attribute__((nomips16))
   __uhi_break (struct gpctx *);
+
+extern int __attribute__((nomips16))
+  _break_handler (struct gpctx *);
 
 #ifdef NDEBUG           /* required by ANSI standard */
 # define uhi_assert(__e) ((void)0)

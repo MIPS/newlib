@@ -62,3 +62,6 @@ __uhi_break (struct gpctx *ctx)
 			: "r" (arg1), "r" (op));
   return ret;
 }
+
+int __attribute__((nomips16))
+_break_handler (int) __attribute__ ((alias ("__uhi_break")));
