@@ -452,7 +452,7 @@ extern void _MIPS_HAL_NOMIPS16
 
 /* Forward a breakpoint exception to boot.  */
 extern int __attribute__((nomips16))
-  __uhi_break (struct gpctx *);
+  __uhi_break (struct gpctx *) __attribute__((weak));
 
 #ifdef NDEBUG           /* required by ANSI standard */
 # define uhi_assert(__e) ((void)0)

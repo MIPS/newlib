@@ -25,6 +25,8 @@ EXTERN(__exception_handle_verbose)
 EXTERN(__isr_vec)
 /* Require the UHI getargs support */
 EXTERN(__getargs)
+/* Include the breakpoint exception handler.  */
+EXTERN (__uhi_break);
 
 /*
  * Set the location of the top of the stack.  A value of 0 means
