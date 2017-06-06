@@ -160,7 +160,7 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
     case EXC_BP:
       PUTSNS ("Breakpoint @0x", ctx->epc, "\n");
       /* Return from exception handler if breakpoint is handled */
-      if (_mips_handle_break (ctx))
+      if (__uhi_break (ctx))
         return;
       break;
     case EXC_RI:
