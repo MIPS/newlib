@@ -40,20 +40,35 @@
 #define UHI_ABI 1
 #elif _MIPS_SIM == _ABI64
 #define UHI_ABI 2
+#elif _MIPS_SIM == _ABIP32
+#define UHI_ABI 3
+#elif _MIPS_SIM == _ABIP64
+#define UHI_ABI 4
 #else
 #error "UHI context structure is not defined for current ABI"
 #endif
 
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+#define CTX_REG(REGNO)	((SZREG)*(REGNO))
+#else
 #define CTX_REG(REGNO)	((SZREG)*((REGNO)-1))
+#endif
 
 #define CTX_AT		(CTX_REG(1))
-#define CTX_V0		(CTX_REG(2))
-#define CTX_V1		(CTX_REG(3))
+
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+# define CTX_T4		(CTX_REG(2))
+# define CTX_T5		(CTX_REG(3))
+#else
+# define CTX_V0		(CTX_REG(2))
+# define CTX_V1		(CTX_REG(3))
+#endif
 #define CTX_A0		(CTX_REG(4))
 #define CTX_A1		(CTX_REG(5))
 #define CTX_A2		(CTX_REG(6))
 #define CTX_A3		(CTX_REG(7))
-#if _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64 || _MIPS_SIM==_ABIN32 \
+    || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
 # define CTX_A4		(CTX_REG(8))
 # define CTX_A5		(CTX_REG(9))
 # define CTX_A6		(CTX_REG(10))
@@ -90,9 +105,13 @@
 #define CTX_RA		(CTX_REG(31))
 #define CTX_EPC		(CTX_REG(32))
 #define CTX_BADVADDR	(CTX_REG(33))
-#define CTX_HI0		(CTX_REG(34))
-#define CTX_LO0		(CTX_REG(35))
-#define CTX_HILO_SIZE	(2*SZREG)
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+# define CTX_HILO_SIZE	0
+#else
+# define CTX_HI0	(CTX_REG(34))
+# define CTX_LO0	(CTX_REG(35))
+# define CTX_HILO_SIZE	(2*SZREG)
+#endif
 #define CTX_LINK	(CTX_REG(34)+CTX_HILO_SIZE)
 #define CTX_STATUS	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR)
 #define CTX_CAUSE	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR+4)
@@ -100,14 +119,27 @@
 #define CTX_BADPINSTR	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR+12)
 #define CTX_SIZE	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR+16)
 
-#define DSPCTX_DSPC ((SZREG)*2)
-#define DSPCTX_HI1  ((SZREG)*3)
-#define DSPCTX_HI2  ((SZREG)*4)
-#define DSPCTX_HI3  ((SZREG)*5)
-#define DSPCTX_LO1  ((SZREG)*6)
-#define DSPCTX_LO2  ((SZREG)*7)
-#define DSPCTX_LO3  ((SZREG)*8)
-#define DSPCTX_SIZE ((SZREG)*9)
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+# define DSPCTX_DSPC ((SZREG)*2)
+# define DSPCTX_HI0  ((SZREG)*3)
+# define DSPCTX_HI1  ((SZREG)*4)
+# define DSPCTX_HI2  ((SZREG)*5)
+# define DSPCTX_HI3  ((SZREG)*6)
+# define DSPCTX_LO0  ((SZREG)*7)
+# define DSPCTX_LO1  ((SZREG)*8)
+# define DSPCTX_LO2  ((SZREG)*9)
+# define DSPCTX_LO3  ((SZREG)*10)
+# define DSPCTX_SIZE ((SZREG)*11)
+#else
+# define DSPCTX_DSPC ((SZREG)*2)
+# define DSPCTX_HI1  ((SZREG)*3)
+# define DSPCTX_HI2  ((SZREG)*4)
+# define DSPCTX_HI3  ((SZREG)*5)
+# define DSPCTX_LO1  ((SZREG)*6)
+# define DSPCTX_LO2  ((SZREG)*7)
+# define DSPCTX_LO3  ((SZREG)*8)
+# define DSPCTX_SIZE ((SZREG)*9)
+#endif
 
 #define FP32CTX_CSR	((SZREG)*2)
 #define FP64CTX_CSR	((SZREG)*2)
@@ -238,9 +270,16 @@ struct gpctx
   {
     struct
     {
+# if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+      reg_t zero;
+      reg_t at;
+      reg_t t1[2];
+# else
       reg_t at;
       reg_t v[2];
-# if _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
+# endif
+# if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64 || _MIPS_SIM==_ABIN32 \
+     || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
       reg_t a[8];
       reg_t t[4];
 # else
@@ -255,13 +294,19 @@ struct gpctx
       reg_t fp;
       reg_t ra;
     };
+# if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+    reg_t r[32];
+# else
     reg_t r[31];
+# endif
   };
 
   reg_t epc;
   reg_t badvaddr;
+# if !(_MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64)
   reg_t hi;
   reg_t lo;
+# endif
   /* This field is for future extension */
   struct linkctx *link;
   /* Status at the point of the exception.  This may not be restored
@@ -298,8 +343,13 @@ struct dspctx
 {
   struct linkctx link;
   reg_t dspc;
+# if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+  reg_t hi[4];
+  reg_t lo[4];
+# else
   reg_t hi[3];
   reg_t lo[3];
+# endif
 };
 
 struct fpctx

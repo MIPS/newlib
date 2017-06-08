@@ -4,7 +4,7 @@
 #include <machine/ieeefp.h>  /* floating point macros */
 #include <sys/features.h>	/* POSIX defs */
 
-#if defined(__aarch64__) || defined(__mips__)
+#if defined(__aarch64__) || defined(__mips__) || defined(__nanomips__)
 #define MALLOC_ALIGNMENT 16
 #endif
 
@@ -133,7 +133,7 @@
 #endif
 #endif
 
-#if defined(__mips__) && !defined(__rtems__)
+#if (defined(__mips__) || defined(__nanomips)) && !defined(__rtems__)
 #define __ATTRIBUTE_IMPURE_PTR__ __attribute__((__section__(".sdata")))
 #endif
 

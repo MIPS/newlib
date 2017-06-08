@@ -249,23 +249,37 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
   /* Dump registers */
   PUTSNS (" 0:\t", 0, "\t");
   PUTSNS ("at:\t", ctx->at, "\t");
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+  PUTSNS ("t4:\t", ctx->t1[0], "\t");
+  PUTSNS ("t5:\t", ctx->t1[1], "\n");
+#else
   PUTSNS ("v0:\t", ctx->v[0], "\t");
   PUTSNS ("v1:\t", ctx->v[1], "\n");
+#endif
 
   PUTSNS ("a0:\t", ctx->a[0], "\t");
   PUTSNS ("a1:\t", ctx->a[1], "\t");
   PUTSNS ("a2:\t", ctx->a[2], "\t");
   PUTSNS ("a3:\t", ctx->a[3], "\n");
 
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+  PUTSNS ("a4:\t", ctx->a[4], "\t");
+  PUTSNS ("a5:\t", ctx->a[5], "\t");
+  PUTSNS ("a6:\t", ctx->a[6], "\t");
+  PUTSNS ("a7:\t", ctx->a[7], "\n");
+#endif
+
   PUTSNS ("t0:\t", ctx->t[0], "\t");
   PUTSNS ("t1:\t", ctx->t[1], "\t");
   PUTSNS ("t2:\t", ctx->t[2], "\t");
   PUTSNS ("t3:\t", ctx->t[3], "\n");
 
+#if _MIPS_SIM!=_ABIP32 && _MIPS_SIM!=_ABIP64
   PUTSNS ("t4:\t", ctx->t[4], "\t");
   PUTSNS ("t5:\t", ctx->t[5], "\t");
   PUTSNS ("t6:\t", ctx->t[6], "\t");
   PUTSNS ("t7:\t", ctx->t[7], "\n");
+#endif
 
   PUTSNS ("s0:\t", ctx->s[0], "\t");
   PUTSNS ("s1:\t", ctx->s[1], "\t");

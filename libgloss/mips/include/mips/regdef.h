@@ -35,10 +35,17 @@
 
 #define AT	$1
 
-#define v0	$2
-#define v1	$3
-#define va0	$2
-#define va1	$3
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+# define t4	$2
+# define t5	$3
+# define va0	$4
+# define va1	$5
+#else
+# define v0	$2
+# define v1	$3
+# define va0	$2
+# define va1	$3
+#endif
 
 #define vt0	$2
 #define vt1	$3
@@ -48,7 +55,8 @@
 #define a2	$6
 #define	a3	$7
 
-#if _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64 || _MIPS_SIM==_ABIN32 \
+    || _MIPS_SIM==_ABI64 || _MIPS_SIM==_ABIEABI
 #define a4	$8
 #define a5	$9
 #define a6	$10

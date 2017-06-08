@@ -75,7 +75,7 @@ case "${target}" in
   sh*-*-pe | mips*-*-pe | *arm*-wince-pe)
 	AC_CONFIG_SUBDIRS([wince])
 	;;
-  mips*-*-*)
+  mips*-*-* | nanomips*-*-*)
 	AC_CONFIG_SUBDIRS([mips])
 	;;
   powerpc-*-*|powerpcle-*-*)
