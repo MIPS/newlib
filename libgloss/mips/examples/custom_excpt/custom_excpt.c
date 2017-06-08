@@ -76,14 +76,9 @@ _mips_handle_exception (struct gpctx *ctx, int exception)
   if ((mips32_get_c0 (C0_CAUSE) & CR_BD) == 0
       && (exception == EXC_TRAP))
   {
-#ifdef __mips_micromips
-    unsigned int trap_insn = ((*(unsigned short *)ctx->epc & ~1) << 16
-			      | *(unsigned short *)((ctx->epc & ~1) + 2));
-    switch ((trap_insn >> 12) & 0xf)
-#else
-    unsigned int trap_insn = *(unsigned int *)ctx->epc;
-    switch ((trap_insn >> 6) & 0x3ff)
-#endif
+    unsigned int trap_insn = ((*(unsigned short *)ctx->epc) << 16
+			      | *(unsigned short *)(ctx->epc + 2));
+    switch ((trap_insn >> 11) & 0x1f)
       {
 	case TRAPCODE1:
 	  secret_store = ctx->r[C_CTX_REGNO (12)];

@@ -30,7 +30,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#if _MIPS_SIM == _ABI64
+#if (_MIPS_SIM == _ABI64) || (_MIPS_SIM == _ABIP64)
 # define K0BASE 0xFFFFFFFF80000000LL
 #else
 # define K0BASE 0x80000000

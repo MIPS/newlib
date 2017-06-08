@@ -18,10 +18,16 @@
 /* This file does not use any floating-point ABI.  */
 	.gnu_attribute 4,0
 
+#include "newlib.h"
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>
 #include "abiflags.S"
+
+#ifdef HAVE_INITFINI_ARRAY
+#define _init	__libc_init_array
+#define _fini	__libc_fini_array
+#endif
 
 MIPS_NOMIPS16
 
@@ -92,12 +98,19 @@ _start:
 	mtc0	zero,C0_CAUSE
 	move	va0,zero			/* Mask for C0_SR.  */
 2:
-	/* Read MIPS_abiflags structure and set status/config registers
+	/* Read abiflags structure and set status/config registers
 	   accordingly.  */
+#ifdef __mips__
 	.weak	__MIPS_abiflags_start
 	.weak	__MIPS_abiflags_end
 	LA	t0,__MIPS_abiflags_start
 	LA	t1,__MIPS_abiflags_end
+#else
+	.weak	__nanoMIPS_abiflags_start
+	.weak	__nanoMIPS_abiflags_end
+	LA	t0,__nanoMIPS_abiflags_start
+	LA	t1,__nanoMIPS_abiflags_end
+#endif
 	PTR_ADDU t1,t1,-24
 
 	/* Branch to 1f is the .MIPS.abiflags section is not 24 bytes.  This

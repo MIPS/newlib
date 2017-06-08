@@ -214,7 +214,7 @@ case "${host_cpu}" in
   mep)
 	machine_dir=mep
 	;;
-  mips*)
+  mips* | nanomips*)
 	machine_dir=mips
 	newlib_cflags="${newlib_cflags}"
 	;;
@@ -754,7 +754,7 @@ case "${host}" in
 	default_newlib_io_long_long="yes"
 	newlib_cflags="${newlib_cflags} -DMISSING_SYSCALL_NAMES"
 	;;
-  mips*-*-elf*)
+  mips*-*-elf* | nanomips*-*-elf*)
 	default_newlib_io_long_long="yes"
 	newlib_cflags="${newlib_cflags} -DMISSING_SYSCALL_NAMES"
 	;;

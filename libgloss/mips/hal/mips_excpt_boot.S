@@ -323,7 +323,7 @@ EXPORTS(__MIPS_UHI_BAD_POINTER, 32)
 #	       argument structure on the stack and verifies all pointers are
 #	       canonical for a 32-bit address space.
 #
-#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIN32
+#if _MIPS_SIM==_ABIO32 || _MIPS_SIM==_ABIN32 || _MIPS_SIM==_ABIP32
 WLEAF(__convert_argv_pointers)
 	/* Early out if a0 <= 0 */
 	blez	a0, .Lend

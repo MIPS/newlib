@@ -322,29 +322,49 @@ do { \
 /* default implementation of _mips_intdisable is a function */
 
 /* There are no microMIPS implementations that support MSA currently.  */
-#if !defined(__mips_micromips)
+#if !defined(__mips_micromips) && !defined(__nanomips__)
 # define MIPS_MSA_USABLE 1
 #else
 # define MIPS_MSA_USABLE 0
 #endif
 
+#if defined(__nanomips__)
+/* How to encode a HI20 immediate value for LUI or ALUIPC.  */
+# define NANO_ENCODE_HI20(VAL) \
+	 (((((VAL) >> 12) & 0x1ff) << 12) \
+	  | ((((VAL) >> 21) & 0x3ff) << 2) \
+	  | (((VAL) >> 31) & 1))
+#endif
+
 #else /* ASSEMBLER */
 
-/* The correct way to use a hazard barrier return */
+/* The correct way to use a hazard barrier return.  */
+#ifdef __nanomips__
+
+# define MIPS_JRHB(REG) \
+  jrc.hb REG
+
+# define MIPS_NOMICROMIPS
+
+# define MIPS_NOMIPS16
+
+#else
 
 /* JR.HB does not resolve hazards from its delay slot.  */
-#define MIPS_JRHB(REG) \
+# define MIPS_JRHB(REG) \
   .set push;	  \
   .set noreorder;  \
   jr.hb REG;	  \
   nop;		  \
   .set pop
 
-#define MIPS_NOMICROMIPS \
+# define MIPS_NOMICROMIPS \
   .set nomicromips
 
-#define MIPS_NOMIPS16 \
+# define MIPS_NOMIPS16 \
   .set nomips16
+
+#endif
 
 #endif /* !ASSEMBLER */
 

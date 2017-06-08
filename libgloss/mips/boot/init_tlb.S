@@ -28,6 +28,10 @@
 
 #define _BOOTCODE
 
+#ifdef __nanomips__
+.module tlb
+#endif
+
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>

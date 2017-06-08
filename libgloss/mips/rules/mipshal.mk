@@ -64,6 +64,7 @@ MIPS_HAL_LDFLAGS = $(foreach a,$(priv_symbols),$(if $($a),-Wl$(comma)--defsym$(c
 LDSCRIPT32 ?= uhi32.ld
 LDSCRIPT64 ?= uhi64_64.ld
 LDSCRIPTN32 ?= uhi64_n32.ld
+ABI ?= 32
 
 ifdef ENDIAN
   ifeq ($(ENDIAN), EL)
@@ -79,20 +80,10 @@ endif
 
 # Pick the appropiate flags based on $(ABI)
 ifeq ($(ABI), 32)
-  MIPS_TOOLCHAIN ?= mips-mti-elf
+  MIPS_TOOLCHAIN ?= nanomips-elf
   LDSCRIPT ?= $(LDSCRIPT32)
 else
-  ifeq ($(ABI), 64)
-    MIPS_TOOLCHAIN ?= mips-img-elf
-    LDSCRIPT ?= $(LDSCRIPT64)
-  else
-    ifeq ($(ABI), n32)
-      MIPS_TOOLCHAIN ?= mips-img-elf
-      LDSCRIPT ?= $(LDSCRIPTN32)
-    else
-      $(error ABI must one of 32,64,n32)
-    endif
-  endif
+  $(error ABI must be 32)
 endif
 
 ifeq ($(ROMABLE),1)
@@ -116,9 +107,9 @@ else
 endif
 
 CC = $(CROSS_COMPILE)gcc
-CFLAGS += -mabi=$(ABI) $(ENDIANF)
+CFLAGS += -m$(ABI) $(ENDIANF)
 LD = $(CC)
-LDFLAGS += $(MIPS_HAL_LDFLAGS) -mabi=$(ABI) $(ENDIANF) -T $(LDSCRIPT)
+LDFLAGS += $(MIPS_HAL_LDFLAGS) -m$(ABI) $(ENDIANF) -T $(LDSCRIPT)
 
 OBJDUMP = $(CROSS_COMPILE)objdump
 OBJCOPY = $(CROSS_COMPILE)objcopy

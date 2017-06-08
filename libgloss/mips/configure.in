@@ -35,6 +35,8 @@ AC_ARG_PROGRAM
 
 AC_PROG_INSTALL
 
+AM_CONDITIONAL([NANOMIPS], [test "$host_cpu" = "nanomips"])
+
 LIB_AC_PROG_CC
 AS=${AS-as}
 AC_SUBST(AS)
@@ -44,6 +46,22 @@ LD=${LD-ld}
 AC_SUBST(LD)
 AC_PROG_RANLIB
 LIB_AM_PROG_AS
+
+AC_MSG_CHECKING([whether the compiler uses the nanoMIPS subset])
+dnl We do not use AC_COMPILE_IFELSE to support building newlib with
+dnl a cross-compiler that is not (yet) able to link executables
+cat > conftest.c <<EOF
+#if defined __nanomips_subset
+  yes;
+#endif
+EOF
+if AC_TRY_COMMAND(${CC-cc} -E conftest.c) | egrep yes >/dev/null 2>&1; then
+  has_nanomips_subset=yes
+else
+  has_nanomips_subset=no
+fi
+AC_MSG_RESULT($has_nanomips_subset)
+AM_CONDITIONAL(HAS_NANOMIPS_SUBSET, test "$has_nanomips_subset" = "yes")
 
 crt0=crt0.o
 pcrt0=pcrt0.o
@@ -66,7 +84,7 @@ case "${target}" in
 	script_list="idt32 idt64 cfe"
 	bsp_list="libcygmon.a libidt.a libcfe.a"
 	;;
-  mips*-mti*-* | mips*-img*-*)
+  mips*-mti*-* | mips*-img*-* | nanomips*-*-*)
 	crt0="crt0.o"
 	part_specific_obj=
 	part_specific_defines=

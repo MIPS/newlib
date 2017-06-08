@@ -10,5 +10,7 @@ AC_CONFIG_AUX_DIR(../../../..)
 
 NEWLIB_CONFIGURE(../../..)
 
+AM_CONDITIONAL([NANOMIPS], [test "$host_cpu" = "nanomips"])
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

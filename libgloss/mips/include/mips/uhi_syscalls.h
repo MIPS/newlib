@@ -61,8 +61,13 @@
 	#define SYSCALL(NUM) "\tsdbbp " __xstr (NUM)
 	#define ASM_SYSCALL(NUM) sdbbp NUM
 #else
+#if defined(__nanomips__)
+	#define SYSCALL(NUM) "\tsyscall32 " __xstr (NUM)
+	#define ASM_SYSCALL(NUM) syscall32 NUM
+#else
 	#define SYSCALL(NUM) "\tsyscall " __xstr (NUM)
 	#define ASM_SYSCALL(NUM) syscall NUM
+#endif
 #endif
 
 #endif // _UHI_SYSCALLS_

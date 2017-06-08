@@ -347,8 +347,33 @@ extern "C" {
 #if !__mips16
 /* Access to other VPE/TC registers */
 
+# ifdef __nanomips__
 /* move from gpr */
-#define _m32c0_mftgpr(rt) \
+#  define _m32c0_mftgpr(rt) \
+__extension__ ({ \
+	unsigned long __res; \
+	__asm__ __volatile__( \
+		".set push\n" \
+		".set noat\n" \
+		"mftgpr\t%0,$r" #rt "\n" \
+		".set pop\n" \
+		: "=d" (__res)); \
+	__res; \
+})
+
+/* move to gpr */
+#  define _m32c0_mttgpr(rd,v) \
+do { \
+	__asm__ __volatile__( \
+		".set push\n" \
+		".set noat\n" \
+		"mttgpr\t%z0,$r" #rd "\n" \
+		".set pop\n" \
+		: : "dJ" (v)); \
+} while (0)
+# else
+/* move from gpr */
+#  define _m32c0_mftgpr(rt) \
 __extension__ ({ \
 	unsigned long __res; \
 	__asm__ __volatile__( \
@@ -361,7 +386,7 @@ __extension__ ({ \
 })
 
 /* move to gpr */
-#define _m32c0_mttgpr(rd,v) \
+#  define _m32c0_mttgpr(rd,v) \
 do { \
 	__asm__ __volatile__( \
 		".set push\n" \
@@ -370,6 +395,7 @@ do { \
 		".set pop\n" \
 		: : "dJ" (v)); \
 } while (0)
+#endif
 
 /* move from cp0 */
 #define _m32c0_mftc0(rt,sel) \

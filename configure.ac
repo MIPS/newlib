@@ -943,7 +943,7 @@ case "${target}" in
   m68*-*-* | fido-*-*)
     libgloss_dir=m68k
     ;;
-  mips*-*-*)
+  mips*-*-* | nanomips*-*-*)
     libgloss_dir=mips
     ;;
   powerpc*-*-*)
@@ -2552,6 +2552,9 @@ case "${target}" in
   mips*-*-*linux* | mips*-*-gnu*)
     target_makefile_frag="config/mt-mips-gnu"
     ;;
+  nanomips*-*-*)
+    target_makefile_frag="config/mt-nanomips"
+    ;;
   nios2-*-elf*)
     target_makefile_frag="config/mt-nios2-elf"
     ;;
@@ -2587,7 +2590,7 @@ case "${enable_target_optspace}:${target}" in
   :d30v-*)
     ospace_frag="config/mt-d30v"
     ;;
-  :m32r-* | :d10v-* | :fr30-* | :i?86*-*-elfiamcu)
+  :m32r-* | :d10v-* | :fr30-* | :i?86*-*-elfiamcu | :nanomips*-*)
     ospace_frag="config/mt-ospace"
     ;;
   no:* | :*)

@@ -120,7 +120,15 @@ extern "C" {
     __v; \
 })
 
-#if __mips_isa_rev < 6
+#ifdef __nanomips__
+/* nanoMIPS jrc.hb */
+#define mips32_jr_hb() __asm__ __volatile__(	\
+       "lapc	$t8,1f\n"			\
+       "jrc.hb	$t8\n"				\
+"1:"						\
+       : : : "$t8")
+
+#elif __mips_isa_rev < 6
 
 /* MIPS32r2 jr.hb */
 #if _MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIN32

@@ -59,6 +59,10 @@ LEAF(_dsp_save)
 	.set push
 	.set dsp
 	rddsp	t1
+#ifdef __nanomips__
+	mfhi	a2, $ac0
+	mflo	a3, $ac0
+#endif
 	mfhi	t2, $ac1
 	mflo	t3, $ac1
 	mfhi	t4, $ac2
@@ -67,6 +71,10 @@ LEAF(_dsp_save)
 	mflo	t7, $ac3
 	.set pop
 	sw	t1, DSPCTX_DSPC(a1)
+#ifdef __nanomips__
+	sw	a2, DSPCTX_HI0(a1)
+	sw	a3, DSPCTX_LO0(a1)
+#endif
 	sw	t2, DSPCTX_HI1(a1)
 	sw	t3, DSPCTX_LO1(a1)
 	sw	t4, DSPCTX_HI2(a1)
@@ -104,6 +112,10 @@ LEAF(_dsp_load)
 	ehb
 
 	lw	t1, DSPCTX_DSPC(a1)
+#ifdef __nanomips__
+	lw	a2, DSPCTX_HI0(a1)
+	lw	a3, DSPCTX_LO0(a1)
+#endif
 	lw	t2, DSPCTX_HI1(a1)
 	lw	t3, DSPCTX_LO1(a1)
 	lw	t4, DSPCTX_HI2(a1)
@@ -113,6 +125,10 @@ LEAF(_dsp_load)
 	.set push
 	.set dsp
 	wrdsp	t1
+#ifdef __nanomips__
+	mthi	a2, $ac0
+	mtlo	a3, $ac0
+#endif
 	mthi	t2, $ac1
 	mtlo	t3, $ac1
 	mthi	t4, $ac2

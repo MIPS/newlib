@@ -32,6 +32,8 @@
 #include <mips/intctrl.h>
 
 #define  _mips_intpatch_kscratch1 0x00
+#define  _nanomips_intpatch_hilo  0x04
+#define  _nanomips_intpatch_li48  0x06
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ || defined (__mips_micromips)
 # define  _mips_intpatch_isroff1  0x06
 # define  _mips_intpatch_isroff2  0x0a
@@ -44,19 +46,22 @@
 # define  _mips_intpatch_isroff4  0x1c
 #endif
 
-extern void m32_sync_icache(unsigned kva, size_t n);
+extern __attribute__((section(".notdata"))) void *__isr_vec_space;
 
 void _MIPS_HAL_NOMIPS16
 _mips_intpatch (const reg_t index, uintptr_t handler, bool k1_to_kscratch1)
 {
-  extern void *__isr_vec_space;
   uint16_t *patch;
   uint32_t *patch32;
   uintptr_t isrbase = (uintptr_t) (mips32_getebase() & EBASE_BASE)
 		      + 0x200 + (index * ((uintptr_t) &__isr_vec_space));
   if (k1_to_kscratch1)
     {
-#ifdef __mips_micromips
+#if defined(__nanomips__)
+      patch = (uint16_t *) (isrbase + _mips_intpatch_kscratch1);
+      *(patch++) = 0x237f;
+      *(patch) = 0x1070;
+#elif defined(__mips_micromips)
       patch = (uint16_t *) (isrbase + _mips_intpatch_kscratch1);
       *(patch++) = 0x037f;
       *(patch) = 0x12fc;
@@ -65,13 +70,41 @@ _mips_intpatch (const reg_t index, uintptr_t handler, bool k1_to_kscratch1)
       *patch32 = 0x409bf802;
 #endif
     }
-#if SZPTR==4
+#if defined(__nanomips__)
+# if defined(__nanomips_subset)
+  patch = (uint16_t *) (isrbase + _nanomips_intpatch_hilo);
+  /* Build the instruction from memory.  */
+  uint32_t insn = ((*patch) << 16) | *(patch + 2);
+  /* Blank out the immediate field.  */
+  insn = insn & ~(NANO_ENCODE_HI20 (0xffffffff));
+  /* Add in the new hi20 value.  */
+  insn = insn | NANO_ENCODE_HI20 (handler);
+  /* Split into 16-bit chunks for memory.  */
+  *patch = (uint16_t) (insn >> 16);		/* %hi */
+  *(patch + 2) = (uint16_t) (insn & 0xffff);	/* %hi */
+  /* Get the low 16-bits of the ORI.  */
+  insn = *(patch + 6);
+  /* Blank out the immediate field.  */
+  insn = insn & ~0xfff;
+  /* Add in the new lo12 value.  */
+  insn = insn | (handler & 0xfff);
+  /* Write it out.  */
+  *(patch + 6) = (uint16_t) insn;
+  mips_sync_icache (isrbase, 32);
+# else
+  patch = (uint16_t *) (isrbase + _nanomips_intpatch_li48);
+  /* The low 16-bits go first.  */
+  *patch = (uint16_t) (handler & 0xffff);
+  /* Then the high 16-bits.  */
+  *(patch + 2) = (uint16_t) ((handler >> 16) & 0xffff);
+# endif
+#elif SZPTR==4
   handler += (handler & 0x8000) << 1;
   patch = (uint16_t *) (isrbase + _mips_intpatch_isroff1);
   *patch = (uint16_t) (handler >> 16);		/* %hi */
   patch = (uint16_t *) (isrbase + _mips_intpatch_isroff2);
   *patch = (uint16_t) (handler & 0xffff);	/* %lo */
-  m32_sync_icache (isrbase, 32);
+  mips_sync_icache (isrbase, 32);
 #elif SZPTR==8
   handler += (handler & 0x800080008000) << 1;
   patch = (uint16_t *) (isrbase + _mips_intpatch_isroff1);
@@ -82,7 +115,7 @@ _mips_intpatch (const reg_t index, uintptr_t handler, bool k1_to_kscratch1)
   *patch = (uint16_t) ((handler >> 16) & 0xffff);	/* %hi */
   patch = (uint16_t *) (isrbase + _mips_intpatch_isroff4);
   *patch = (uint16_t) (handler & 0xffff);		/* %lo */
-  m32_sync_icache (isrbase, 64);
+  mips_sync_icache (isrbase, 64);
 #else
 # error "Unknown pointer size"
 #endif
