@@ -1025,7 +1025,7 @@ $desave		=	$31
  */
 typedef unsigned int		reg32_t;	/* a 32-bit register */
 typedef unsigned long long	reg64_t;	/* a 64-bit register */
-#if _MIPS_SIM==_ABIO32
+#if (_MIPS_SIM==_ABIO32) || (_MIPS_SIM==_ABIP32)
 typedef unsigned int		reg_t;
 typedef signed int		sreg_t;
 #else

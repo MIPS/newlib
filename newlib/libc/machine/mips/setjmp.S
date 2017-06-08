@@ -20,7 +20,11 @@
 	GPR_OFFSET ($30, 9);	\
 	GPR_OFFSET ($31, 10)
 
-#define NUM_GPRS_SAVED 11
+#if _MIPS_SIM == _ABIP32
+# define NUM_GPRS_SAVED 12
+#else
+# define NUM_GPRS_SAVED 11
+#endif
 
 #ifdef __mips_hard_float
 #if _MIPS_SIM == _ABIN32
@@ -41,6 +45,16 @@
 	FPR_OFFSET ($f29, 5);	\
 	FPR_OFFSET ($f30, 6);	\
 	FPR_OFFSET ($f31, 7);
+#elif _MIPS_SIM == _ABIP32
+#define FPR_LAYOUT		\
+	FPR_OFFSET ($f20, 0);	\
+	FPR_OFFSET ($f21, 2);	\
+	FPR_OFFSET ($f22, 4);	\
+	FPR_OFFSET ($f23, 6);	\
+	FPR_OFFSET ($f24, 8);	\
+	FPR_OFFSET ($f25, 10);	\
+	FPR_OFFSET ($f26, 12);	\
+	FPR_OFFSET ($f27, 14);
 #elif __mips_fpr == 0 || __mips_fpr == 64
 
 /* This deals with the o32 FPXX and FP64 cases.  Here we must use
@@ -131,10 +145,13 @@ setjmp:
 	FPR_LAYOUT
 #undef GPR_OFFSET
 #undef FPR_OFFSET
-
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+	move	$4,$0
+	jrc	$31
+#else
 	move	$2,$0
 	jr	$31
-
+#endif
 	.end	setjmp
 
 /* volatile void longjmp (jmp_buf, int);  */
@@ -153,7 +170,11 @@ longjmp:
 	bne	$5,$0,1f
 	li	$5,1
 1:
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+	move	$4,$5
+	jrc	$31
+#else
 	move	$2,$5
 	jr	$31
-
+#endif
 	.end longjmp

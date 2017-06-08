@@ -561,6 +561,8 @@ part_specific_defines
 part_specific_obj
 target_makefile_frag_path
 host_makefile_frag_path
+HAS_NANOMIPS_SUBSET_FALSE
+HAS_NANOMIPS_SUBSET_TRUE
 CCASFLAGS
 CCAS
 RANLIB
@@ -578,6 +580,8 @@ am__include
 DEPDIR
 am__leading_dot
 CC
+NANOMIPS_FALSE
+NANOMIPS_TRUE
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -1989,6 +1993,17 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
+
+
+if test "$host_cpu" = "nanomips"; then
+  NANOMIPS_TRUE=
+  NANOMIPS_FALSE='#'
+else
+  NANOMIPS_TRUE='#'
+  NANOMIPS_FALSE=
+fi
+
+
 rm -rf .tst 2>/dev/null
 mkdir .tst 2>/dev/null
 if test -d .tst; then
@@ -2495,6 +2510,36 @@ test "${CCASFLAGS+set}" = set || CCASFLAGS=$CFLAGS
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler uses the nanoMIPS subset" >&5
+$as_echo_n "checking whether the compiler uses the nanoMIPS subset... " >&6; }
+cat > conftest.c <<EOF
+#if defined __nanomips_subset
+  yes;
+#endif
+EOF
+if { ac_try='${CC-cc} -E conftest.c'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } | egrep yes >/dev/null 2>&1; then
+  has_nanomips_subset=yes
+else
+  has_nanomips_subset=no
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_nanomips_subset" >&5
+$as_echo "$has_nanomips_subset" >&6; }
+
+
+if test "$has_nanomips_subset" = "yes"; then
+  HAS_NANOMIPS_SUBSET_TRUE=
+  HAS_NANOMIPS_SUBSET_FALSE='#'
+else
+  HAS_NANOMIPS_SUBSET_TRUE='#'
+  HAS_NANOMIPS_SUBSET_FALSE=
+fi
+
+
 crt0=crt0.o
 pcrt0=pcrt0.o
 
@@ -2516,7 +2561,7 @@ case "${target}" in
 	script_list="idt32 idt64 cfe"
 	bsp_list="libcygmon.a libidt.a libcfe.a"
 	;;
-  mips*-mti*-* | mips*-img*-*)
+  mips*-mti*-* | mips*-img*-* | nanomips*-img*-*)
 	crt0="crt0.o"
 	part_specific_obj=
 	part_specific_defines=
@@ -2700,12 +2745,20 @@ LIBOBJS=$ac_libobjs
 LTLIBOBJS=$ac_ltlibobjs
 
 
+if test -z "${NANOMIPS_TRUE}" && test -z "${NANOMIPS_FALSE}"; then
+  as_fn_error "conditional \"NANOMIPS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
   as_fn_error "conditional \"AMDEP\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error "conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${HAS_NANOMIPS_SUBSET_TRUE}" && test -z "${HAS_NANOMIPS_SUBSET_FALSE}"; then
+  as_fn_error "conditional \"HAS_NANOMIPS_SUBSET\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

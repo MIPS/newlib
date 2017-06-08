@@ -324,7 +324,7 @@ do { \
 /* default implementation of _mips_intdisable is a function */
 
 /* There are no microMIPS implementations that support MSA currently.  */
-#if !defined(__mips_micromips)
+#if !defined(__mips_micromips) && !defined(__nanomips__)
 # define MIPS_MSA_USABLE 1
 #else
 # define MIPS_MSA_USABLE 0
@@ -332,21 +332,33 @@ do { \
 
 #else /* ASSEMBLER */
 
-/* The correct way to use a hazard barrier return */
+/* The correct way to use a hazard barrier return.  */
+#ifdef __nanomips__
+
+# define MIPS_JRHB(REG) \
+  jrc.hb REG
+
+# define MIPS_NOMICROMIPS
+
+# define MIPS_NOMIPS16
+
+#else
 
 /* JR.HB does not resolve hazards from its delay slot.  */
-#define MIPS_JRHB(REG) \
+# define MIPS_JRHB(REG) \
   .set push;	  \
   .set noreorder;  \
   jr.hb REG;	  \
   nop;		  \
   .set pop
 
-#define MIPS_NOMICROMIPS \
+# define MIPS_NOMICROMIPS \
   .set nomicromips
 
-#define MIPS_NOMIPS16 \
+# define MIPS_NOMIPS16 \
   .set nomips16
+
+#endif
 
 #endif /* !ASSEMBLER */
 

@@ -39,6 +39,9 @@
 #define  _mips_intpatch_isroff3   0x12
 #define  _mips_intpatch_isroff4   0x1a
 
+/* Temporarily disable this function as it needs nanoMIPS encodings and LA
+ * macro expansion hard coding.  */
+#ifndef __nanomips__
 extern void m32_sync_icache(unsigned kva, size_t n);
 
 void _MIPS_HAL_NOMIPS16
@@ -82,6 +85,7 @@ _mips_intpatch (const reg_t index, uintptr_t handler, bool k1_to_kscratch1)
 # error "Unknown pointer size"
 #endif
 }
+#endif
 
 /*
  * Interrupt masking and acknowledging functions - these are weak so they can

@@ -44,7 +44,7 @@
 
 /* Testing on a little endian machine showed using CLZ was a
    performance loss, so we are not turning it on by default.  */
-#if defined(ENABLE_CLZ) && (__mips_isa_rev > 1)
+#if !defined(__nanomips_subset) && defined(ENABLE_CLZ) && (__mips_isa_rev > 1)
 # define USE_CLZ
 #endif
 

@@ -18,9 +18,9 @@
 #include <stddef.h>
 #include <string.h>
 
-/* MIPS16 needs to come first.  */
+/* MIPS16 and nanoMIPS need to come first.  */
 
-#if defined(__mips16)
+#if defined(__mips16) || defined(__nanomips__)
 size_t
 strlen (const char *str)
 {

@@ -182,7 +182,21 @@ SECTIONS
   .eh_frame . : AT (LOADADDR (.eh_frame_hdr) + SIZEOF(.eh_frame_hdr)) { KEEP (*(.eh_frame)) }
   .gcc_except_table . : AT (LOADADDR (.eh_frame) + SIZEOF(.eh_frame)) { *(.gcc_except_table) }
   .jcr . : AT (LOADADDR (.gcc_except_table) + SIZEOF(.gcc_except_table)) { KEEP (*(.jcr)) }
-  .ctors . : AT (LOADADDR (.jcr) + SIZEOF(.jcr))
+  .init_array . : AT (LOADADDR (.jcr) + SIZEOF(.jcr))
+  {
+    PROVIDE_HIDDEN (__init_array_start = .);
+    KEEP (*(SORT(.init_array.*)))
+    KEEP (*(.init_array))
+    PROVIDE_HIDDEN (__init_array_end = .);
+  }
+  .fini_array     :
+  {
+    PROVIDE_HIDDEN (__fini_array_start = .);
+    KEEP (*(SORT(.fini_array.*)))
+    KEEP (*(.fini_array))
+    PROVIDE_HIDDEN (__fini_array_end = .);
+  }
+  .ctors    :
   {
     /* gcc uses crtbegin.o to find the start of
        the constructors, so we make sure it is

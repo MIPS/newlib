@@ -59,6 +59,20 @@ SECTIONS
   .eh_frame : { KEEP (*(.eh_frame)) }
   .gcc_except_table : { *(.gcc_except_table) }
   .jcr : { KEEP (*(.jcr)) }
+  .init_array     :
+  {
+    PROVIDE_HIDDEN (__init_array_start = .);
+    KEEP (*(SORT(.init_array.*)))
+    KEEP (*(.init_array))
+    PROVIDE_HIDDEN (__init_array_end = .);
+  }
+  .fini_array     :
+  {
+    PROVIDE_HIDDEN (__fini_array_start = .);
+    KEEP (*(SORT(.fini_array.*)))
+    KEEP (*(.fini_array))
+    PROVIDE_HIDDEN (__fini_array_end = .);
+  }
   .ctors    :
   {
     /* gcc uses crtbegin.o to find the start of
@@ -111,7 +125,9 @@ SECTIONS
     *(.gnu.linkonce.d.*)
   }
   . = ALIGN(8);
-  _gp = . + 0x8000;
+  MIPS_REVISION = DEFINED (__mips_isa_rev) ? ABSOLUTE(__mips_isa_rev) : 0;
+  GP_OFFSET = (MIPS_REVISION < 7) ? 0x8000 : 0;
+  _gp = . + GP_OFFSET;
   __global = _gp;
   .lit8 : {
     *(.lit8)
