@@ -262,7 +262,11 @@ extern "C" {
 
 struct linkctx;
 
+#if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
+#define C_CTX_REGNO(REGNO) (REGNO)
+#else
 #define C_CTX_REGNO(REGNO) ((REGNO) - 1)
+#endif
 
 struct gpctx
 {
