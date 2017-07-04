@@ -42,7 +42,7 @@
 #if !defined(HW_UNALIGNED_SUPPORT)
 /* Does target have hardware support for unaligned accesses?  */
 #define HW_UNALIGNED_SUPPORT 0
-#if __mips_isa_rev >= 6
+#if __mips_isa_rev >= 6 && !defined (__nanomips__)
 #undef HW_UNALIGNED_SUPPORT
 #define HW_UNALIGNED_SUPPORT 1
 #endif
@@ -53,7 +53,7 @@
 #else
 #define PREFETCH(addr)
 #endif
-#if _MIPS_SIM == _ABIO32
+#if _MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIP32
 typedef unsigned long reg_t;
 typedef struct
 {
@@ -132,7 +132,7 @@ static void *
 unaligned_words (struct ulw *a, const reg_t * b,
 		 unsigned long words, unsigned long bytes, void *ret)
 {
-#if ((_MIPS_SIM == _ABIO32) || _MIPS_TUNE_I6400)
+#if ((_MIPS_SIM == _ABIO32) || _MIPS_TUNE_I6400 || _MIPS_SIM == _ABIP32)
   unsigned long i, words_by_8, words_by_1;
   words_by_1 = words % 8;
   words_by_8 = words >> 3;
@@ -217,7 +217,7 @@ static void *
 aligned_words (reg_t * a, const reg_t * b,
 	       unsigned long words, unsigned long bytes, void *ret)
 {
-#if ((_MIPS_SIM == _ABIO32) || _MIPS_TUNE_I6400)
+#if ((_MIPS_SIM == _ABIO32) || _MIPS_TUNE_I6400 || _MIPS_SIM == _ABIP32)
   unsigned long i, words_by_8, words_by_1;
   words_by_1 = words % 8;
   words_by_8 = words >> 3;
