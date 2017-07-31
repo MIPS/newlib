@@ -135,7 +135,7 @@ SLEAF(__tlbinvalall)
 
 	mfc0	t0, C0_CONFIG
 	and	t2, t0, CFG0_MT_MASK
-	beqz	t1, $Lexit		/* Config[MT] test, return if no TLB */
+	beqz	t2, $Lexit		/* Config[MT] test, return if no TLB */
 
 	li	t1, CFG0_MT_BAT
 	beq	t1, t2, $Lexit		/* return as there is a BAT */
