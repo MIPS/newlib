@@ -4,7 +4,7 @@
  * support.
  */
 
-__entry = DEFINED(__reset_vector) ? 0xbfc00000 : _start;
+__entry = _start;
 ENTRY(__entry)
 OUTPUT_FORMAT("elf32-tradlittlemips", "elf32-tradbigmips", "elf32-tradlittlemips")
 GROUP(-lc -luhi -lgcc -lhal)
@@ -21,12 +21,10 @@ EXTERN(__exception_entry)
  * informative
  */
 EXTERN(__exception_handle_verbose)
-/* Force ISRs 0-7 to be included in the link */
-EXTERN(__isr_vec_007)
+/* Force the interrupt handlers to tbe included in the link */
+EXTERN(__isr_vec)
 /* Require the UHI getargs support */
 EXTERN(__getargs)
-/* Include the breakpoint exception handler.  */
-EXTERN (__uhi_break);
 
 /*
  * Set the location of the top of the stack.  A value of 0 means
@@ -41,8 +39,8 @@ PROVIDE (__memory_size = 3M);
 /* Base of the memory returned by _get_ram_range */
 PROVIDE (__memory_base = 0x80000000);
 
-/* Stride length for tlb software invalidate for tlbinvf
- * (mipsXXr3+). Some MIPS implementations may layout the sets/ways
+/* Stride length for tlb software invalidate for tlbinvf 
+ * (mipsXXr3+). Some MIPS implementations may layout the sets/ways 
  * differently in the index register. Either sets LSB or ways LSB.
  *
  * By setting this to 1 we presume that sets come first. The default boot
@@ -78,10 +76,8 @@ PROVIDE (__flush_to_zero = 1);
 /* Set up the public symbols depending on whether the user has chosen
    quiet or verbose exception handling above */
 EXTERN (__exception_handle);
-PROVIDE(__exception_handle = (DEFINED(__exception_handle_quiet)
-				      ? __exception_handle_quiet
-				      : __exception_handle_verbose));
-PROVIDE(_mips_handle_exception = __exception_handle);
+
+PROVIDE(_mips_handle_exception = __exception_handle_verbose);
 
 /*
  * Initalize some symbols to be zero so we can reference them in the
@@ -98,7 +94,7 @@ PROVIDE (software_init_hook = 0);
 
 /* The default base address for application code is 0x80200000 which
    leaves 2M of space at the start of KSEG0 for a bootloader. */
-PROVIDE (__app_start = DEFINED(__reset_vector) ? 0x80000000 : 0x80200000);
+PROVIDE (__app_start = 0x80200000);
 /* Set default vector spacing to 32 bytes. */
 PROVIDE (__isr_vec_space = 32);
 /* Leave space for 9 vector entries by default. 8 entry points and one
@@ -109,36 +105,23 @@ PROVIDE (__isr_vec_count = 9);
  * the use of boot code will mean that application code is copied
  * from flash to RAM at runtime before being executed.
  */
-PROVIDE (__flash_start = DEFINED(__reset_vector) ? 0xbfc00000 : __app_start);
-/* Set the default execution address for boot code. */
-PROVIDE (__bev_override = 0x9fc00000);
+PROVIDE (__flash_start = __app_start);
+PROVIDE (__flash_app_start = __flash_start);
 
 SECTIONS
 {
-  /* Start of bootrom */
-  .bootrom __bev_override : /* Runs uncached (from 0x9fc00000) until I$ is
-			       initialized. */
-  AT (__flash_start)
-  {
-    *(.reset)		/* Reset entry point. */
-    *(.boot)		/* Boot code. */
-    . = ALIGN(8);
-  } = 0
-
-  PROVIDE (__flash_app_start = SIZEOF(.bootrom) + __flash_start);
-
   /* Start of the application */
   .exception_vector ALIGN(__app_start, 0x1000) :
   AT (__flash_app_start)
   {
-    PROVIDE (__excpt_ebase = ABSOLUTE(.));
+    __excpt_ebase = ABSOLUTE(.);
     __base = .;
     KEEP(* (.text.__exception_entry))
     . = __base + 0x200;
     KEEP(* (SORT(.text.__isr_vec*)))
     /* Leave space for all the vector entries */
     . = __base + 0x200 + (__isr_vec_space * __isr_vec_count);
-    ASSERT(__isr_vec_space == (DEFINED(__isr_vec_sw1)
+    ASSERT(__isr_vec_space == (DEFINED(__isr_vec_sw0)
 			       ? __isr_vec_sw1 - __isr_vec_sw0
 			       : __isr_vec_space),
 	   "Actual ISR vector spacing does not match __isr_vec_space");
@@ -227,7 +210,7 @@ SECTIONS
     *(.gnu.linkonce.d.*)
   }
   . = ALIGN(8);
-  _gp = . + 0;
+  _gp = . ;
   __global = _gp;
   .lit8 : {
     *(.lit8)
