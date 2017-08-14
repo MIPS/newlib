@@ -115,17 +115,7 @@ PROVIDE (__bev_override = 0x9fc00000);
 
 SECTIONS
 {
-  /* Start of bootrom */
-  .bootrom __bev_override : /* Runs uncached (from 0x9fc00000) until I$ is
-			       initialized. */
-  AT (__flash_start)
-  {
-    *(.reset)		/* Reset entry point. */
-    *(.boot)		/* Boot code. */
-    . = ALIGN(8);
-  } = 0
-
-  PROVIDE (__flash_app_start = SIZEOF(.bootrom) + __flash_start);
+  PROVIDE (__flash_app_start = __flash_start);
 
   /* Start of the application */
   .exception_vector ALIGN(__app_start, 0x1000) :
