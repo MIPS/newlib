@@ -635,7 +635,7 @@ _EXFUN(get_arg, (struct _reent *data, int n, char *fmt,
 #define	SHORTINT	0x040		/* short integer */
 #define	ZEROPAD		0x080		/* zero (as opposed to blank) pad */
 #define FPT		0x100		/* Floating point number */
-#if defined(_WANT_IO_C99_FORMATS) || defined(__mips)
+#if defined(_WANT_IO_C99_FORMATS)
 # define CHARINT	0x200		/* char as integer */
 #else /* define as 0, to make SARG and UARG occupy fewer instructions  */
 # define CHARINT	0
@@ -730,10 +730,11 @@ _DEFUN(_VFPRINTF_R, (data, fp, fmt0, ap),
 #endif
 	char *malloc_buf = NULL;/* handy pointer for malloced buffers */
 #ifdef __mips
-  int vec_size = 2; /* 1 -> 64bits, 2 -> 128bits, 3 -> 256bits, ... */
-  int elem_num = 0, elem_size = 32;
-  int processing_vec_type = 0;
-  int vec_spec = -1;  /* format specifier w, W or y */
+	int vec_size = 2; /* 1 -> 64bits, 2 -> 128bits, 3 -> 256bits, ... */
+	int elem_idx = 0, elem_num = 0, elem_size = 32;
+	int processing_vec_type = 0;
+	int vec_spec = -1;  /* format specifier w, W or y */
+	void *vec_base = NULL;
 #endif
 
 	/*
@@ -866,18 +867,15 @@ quad_t vec_sarg (void)
   quad_t val;
 
   if (flags & QUADINT)
-    val = va_arg (ap, quad_t);
+    val = (quad_t) *((quad_t *) vec_base + elem_idx);
   else if (flags & LONGINT)
-    val = va_arg (ap, long);
+    val = (quad_t) *((long *) vec_base + elem_idx);
   else if (flags & SHORTINT)
-    {
-      val = (quad_t) (short) *((short*)ap);
-      ap = (va_list) ((short*)ap + 1);
-    }
+    val = (quad_t)  *((short *) vec_base + elem_idx);
   else if (flags & CHARINT)
-    val = (quad_t)(signed char) (*((signed char*)ap++));
+    val = (quad_t) *((signed char *) vec_base + elem_idx);
   else
-    val = (quad_t) va_arg (ap, int);
+    val = (quad_t) *((int *) vec_base + elem_idx);
 
 #ifndef _NO_LONGLONG
   if ((quad_t)val < 0)
@@ -897,18 +895,15 @@ u_quad_t vec_uarg (void)
   u_quad_t val;
 
   if (flags & QUADINT)
-    return va_arg (ap, u_quad_t);
+    val = *((u_quad_t *) vec_base + elem_idx);
   else if (flags & LONGINT)
-    return va_arg (ap, unsigned long);
+    val = *((unsigned long *) vec_base + elem_idx);
   else if (flags & SHORTINT)
-    {
-      val = (u_quad_t) (unsigned short) *((unsigned short*)ap);
-      ap = (va_list) ((unsigned short*)ap + 1);
-    }
+    val = *((unsigned short *) vec_base + elem_idx);
   else if (flags & CHARINT)
-    val = (u_quad_t)(unsigned char) (*((unsigned char*)ap++));
+    val = *((unsigned char *) vec_base + elem_idx);
   else
-    val = (u_quad_t) va_arg (ap, unsigned int);
+    val = *((unsigned int *) vec_base + elem_idx);
 
   return val;
 }
@@ -1164,10 +1159,10 @@ reswitch:	switch (ch) {
 #endif /* !_NO_POS_ARGS */
 
 #ifdef __mips
-      if (ch == 'w' || ch == 'W' || ch == 'y') {
-        vec_size = n;
-        goto reswitch;
-      }
+			if (ch == 'w' || ch == 'W' || ch == 'y') {
+				vec_size = n;
+				goto reswitch;
+			}
 #endif
 
 			width = n;
@@ -1178,7 +1173,7 @@ reswitch:	switch (ch) {
 			goto rflag;
 #endif
 		case 'h':
-#if defined(_WANT_IO_C99_FORMATS) || defined(__mips)
+#if defined(_WANT_IO_C99_FORMATS)
 			if (*fmt == 'h') {
 				fmt++;
 				flags |= CHARINT;
@@ -1650,9 +1645,9 @@ number:			if ((dprec = prec) >= 0)
 			cp = buf + BUF;
 
 #ifdef __mips
-  /* separate vector elements by space */
-  if (processing_vec_type == 1 && elem_num >= 2)
-    *--cp = ' ';
+			/* separate vector elements by space */
+			if (processing_vec_type == 1 && elem_num >= 2)
+				*--cp = ' ';
 #endif
 
 			if (_uquad != 0 || prec != 0) {
@@ -1737,8 +1732,6 @@ number:			if ((dprec = prec) >= 0)
 			break;
 
 #ifdef __mips
-#define MIPS_VEC_ALIGNMENT  16
-
     case 'y':
     case 'w':
     case 'W':
@@ -1746,9 +1739,6 @@ number:			if ((dprec = prec) >= 0)
       /* preserve the format specifier */
       if (vec_spec == -1)
         vec_spec = ch;
-
-      /* align the ap to fetch vector data type */
-      ap = (va_list) (((size_t) ap) + (MIPS_VEC_ALIGNMENT - 1) & -MIPS_VEC_ALIGNMENT);
 
       base = DEC;
       if (flags & ALT)
@@ -1790,6 +1780,10 @@ number:			if ((dprec = prec) >= 0)
       /* start the processing of vector data types */
       processing_vec_type = 1;
 
+      /* fetch the vector base address */
+      vec_base = (void *) va_arg (ap, void*);
+      elem_idx = 0;
+
       /* main loop which prints elements in the vector */
 mips_print_vec:
       /* stop if we have processed elem_num */
@@ -1797,6 +1791,7 @@ mips_print_vec:
         {
           processing_vec_type = 0;  /* end of vector data processing */
           vec_spec = -1;
+          elem_idx = 0;
           flags &= ~FPT;
           break;
         }
@@ -1807,13 +1802,17 @@ mips_print_vec:
           ch = 'f';
 
           if (flags & LONGDBL)
-            _fpvalue = (double) GET_ARG (N, ap, double);
+            {
+              double *dbl_ptr = (double*) vec_base;
+              _fpvalue = (double) dbl_ptr[elem_idx];
+            }
           else
-          {
-            _fpvalue = (double) (float)(*(float*)ap);
-            ap = (va_list) ((float*)ap + 1);
-          }
+            {
+              float *flt_ptr = (float*) vec_base;
+              _fpvalue = (double) flt_ptr[elem_idx];
+            }
 
+          elem_idx++;
           goto float_number;
         }
       else
@@ -1824,6 +1823,7 @@ mips_print_vec:
           else
             _uquad = vec_sarg ();   /* signed */
 
+          elem_idx++;
           goto number;  /* process as if it is a normal number */
         }
 
