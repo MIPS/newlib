@@ -729,7 +729,7 @@ _DEFUN(_VFPRINTF_R, (data, fp, fmt0, ap),
 	mbstate_t state;        /* mbtowc calls from library must not change state */
 #endif
 	char *malloc_buf = NULL;/* handy pointer for malloced buffers */
-#ifdef __mips
+#if 0 //def __mips
   int vec_size = 2; /* 1 -> 64bits, 2 -> 128bits, 3 -> 256bits, ... */
   int elem_num = 0, elem_size = 32;
   int processing_vec_type = 0;
@@ -860,7 +860,7 @@ _DEFUN(_VFPRINTF_R, (data, fp, fmt0, ap),
 	    (u_long)GET_ARG (N, ap, u_int))
 #endif
 
-#ifdef __mips
+#if 0 //def __mips
 quad_t vec_sarg (void)
 {
   quad_t val;
@@ -1163,7 +1163,7 @@ reswitch:	switch (ch) {
 			}
 #endif /* !_NO_POS_ARGS */
 
-#ifdef __mips
+#if 0 //def __mips
       if (ch == 'w' || ch == 'W' || ch == 'y') {
         vec_size = n;
         goto reswitch;
@@ -1296,7 +1296,7 @@ reswitch:	switch (ch) {
 				_fpvalue = GET_ARG (N, ap, double);
 			}
 
-#ifdef __mips
+#if 0 //def __mips
 float_number:
 #endif
 
@@ -1335,7 +1335,7 @@ float_number:
 				_fpvalue = (_LONG_DOUBLE)GET_ARG (N, ap, double);
 			}
 
-#ifdef __mips
+#if 0 //def __mips
 float_number:
 #endif
 
@@ -1649,7 +1649,7 @@ number:			if ((dprec = prec) >= 0)
 			 */
 			cp = buf + BUF;
 
-#ifdef __mips
+#if 0 //def __mips
   /* separate vector elements by space */
   if (processing_vec_type == 1 && elem_num >= 2)
     *--cp = ' ';
@@ -1736,7 +1736,7 @@ number:			if ((dprec = prec) >= 0)
 		skipsize:
 			break;
 
-#ifdef __mips
+#if 0 //def __mips
 #define MIPS_VEC_ALIGNMENT  16
 
     case 'y':
@@ -1977,7 +1977,7 @@ mips_print_vec_check:
 			malloc_buf = NULL;
 		}
 
-#ifdef __mips
+#if 0 //def __mips
     /* loop back to check if there are more elements to process */
     if (processing_vec_type == 1)
       goto mips_print_vec_check;
