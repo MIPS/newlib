@@ -19,10 +19,16 @@
 /* This file does not use any floating-point ABI.  */
 	.gnu_attribute 4,0
 
+#include "newlib.h"
 #include <mips/regdef.h>
 #include <mips/cpu.h>
 #include <mips/asm.h>
 #include "abiflags.S"
+
+#ifdef HAVE_INITFINI_ARRAY
+#define _init	__libc_init_array
+#define _fini	__libc_fini_array
+#endif
 
 MIPS_NOMIPS16
 
