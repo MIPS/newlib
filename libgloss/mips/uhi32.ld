@@ -175,6 +175,20 @@ SECTIONS
   .eh_frame : { KEEP (*(.eh_frame)) }
   .gcc_except_table : { *(.gcc_except_table) }
   .jcr : { KEEP (*(.jcr)) }
+  .init_array     :
+  {
+    PROVIDE_HIDDEN (__init_array_start = .);
+    KEEP (*(SORT(.init_array.*)))
+    KEEP (*(.init_array))
+    PROVIDE_HIDDEN (__init_array_end = .);
+  }
+  .fini_array     :
+  {
+    PROVIDE_HIDDEN (__fini_array_start = .);
+    KEEP (*(SORT(.fini_array.*)))
+    KEEP (*(.fini_array))
+    PROVIDE_HIDDEN (__fini_array_end = .);
+  }
   .ctors    :
   {
     /* gcc uses crtbegin.o to find the start of
