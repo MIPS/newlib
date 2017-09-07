@@ -124,7 +124,7 @@ SECTIONS
     *(.data.*)
     *(.gnu.linkonce.d.*)
   }
-  . = ALIGN(8);
+  . = ALIGN(4096);
   _gp = . + 0;
   __global = _gp;
   .lit8 : {
