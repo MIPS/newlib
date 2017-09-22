@@ -3,7 +3,6 @@
    the simulator.  */
 
 ENTRY(_start)
-OUTPUT_ARCH("mips:isa32r2")
 OUTPUT_FORMAT("elf32-tradlittlemips", "elf32-tradbigmips", "elf32-tradlittlemips")
 GROUP(-lc -lidt -lgcc)
 SEARCH_DIR(.)
@@ -104,7 +103,8 @@ SECTIONS
     *(.rodata.*)
     *(.gnu.linkonce.r.*)
   }
-   _fdata = ALIGN(16);
+   . = ALIGN(16);
+   _fdata = .;
   .data : {
     *(.data)
     *(.data.*)
