@@ -8,7 +8,6 @@
    o32 ABI targets in OUTPUT_FORMAT.  */
 
 ENTRY(_start)
-OUTPUT_ARCH("mips:isa64r2")
 OUTPUT_FORMAT("elf32-ntradlittlemips", "elf32-ntradbigmips", "elf32-ntradlittlemips")
 GROUP(-lc -lidt -lgcc)
 SEARCH_DIR(.)
@@ -109,7 +108,8 @@ SECTIONS
     *(.rodata.*)
     *(.gnu.linkonce.r.*)
   }
-   _fdata = ALIGN(16);
+   . = ALIGN(16);
+   _fdata = .;
   .data : {
     *(.data)
     *(.data.*)
