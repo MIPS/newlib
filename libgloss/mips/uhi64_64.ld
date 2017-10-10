@@ -116,8 +116,8 @@ PROVIDE (__bev_override = 0xffffffff9fc00000);
 SECTIONS
 {
   /* Start of bootrom */
-  .bootrom __bev_override : /* Runs uncached (from 0x9fc00000) until
-			       I$ is initialized. */
+  .bootrom __bev_override : /* Runs uncached (from 0x9fc00000) until I$ is
+			       initialized. */
   AT (__flash_start)
   {
     *(.reset)		/* Reset entry point. */
@@ -127,28 +127,35 @@ SECTIONS
 
   PROVIDE (__flash_app_start = SIZEOF(.bootrom) + __flash_start);
 
+  __aligned_app_start = DEFINED(__xip)
+			? __bev_override + SIZEOF(.bootrom)
+			: ALIGN(__app_start, 0x1000);
+
+  PROVIDE (__ebase_size = 0x200);
+
   /* Start of the application */
-  .exception_vector ALIGN(__app_start, 0x1000) :
+  .exception_vector __aligned_app_start :
   AT (__flash_app_start)
   {
     PROVIDE (__excpt_ebase = ABSOLUTE(.));
     __base = .;
     KEEP(* (.text.__exception_entry))
-    . = __base + 0x200;
+    . = __base + __ebase_size;
     KEEP(* (SORT(.text.__isr_vec*)))
     /* Leave space for all the vector entries */
-    . = __base + 0x200 + (__isr_vec_space * __isr_vec_count);
+    . = __base + __ebase_size + (__isr_vec_space * __isr_vec_count);
     ASSERT(__isr_vec_space == (DEFINED(__isr_vec_sw1)
 			       ? __isr_vec_sw1 - __isr_vec_sw0
 			       : __isr_vec_space),
 	   "Actual ISR vector spacing does not match __isr_vec_space");
-    ASSERT(__base + 0x200 == (DEFINED(__isr_vec_sw0)
-			      ? __isr_vec_sw0 : __base + 0x200),
+    ASSERT(__base + __ebase_size == (DEFINED(__isr_vec_sw0)
+				     ? __isr_vec_sw0
+				     : __base + __ebase_size),
 	   "__isr_vec_sw0 is not placed at EBASE + 0x200");
     . = ALIGN(8);
   } = 0
 
-  .text : {
+  .text . : AT (LOADADDR (.exception_vector) + SIZEOF(.exception_vector)) {
      _ftext = . ;
     PROVIDE (eprol  =  .);
     *(.text)
@@ -157,13 +164,13 @@ SECTIONS
     *(.mips16.fn.*)
     *(.mips16.call.*)
   }
-  .init : {
+  .init . : AT (LOADADDR (.text) + SIZEOF(.text)) {
     KEEP (*(.init))
   }
-  .fini : {
+  .fini . : AT (LOADADDR (.init) + SIZEOF(.init)) {
     KEEP (*(.fini))
   }
-  .rel.sdata : {
+  .rel.sdata . : AT (LOADADDR (.fini) + SIZEOF(.fini)) {
     PROVIDE (__runtime_reloc_start = .);
     *(.rel.sdata)
     PROVIDE (__runtime_reloc_stop = .);
@@ -171,11 +178,11 @@ SECTIONS
   PROVIDE (etext  =  .);
   _etext  =  .;
 
-  .eh_frame_hdr : { *(.eh_frame_hdr) }
-  .eh_frame : { KEEP (*(.eh_frame)) }
-  .gcc_except_table : { *(.gcc_except_table) }
-  .jcr : { KEEP (*(.jcr)) }
-  .ctors    :
+  .eh_frame_hdr . : AT (LOADADDR (.rel.sdata) + SIZEOF(.rel.sdata)) { *(.eh_frame_hdr) }
+  .eh_frame . : AT (LOADADDR (.eh_frame_hdr) + SIZEOF(.eh_frame_hdr)) { KEEP (*(.eh_frame)) }
+  .gcc_except_table . : AT (LOADADDR (.eh_frame) + SIZEOF(.eh_frame)) { *(.gcc_except_table) }
+  .jcr . : AT (LOADADDR (.gcc_except_table) + SIZEOF(.gcc_except_table)) { KEEP (*(.jcr)) }
+  .ctors . : AT (LOADADDR (.jcr) + SIZEOF(.jcr))
   {
     /* gcc uses crtbegin.o to find the start of
        the constructors, so we make sure it is
@@ -199,7 +206,7 @@ SECTIONS
     KEEP (*(.ctors))
   }
 
-  .dtors    :
+  .dtors . : AT (LOADADDR (.ctors) + SIZEOF(.ctors))
   {
     KEEP (*crtbegin.o(.dtors))
     KEEP (*(EXCLUDE_FILE (*crtend.o) .dtors))
@@ -227,9 +234,7 @@ SECTIONS
     *(.gnu.linkonce.d.*)
   }
   . = ALIGN(8);
-    MIPS_REVISION = DEFINED (__mips_isa_rev) ? ABSOLUTE(__mips_isa_rev) : 0;
-  GP_OFFSET = (MIPS_REVISION < 7) ? 0x8000 : 0;
-  _gp = . + GP_OFFSET;
+  _gp = . + 0x8000;
   __global = _gp;
   .lit8 : {
     *(.lit8)
@@ -268,6 +273,9 @@ SECTIONS
   .startdata : {
     *(.startdata)
   }
+
+  /* We do not support any runtime relocation handling with this script.  */
+  /DISCARD/ : { *(.rel.dyn) *(.rela.dyn) }
 
   /* DWARF debug sections.
      Symbols in the DWARF debugging sections are relative to

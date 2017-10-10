@@ -198,7 +198,7 @@ CM3AR = libcm3.a
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
 
 EXAMPLES = custom_excpt fault_recovery interrupt_handler isr_vector_space \
-	   romable romable_minimal romable_predef
+	   romable romable_minimal romable_predef romable_predef_xip
 
 GCC_LDFLAGS = `if [ -d ${objroot}/../gcc ] ; \
 	then echo -L${objroot}/../gcc ; fi`

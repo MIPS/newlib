@@ -123,6 +123,12 @@ $Lnot_nmi:
 	beqz	a2, 1f
 	jalr	a2
 1:
+	/* Skip copy to ram when executing in place */
+	.weak __xip
+	lui	a1, %hi(__xip)
+	addiu	a1, a1, %lo(__xip)
+	bnez	a1, $Lcopy_to_ram_done
+
 	/* Copy code and data to RAM */
 	li	s1, 0xffffffff
 
