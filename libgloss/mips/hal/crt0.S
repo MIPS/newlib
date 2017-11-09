@@ -26,7 +26,7 @@
 
 MIPS_NOMIPS16
 
-#define STARTUP_STACK_SIZE	0x0400	  /* Temporary stack size to run C code */
+#define STARTUP_STACK_SIZE	0x40	  /* Temporary stack size to run C code */
 
 	.section .startdata, "aw", @nobits
 	.balign 16
@@ -37,6 +37,7 @@ __ram_extent:
 
 	.data
 
+	.balign	SZREG
 __temp_space:	   /* Temporary space to save arguments */
 	.space	SZREG * 3
 
