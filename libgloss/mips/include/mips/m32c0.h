@@ -1221,13 +1221,17 @@ __extension__ ({ \
 #define mips_synci(ADDR)		\
   ({__asm__ volatile ("\t synci 0(%0) \n" :: "r" (ADDR));})
 
-#define mips_synci_step()			\
+#if defined(__nanomips_subset)
+# define mips_synci_step() (0)
+#else
+# define mips_synci_step()			\
 ({						\
     int _step;					\
     __asm__ volatile (				\
       "\t rdhwr %0,$1 \n" : "=r" (_step));	\
     _step;					\
 })
+#endif
 
 #define mips_ehb()		\
   ({__asm__ volatile ("\t ehb \n");})

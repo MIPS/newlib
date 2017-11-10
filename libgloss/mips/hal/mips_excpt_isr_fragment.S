@@ -54,7 +54,9 @@ MIPS_NOMIPS16
 .extern	REF
 .weak	ISR
 
-#ifdef __mips_micromips
+#if defined(__nanomips__)
+# define NOP nop32
+#elif defined(__mips_micromips)
 # define NOP nop32
 #else
 # define NOP nop
@@ -67,7 +69,16 @@ _TEXT_SECTION_NAMED(DEF);
 	.ent    DEF;
 DEF:
 	NOP		  /* May become: mtc0 k1, C0_KSCRATCH1 */
+#ifndef __nanomips__
 	LA	k1, ISR
+#else
+# ifdef __nanomips_subset
+	lui32	k1, %hi(ISR)
+	ori32	k1, k1, %lo(ISR)
+# else
+	li48	k1, ISR
+# endif
+#endif
 	beqz	k1, __isr_vec_fallback
 	jr	k1
 END(DEF)

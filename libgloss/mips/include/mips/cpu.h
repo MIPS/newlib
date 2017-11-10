@@ -330,6 +330,14 @@ do { \
 # define MIPS_MSA_USABLE 0
 #endif
 
+#if defined(__nanomips__)
+/* How to encode a HI20 immediate value for LUI or ALUIPC.  */
+# define NANO_ENCODE_HI20(VAL) \
+	 (((((VAL) >> 12) & 0x1ff) << 12) \
+	  | ((((VAL) >> 21) & 0x3ff) << 2) \
+	  | (((VAL) >> 31) & 1))
+#endif
+
 #else /* ASSEMBLER */
 
 /* The correct way to use a hazard barrier return.  */
