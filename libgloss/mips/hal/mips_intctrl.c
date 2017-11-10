@@ -34,10 +34,17 @@
 #include <mips/intctrl.h>
 
 #define  _mips_intpatch_kscratch1 0x00
-#define  _mips_intpatch_isroff1	  0x06
-#define  _mips_intpatch_isroff2	  0x0a
-#define  _mips_intpatch_isroff3   0x12
-#define  _mips_intpatch_isroff4   0x1a
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ || defined (__mips_micromips)
+# define  _mips_intpatch_isroff1  0x06
+# define  _mips_intpatch_isroff2  0x0a
+# define  _mips_intpatch_isroff3  0x12
+# define  _mips_intpatch_isroff4  0x1a
+#else
+# define  _mips_intpatch_isroff1  0x04
+# define  _mips_intpatch_isroff2  0x08
+# define  _mips_intpatch_isroff3  0x10
+# define  _mips_intpatch_isroff4  0x1c
+#endif
 
 /* Temporarily disable this function as it needs nanoMIPS encodings and LA
  * macro expansion hard coding.  */
