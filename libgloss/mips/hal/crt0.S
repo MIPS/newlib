@@ -43,6 +43,7 @@ __ram_extent:
 
 	.data
 
+	.balign	SZREG
 __temp_space:	   /* Temporary space to save arguments */
 	.space	SZREG * 3
 
