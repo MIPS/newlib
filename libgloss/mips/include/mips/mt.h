@@ -397,6 +397,7 @@ do { \
 		".set pop\n" \
 		: : "dJ" (v)); \
 } while (0)
+#endif
 
 /* move from cp0 */
 #define _m32c0_mftc0(rt,sel) \
