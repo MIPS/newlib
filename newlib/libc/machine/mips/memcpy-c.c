@@ -34,7 +34,7 @@
 #if !defined(UNALIGNED_INSTR_SUPPORT)
 /* does target have unaligned lw/ld/ualw/uald instructions? */
 #define UNALIGNED_INSTR_SUPPORT 0
-#if __mips_isa_rev < 6 && !__mips1
+#if (__mips_isa_rev < 6 && !__mips1) || __nanomips__
 #undef UNALIGNED_INSTR_SUPPORT
 #define UNALIGNED_INSTR_SUPPORT 1
 #endif

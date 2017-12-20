@@ -30,7 +30,7 @@
 #include <string.h>
 
 #define SIZEOF_reg_t 4
-#if _MIPS_SIM == _ABIO32
+#if _MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIP32
 typedef unsigned long reg_t;
 typedef struct bits
 {
