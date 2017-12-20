@@ -75,6 +75,25 @@ typedef union
   a[i] = bw.b.B##i;     \
   len--;                \
   if(!len) return ret;  \
+
+/* Typical observed latency in cycles in fetching from DRAM.  */
+#define LATENCY_CYCLES 63
+/* This is the approximate observed lenght of the inner loop for both
+   mips32 and nanoMIPS32. Review and customize for 64-bit as necessary.  */
+#define BLOCK_CYCLES 20
+/* Pre-fetch look ahead = ceil (latency / block-cycles)  */
+#define PREF_AHEAD (LATENCY_CYCLES / BLOCK_CYCLES	       \
+		      + ((LATENCY_CYCLES % BLOCK_CYCLES) == 0 ? 0 : 1))
+
+/* Pre-fetch performance is subject to correct cache-line size.  */
+#if _MIPS_TUNE_I6400
+#define CACHE_LINE 64
+#else
+#define CACHE_LINE 32
+#endif
+
+#define WORDS_PER_BLOCK (CACHE_LINE / sizeof (reg_t))
+
 /* This code is called when aligning a pointer, there are remaining bytes
    after doing word compares, or architecture does not have some form
    of unaligned support.  */
@@ -134,11 +153,12 @@ unaligned_words (struct ulw *a, const reg_t * b,
 {
 #if ((_MIPS_SIM == _ABIO32) || _MIPS_TUNE_I6400 || _MIPS_SIM == _ABIP32)
   unsigned long i, words_by_8, words_by_1;
-  words_by_1 = words % 8;
-  words_by_8 = words >> 3;
+  words_by_1 = words % WORDS_PER_BLOCK;
+  words_by_8 = words / WORDS_PER_BLOCK;
   for (; words_by_8 > 0; words_by_8--) {
-    if(words_by_8 != 1)
-      PREFETCH (b + 8);
+    /* Do an extra pre-fetch for possible trailing bytes.  */
+    if(words_by_8 >= PREF_AHEAD - 1)
+      PREFETCH (b + WORDS_PER_BLOCK * PREF_AHEAD);
     reg_t y0 = b[0], y1 = b[1], y2 = b[2], y3 = b[3];
     reg_t y4 = b[4], y5 = b[5], y6 = b[6], y7 = b[7];
     a[0].uli = y0;
@@ -149,16 +169,16 @@ unaligned_words (struct ulw *a, const reg_t * b,
     a[5].uli = y5;
     a[6].uli = y6;
     a[7].uli = y7;
-    a += 8;
-    b += 8;
+    a += WORDS_PER_BLOCK;
+    b += WORDS_PER_BLOCK;
   }
 #else
   unsigned long i, words_by_4, words_by_1;
   words_by_1 = words % 4;
   words_by_4 = words >> 2;
    for (; words_by_4 > 0; words_by_4--) {
-    if(words_by_4 != 1)
-      PREFETCH (b + 4);
+    if(words_by_4 >= PREF_AHEAD - 1)
+      PREFETCH (b + WORDS_PER_BLOCK * PREF_AHEAD);
     reg_t y0 = b[0], y1 = b[1], y2 = b[2], y3 = b[3];
     a[0].uli = y0;
     a[1].uli = y1;
@@ -219,11 +239,12 @@ aligned_words (reg_t * a, const reg_t * b,
 {
 #if ((_MIPS_SIM == _ABIO32) || _MIPS_TUNE_I6400 || _MIPS_SIM == _ABIP32)
   unsigned long i, words_by_8, words_by_1;
-  words_by_1 = words % 8;
-  words_by_8 = words >> 3;
+  words_by_1 = words % WORDS_PER_BLOCK;
+  words_by_8 = words / WORDS_PER_BLOCK;
   for (; words_by_8 > 0; words_by_8--) {
-    if(words_by_8 != 1)
-      PREFETCH (b + 8);
+    /* Do an extra pre-fetch for possible trailing bytes.  */
+    if(words_by_8 >= PREF_AHEAD - 1)
+      PREFETCH (b + WORDS_PER_BLOCK * PREF_AHEAD);
     reg_t x0 = b[0], x1 = b[1], x2 = b[2], x3 = b[3];
     reg_t x4 = b[4], x5 = b[5], x6 = b[6], x7 = b[7];
     a[0] = x0;
@@ -234,16 +255,16 @@ aligned_words (reg_t * a, const reg_t * b,
     a[5] = x5;
     a[6] = x6;
     a[7] = x7;
-    a += 8;
-    b += 8;
+    a += WORDS_PER_BLOCK;
+    b += WORDS_PER_BLOCK;
   }
 #else
   unsigned long i, words_by_4, words_by_1;
   words_by_1 = words % 4;
   words_by_4 = words >> 2;
   for (; words_by_4 > 0; words_by_4--) {
-    if(words_by_4 != 1)
-      PREFETCH (b + 4);
+    if(words_by_4 >= PREF_AHEAD - 1)
+      PREFETCH (b + WORDS_PER_BLOCK * PREF_AHEAD);
     reg_t x0 = b[0], x1 = b[1], x2 = b[2], x3 = b[3];
     a[0] = x0;
     a[1] = x1;
@@ -275,6 +296,10 @@ memcpy (void *a, const void *b, size_t len) __overloadable
      Note that the pointer is only 32-bits for o32/n32 ABIs. For
      n32, loads are done as 64-bit while address remains 32-bit.   */
   bytes = ((unsigned long) b) % sizeof (reg_t);
+
+  /* Start a pre-fetch ahead of time.  */
+  PREFETCH (b - bytes + CACHE_LINE * (PREF_AHEAD - 1));
+
   if (bytes) {
     bytes = sizeof (reg_t) - bytes;
     if (bytes > len)
