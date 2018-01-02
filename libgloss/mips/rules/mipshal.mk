@@ -81,7 +81,7 @@ endif
 
 # Pick the appropiate flags based on $(ABI)
 ifeq ($(ABI), 32)
-  MIPS_TOOLCHAIN ?= nanomips-elf
+  MIPS_TOOLCHAIN ?= nanomips-img-elf
   LDSCRIPT ?= $(LDSCRIPT32)
 else
   $(error ABI must be 32)
