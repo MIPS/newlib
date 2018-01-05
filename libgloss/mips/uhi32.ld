@@ -115,10 +115,22 @@ PROVIDE (__bev_override = 0x9fc00000);
 
 SECTIONS
 {
-  PROVIDE (__flash_app_start = __flash_start);
+  /* Start of bootrom */
+  .bootrom __bev_override : /* Runs uncached (from 0x9fc00000) until I$ is
+			       initialized. */
+  AT (__flash_start)
+  {
+    *(.reset)           /* Reset entry point. */
+    *(.boot)            /* Boot code. */
+    . = ALIGN(8);
+  } = 0
+
+  PROVIDE (__flash_app_start = DEFINED(__xip)
+			       ? ALIGN(__flash_start + SIZEOF(.bootrom), 0x1000)
+			       : __flash_start + SIZEOF(.bootrom));
 
   __aligned_app_start = DEFINED(__xip)
-			? __bev_override + SIZEOF(.bootrom)
+			? ALIGN(__bev_override + SIZEOF(.bootrom), 0x1000)
 			: ALIGN(__app_start, 0x1000);
 
   PROVIDE (__ebase_size = 0x200);
@@ -220,6 +232,11 @@ SECTIONS
   }
 
   . = .;
+  .nanoMIPS.abiflags : {
+    __MIPS_abiflags_start = .;
+    *(.nanoMIPS.abiflags)
+    __MIPS_abiflags_end = .;
+  }
   .MIPS.abiflags : {
     __MIPS_abiflags_start = .;
     *(.MIPS.abiflags)
