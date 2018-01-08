@@ -372,6 +372,7 @@ install:
 	done
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/rules
 	@$(INSTALL_DATA) ${srcdir}/rules/mipshal.mk $(DESTDIR)$(exec_prefix)/share/mips/rules/
+	@$(INSTALL_PROGRAM) ${srcdir}/rules/srec2hex.pl $(DESTDIR)$(exec_prefix)/share/mips/rules/
 	mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples
 	for example in $(EXAMPLES); do\
 	  mkdir -p $(DESTDIR)$(exec_prefix)/share/mips/examples/$${example}; \
