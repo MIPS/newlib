@@ -29,8 +29,8 @@
 
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
-CFLAGS += -g -O1
-LDFLAGS += -g
+CFLAGS += -msoft-float -g -O1
+LDFLAGS += -msoft-float -g
 
 OBJS = fault_recovery.o
 APP = fault_recovery.elf
