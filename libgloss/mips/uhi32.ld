@@ -233,9 +233,9 @@ SECTIONS
 
   . = .;
   .nanoMIPS.abiflags : {
-    __MIPS_abiflags_start = .;
+    __nanoMIPS_abiflags_start = .;
     *(.nanoMIPS.abiflags)
-    __MIPS_abiflags_end = .;
+    __nanoMIPS_abiflags_end = .;
   }
   .MIPS.abiflags : {
     __MIPS_abiflags_start = .;
