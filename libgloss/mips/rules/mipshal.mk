@@ -49,6 +49,7 @@ lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(s
 
 # These are linker script symbols that are prefixed with '__"
 priv_symbols = MEMORY_BASE MEMORY_SIZE STACK
+priv_symbols += BEV_OVERRIDE
 priv_symbols += ENABLE_XPA
 priv_symbols += FLUSH_TO_ZERO
 priv_symbols += FLASH_START APP_START FLASH_APP_START
@@ -101,7 +102,7 @@ ifeq ($(ROMABLE),1)
 endif
 
 ifdef ELF_ENTRY
-  MIPS_HAL_LDFLAGS += --entry $(ELF_ENTRY)
+  MIPS_HAL_LDFLAGS += -Wl,--entry,$(ELF_ENTRY)
 endif
 
 ifndef MIPS_ELF_ROOT
