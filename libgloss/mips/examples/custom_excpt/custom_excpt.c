@@ -33,79 +33,67 @@
 #include <unistd.h>
 #include <mips/hal.h>
 #include <mips/cpu.h>
+
+#define TRAPCODE1 0x4321
+#define TRAPCODE2 0x8765
+
+volatile int num_traps = 0;
+
 int
 main ()
 {
-  /* Some pointer setup to access memory address 0*/
-  int b = -1;
-  int *a = 0;
-  /* Write to 0, triggering a TLB store error */
-  *a = 0;
-  /* Read from 0, triggering a TLB load error */
-  b = *a;
-  /* Return value should be 0 */
-  return b;
+  /* Write special trap code */
+  asm volatile ("li $t0, %0\n"
+      "teq $r0, $r0, 20\n"  /* 20 is unused, just put something */
+      "li $t0, %1\n"
+      "teq $r0, $r0, 20\n"
+      "li $t0, 0"
+      :: "i" (TRAPCODE1), "i" (TRAPCODE2)
+      : "$t0");
+
+  if (num_traps != 3)  /* 3 because gets OR'd with 1 and 2 on each trap respectively */
+    {
+      printf ("2 traps expected to have been done. Failed.\n");
+      return 2;
+    }
+  else
+    {
+      printf ("Succeded!\n");
+      return 0;
+    }
 }
 
-/*
- * This exception handler emulates register zero style handling but for memory,
- * i.e. writes to page zero are ignored and reads return a zero for select
- * instructions.
- */
 void
 _mips_handle_exception (struct gpctx *ctx, int exception)
 {
   /*
    * This example is designed to work only on MIPS32 and does not handle the
    * case where a memory operation occurs in a branch delay slot.
+   *
+   * Look for a 'teq' operation, ie. 'trap if equal'.
    */
   if ((mips32_get_c0 (C0_CAUSE) & CR_BD) == 0
-      && (ctx->epc & 0x1) == 0)
-    {
-      unsigned int fault_instruction = 0;
-      switch (exception)
-	{
-	case EXC_TLBS:
-	  fault_instruction = *((unsigned int *) (ctx->epc));
-	  if ((fault_instruction >> 26) == 0x2b)
-	    {
-	      /* Store instruction, ensure it went to zero. */
-	      unsigned int store_reg = (fault_instruction >> 21) & 0x1f;
-	      int16_t offset = fault_instruction & 0xffff;
-	      unsigned int destination = ctx->r[C_CTX_REGNO(store_reg)] + offset;
-
-	      if (destination < 4096)
-		{
-		  write (1, "Handled write to zero page\n", 27);
-		  ctx->epc += 4;
-		  return;
-		}
-	    }
-	  break;
-
-	case EXC_TLBL:
-	  fault_instruction = *((unsigned int *) (ctx->epc));
-	  if ((fault_instruction >> 26) == 0x23)
-	    {
-	      /* Load instruction, ensure it went to zero. */
-	      unsigned int load_reg = (fault_instruction >> 21) & 0x1f;
-	      int16_t offset = fault_instruction & 0xffff;
-	      unsigned int destination = ctx->r[C_CTX_REGNO(load_reg)] + offset;
-	      if (destination < 4096)
-		{
-		  write (1, "Handled read from zero page\n", 28);
-		  ctx->epc += 4;
-		  unsigned int rt = (fault_instruction >> 16) & 0x1f;
-		  ctx->r[rt] = 0;
-		  return;
-		}
-	    }
-	  break;
-
-	default:
-	  break;
-	}
-    }
+      && ((ctx->epc & 0x1) == 0)
+      && (exception == EXC_TRAP))
+  {
+    unsigned short *fault_insnhi = (unsigned short *) (ctx->epc);
+    if ((*fault_insnhi >> 10) == 0x8)  /* teq insn opcode in bits 31..26 */
+      switch (ctx->r[C_CTX_REGNO (12)])
+      {
+        case TRAPCODE1:
+          write(1, "Trap 1 done!\n", 13);
+          num_traps |= 1;
+          ctx->epc += 4;
+          return;
+        case TRAPCODE2:
+          write(1, "Trap 2 done!\n", 13);
+          num_traps |= 2;
+          ctx->epc += 4;
+          return;
+        default:
+          break;
+      }
+  }
 
   /* All other exceptions are passed to the default exception handler.  */
   __exception_handle (ctx, exception);
