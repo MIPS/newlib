@@ -30,8 +30,8 @@
 ISR_VEC_SPACE = 64
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
-CFLAGS += -g -O1 -DISR_VEC_SPACE=$(ISR_VEC_SPACE)
-LDFLAGS += -g
+CFLAGS += -msoft-float -g -O1 -DISR_VEC_SPACE=$(ISR_VEC_SPACE)
+LDFLAGS += -msoft-float -g
 
 OBJS = isr_vector_space.o excpt_isr.o
 APP = isr_vector_space.elf

@@ -1,5 +1,6 @@
-Demonstration of exception handling by emulating r0 style accesses for memory
-with _mips_handle_exception.
+Demonstration of exception handling by using the TRAP instruction to cause
+an action to be taken in an exception handler via use of
+_mips_handle_exception.
 
 Set environment variable MIPS_ELF_ROOT
 	This should be set to the root of the installation directory for the
