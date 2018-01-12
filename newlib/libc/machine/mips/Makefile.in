@@ -51,8 +51,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@NANOMIPS_TRUE@am__append_1 = memcpy-c.c memset-c.c
-@NANOMIPS_FALSE@am__append_2 = memcpy.S memset.S
+@NANOMIPS_TRUE@am__append_1 = memcpy-c.c memset-c.c strcmp-r6.S
+@NANOMIPS_FALSE@am__append_2 = memcpy.S memset.S strcmp.S
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
@@ -72,12 +72,12 @@ ARFLAGS = cru
 lib_a_AR = $(AR) $(ARFLAGS)
 lib_a_LIBADD =
 @NANOMIPS_TRUE@am__objects_1 = lib_a-memcpy-c.$(OBJEXT) \
-@NANOMIPS_TRUE@	lib_a-memset-c.$(OBJEXT)
+@NANOMIPS_TRUE@	lib_a-memset-c.$(OBJEXT) \
+@NANOMIPS_TRUE@	lib_a-strcmp-r6.$(OBJEXT)
 @NANOMIPS_FALSE@am__objects_2 = lib_a-memcpy.$(OBJEXT) \
-@NANOMIPS_FALSE@	lib_a-memset.$(OBJEXT)
+@NANOMIPS_FALSE@	lib_a-memset.$(OBJEXT) lib_a-strcmp.$(OBJEXT)
 am_lib_a_OBJECTS = lib_a-setjmp.$(OBJEXT) lib_a-strlen.$(OBJEXT) \
-	lib_a-strcmp.$(OBJEXT) lib_a-strncpy.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_2)
+	lib_a-strncpy.$(OBJEXT) $(am__objects_1) $(am__objects_2)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
@@ -202,7 +202,7 @@ AUTOMAKE_OPTIONS = cygnus
 INCLUDES = $(NEWLIB_CFLAGS) $(CROSS_CFLAGS) $(TARGET_CFLAGS)
 AM_CCASFLAGS = $(INCLUDES)
 noinst_LIBRARIES = lib.a
-lib_a_SOURCES = setjmp.S strlen.c strcmp.S strncpy.c $(am__append_1) \
+lib_a_SOURCES = setjmp.S strlen.c strncpy.c $(am__append_1) \
 	$(am__append_2)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS) -D_COMPILING_NEWLIB
 lib_a_CFLAGS = $(AM_CFLAGS) -D_COMPILING_NEWLIB
@@ -272,11 +272,11 @@ lib_a-setjmp.o: setjmp.S
 lib_a-setjmp.obj: setjmp.S
 	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-setjmp.obj `if test -f 'setjmp.S'; then $(CYGPATH_W) 'setjmp.S'; else $(CYGPATH_W) '$(srcdir)/setjmp.S'; fi`
 
-lib_a-strcmp.o: strcmp.S
-	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-strcmp.o `test -f 'strcmp.S' || echo '$(srcdir)/'`strcmp.S
+lib_a-strcmp-r6.o: strcmp-r6.S
+	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-strcmp-r6.o `test -f 'strcmp-r6.S' || echo '$(srcdir)/'`strcmp-r6.S
 
-lib_a-strcmp.obj: strcmp.S
-	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-strcmp.obj `if test -f 'strcmp.S'; then $(CYGPATH_W) 'strcmp.S'; else $(CYGPATH_W) '$(srcdir)/strcmp.S'; fi`
+lib_a-strcmp-r6.obj: strcmp-r6.S
+	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-strcmp-r6.obj `if test -f 'strcmp-r6.S'; then $(CYGPATH_W) 'strcmp-r6.S'; else $(CYGPATH_W) '$(srcdir)/strcmp-r6.S'; fi`
 
 lib_a-memcpy.o: memcpy.S
 	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-memcpy.o `test -f 'memcpy.S' || echo '$(srcdir)/'`memcpy.S
@@ -289,6 +289,12 @@ lib_a-memset.o: memset.S
 
 lib_a-memset.obj: memset.S
 	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-memset.obj `if test -f 'memset.S'; then $(CYGPATH_W) 'memset.S'; else $(CYGPATH_W) '$(srcdir)/memset.S'; fi`
+
+lib_a-strcmp.o: strcmp.S
+	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-strcmp.o `test -f 'strcmp.S' || echo '$(srcdir)/'`strcmp.S
+
+lib_a-strcmp.obj: strcmp.S
+	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-strcmp.obj `if test -f 'strcmp.S'; then $(CYGPATH_W) 'strcmp.S'; else $(CYGPATH_W) '$(srcdir)/strcmp.S'; fi`
 
 .c.o:
 	$(COMPILE) -c $<
