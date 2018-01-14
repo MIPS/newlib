@@ -7,6 +7,9 @@ features can be used.  For example any code reliant on the HEAP is unsupported,
 constructors and destructors are unsupported and almost all standard library
 functions are unavailable for the above reasons.
 
+A special variant called nanomips-qemu is also defined to match the example
+nanoMIPS configuration provided in QEMU.
+
 Set environment variable MIPS_ELF_ROOT
 	This should be set to the root of the installation directory for the
 	toolchain (that is, below the bin directory)
@@ -16,3 +19,5 @@ To build for the I7200
 
 To delete temporary and built files
 	# make clean CORE=I7200
+
+

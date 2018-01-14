@@ -1,7 +1,5 @@
 /*
- * Copyright 2015, Imagination Technologies Limited and/or its
- *                 affiliated group companies.
- * All rights reserved.
+ * Copyright (C) 2014-2018 MIPS Tech, LLC
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -62,7 +60,7 @@ main (void)
     }
   else if (secret != 0x1234)
     {
-      printf ("Expected secret to be 0x1234 but got %d\n", secret);
+      printf ("Expected secret to be 0x1234 but got 0x%x\n", secret);
     }
 
   printf ("Succeeded!\n");
@@ -92,7 +90,7 @@ _mips_handle_exception (struct gpctx *ctx, int exception)
 	  ctx->epc += 4;
 	  return;
 	case TRAPCODE2:
-	  ctx->r[C_CTX_REGNO (12)] = 1+secret_store;
+	  ctx->r[C_CTX_REGNO (12)] = secret_store;
 	  write(1, "Trap 2 done!\n", 13);
 	  num_traps += 1;
 	  ctx->epc += 4;
