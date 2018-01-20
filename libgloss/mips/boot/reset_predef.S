@@ -88,6 +88,11 @@ $Lnot_nmi:
 	jal	  __init_icache
 #endif
 
+#if defined(DLINE_ENC) && DLINE_ENC != 0
+	/* Initialize the L1 data cache */
+	jal	__init_dcache
+#endif
+
 #endif /* !defined(HCI) */
 
 	/*
@@ -107,11 +112,6 @@ $Lnot_nmi:
 #if (defined(SLINE_ENC) && SLINE_ENC != 0) || (defined(MEM_MAPPED_L2C) && MEM_MAPPED_L2C != 0)
 	/* Support initialising L2 with L1 cache enabled */
 	jal	__init_l23cache_cached
-#endif
-
-#if defined(DLINE_ENC) && DLINE_ENC != 0
-	/* Initialize the L1 data cache */
-	jal	__init_dcache
 #endif
 
 #endif /* !defined(HCI) */
