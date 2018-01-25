@@ -182,7 +182,7 @@ SECTIONS
 
   .eh_frame_hdr . : AT (LOADADDR (.rel.sdata) + SIZEOF(.rel.sdata)) { *(.eh_frame_hdr) *(.eh_frame_entry .eh_frame_entry.*) }
   .eh_frame . : AT (LOADADDR (.eh_frame_hdr) + SIZEOF(.eh_frame_hdr)) { KEEP (*(.eh_frame)) }
-  .gcc_except_table . : AT (LOADADDR (.eh_frame) + SIZEOF(.eh_frame)) { *(.gcc_except_table) }
+  .gcc_except_table . : AT (LOADADDR (.eh_frame) + SIZEOF(.eh_frame)) { *(.gcc_except_table .gcc_except_table.*) }
   .gnu_extab   : AT (LOADADDR (.gcc_except_table) + SIZEOF(.gcc_except_table)) { *(.gnu_extab*) }
   .jcr . : AT (LOADADDR (.gnu_extab) + SIZEOF(.gnu_extab)) { KEEP (*(.jcr)) }
   .init_array . : AT (LOADADDR (.jcr) + SIZEOF(.jcr))
