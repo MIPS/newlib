@@ -69,62 +69,128 @@
 #define EXC_RES30	30
 #define EXC_RES31	31
 
+/*
+ * MIPS32r6 VPControl (CP0 Register 0, Select 4)
+ */
+#define VPCONTROL_DIS	0x00000001
+#define VPCONTROL_SHIFT		 0
+
+/* MIPS32 EntryLo0 register (CP0 Register 2, select 0) */
+#define ENTRYLO064_RI_MASK	0x8000000000000000
+#define ENTRYLO064_RI_BITS	1
+#define ENTRYLO064_RI_SHIFT	63
+#define ENTRYLO064_XI_MASK	0x4000000000000000
+#define ENTRYLO064_XI_BITS	1
+#define ENTRYLO064_XI_SHIFT	62
+#define ENTRYLO064_PFN_MASK	0x3FFFFFFFFFFFFFE0
+#define ENTRYLO064_PFN_BITS	56
+#define ENTRYLO064_PFN_SHIFT	6
+#define ENTRYLO064_RI_SHIFT	63
+#define ENTRYLO064_RI_BITS	1
+#define ENTRYLO064_RI_SHIFT	63
+#define ENTRYLO0_PFNX_MASK	0x7FFFFF
+#define ENTRYLO0_PFNX_BITS	23
+#define ENTRYLO0_PFNX_SHIFT	0
+#define ENTRYLO0_RI_MASK	0x80000000
+#define ENTRYLO0_RI_BITS	1
+#define ENTRYLO0_RI_SHIFT	31
+#define ENTRYLO0_XI_MASK	0x40000000
+#define ENTRYLO0_XI_BITS	1
+#define ENTRYLO0_XI_SHIFT	30
+#define ENTRYLO0_PFN_MASK	0x3FFFFFE0
+#define ENTRYLO0_PFN_BITS	23
+#define ENTRYLO0_PFN_SHIFT	6
+#define ENTRYLO0_C_MASK		0x38
+#define ENTRYLO0_C_BITS		3
+#define ENTRYLO0_C_SHIFT	3
+#define ENTRYLO0_D_MASK		0x4
+#define ENTRYLO0_D_BITS		1
+#define ENTRYLO0_D_SHIFT	2
+#define ENTRYLO0_V_MASK		0x2
+#define ENTRYLO0_V_BITS		1
+#define ENTRYLO0_V_SHIFT	1
+#define ENTRYLO0_G_MASK		0x1
+#define ENTRYLO0_G_BITS		1
+#define ENTRYLO0_G_SHIFT	0
+
+/* MIPS32 EntryLo1 register (CP0 Register 3, select 0) */
+#define ENTRYLO164_RI_MASK	ENTRYLO064_RI_MASK
+#define ENTRYLO164_RI_BITS	ENTRYLO064_RI_BITS
+#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
+#define ENTRYLO164_XI_MASK	ENTRYLO064_XI_MASK
+#define ENTRYLO164_XI_BITS	ENTRYLO064_XI_BITS
+#define ENTRYLO164_XI_SHIFT	ENTRYLO064_XI_SHIFT
+#define ENTRYLO164_PFN_MASK	ENTRYLO064_PFN_MASK
+#define ENTRYLO164_PFN_BITS	ENTRYLO064_PFN_BITS
+#define ENTRYLO164_PFN_SHIFT	ENTRYLO064_PFN_SHIFT
+#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
+#define ENTRYLO164_RI_BITS	ENTRYLO064_RI_BITS
+#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
+#define ENTRYLO1_PFNX_MASK	ENTRYLO0_PFNX_MASK
+#define ENTRYLO1_PFNX_BITS	ENTRYLO0_PFNX_BITS
+#define ENTRYLO1_PFNX_SHIFT	ENTRYLO0_PFNX_SHIFT
+#define ENTRYLO1_RI_MASK	ENTRYLO0_RI_MASK
+#define ENTRYLO1_RI_BITS	ENTRYLO0_RI_BITS
+#define ENTRYLO1_RI_SHIFT	ENTRYLO0_RI_SHIFT
+#define ENTRYLO1_XI_MASK	ENTRYLO0_XI_MASK
+#define ENTRYLO1_XI_BITS	ENTRYLO0_XI_BITS
+#define ENTRYLO1_XI_SHIFT	ENTRYLO0_XI_SHIFT
+#define ENTRYLO1_PFN_MASK	ENTRYLO0_PFN_MASK
+#define ENTRYLO1_PFN_BITS	ENTRYLO0_PFN_BITS
+#define ENTRYLO1_PFN_SHIFT	ENTRYLO0_PFN_SHIFT
+#define ENTRYLO1_C_MASK		ENTRYLO0_C_MASK
+#define ENTRYLO1_C_BITS		ENTRYLO0_C_BITS
+#define ENTRYLO1_C_SHIFT	ENTRYLO0_C_SHIFT
+#define ENTRYLO1_D_MASK		ENTRYLO0_D_MASK
+#define ENTRYLO1_D_BITS		ENTRYLO0_D_BITS
+#define ENTRYLO1_D_SHIFT	ENTRYLO0_D_SHIFT
+#define ENTRYLO1_V_MASK		ENTRYLO0_V_MASK
+#define ENTRYLO1_V_BITS		ENTRYLO0_V_BITS
+#define ENTRYLO1_V_SHIFT	ENTRYLO0_V_SHIFT
+#define ENTRYLO1_G_MASK		ENTRYLO0_G_MASK
+#define ENTRYLO1_G_BITS		ENTRYLO0_G_BITS
+#define ENTRYLO1_G_SHIFT	ENTRYLO0_G_SHIFT
+
+/* MIPS32r2 PageGrain  Register (CP0 Register 5, Select 1) */
+#define PAGEGRAIN_ELPA	0x20000000	/* Enable large physical addresses */
+#define PAGEGRAIN_ELPA_SHIFT	29
+#define PAGEGRAIN_ELPA_BITS	1
+
+#define PAGEGRAIN_ESP	0x10000000	/* Enable small (1KB) page support */
 
 /*
- * MIPS32 Cause Register (CP0 Register 13, Select 0)
+ * MIPS32r2 HWREna Register  (CP0 Register 7, Select 0)
  */
-#define CR_BD		0x80000000	/* branch delay */
-#define  CR_BD_SHIFT		31
-#define CR_TI		0x40000000	/* timer interrupt (r2) */
-#define  CR_TI_SHIFT		30
-#define CR_CEMASK	0x30000000      /* coprocessor used */
-#define  CR_CESHIFT		28
-#define  CR_CE_SHIFT		28
-#define  CR_CE_BITS		 2
-#define CR_DC		0x08000000	/* disable count (r2) */
-#define  CR_DC_SHIFT		27
-#define CR_PCI		0x04000000	/* performance counter i/u (r2) */
-#define  CR_PCI_SHIFT		26
-#define CR_IV		0x00800000	/* use special i/u vec */
-#define  CR_IV_SHIFT		23
-#define CR_WP		0x00400000	/* deferred watchpoint */
-#define  CR_WP_SHIFT		22
-#define CR_FDCI		0x00200000	/* fast debug channned i/u (r2) */
-#define  CR_FDCI_SHIFT		21
+#define HWRENA_ULR	0x20000000
+#define HWRENA_XNP	0x00000020
+#define HWRENA_PERFCNT	0x00000010
+#define HWRENA_CCRES	0x00000008
+#define HWRENA_CC	0x00000004
+#define HWRENA_SYNCSTEP	0x00000002
+#define HWRENA_CPUNUM	0x00000001
 
-#define CR_IMASK	0x0000ff00 	/* interrupt pending mask */
-#define CR_IP_MASK	0x0000ff00
-#define  CR_IP_SHIFT		 8
-#define  CR_IP_BITS		 8
-#define CR_RIPL		0x0000fc00
-#define  CR_RIPL_SHIFT		10
-#define  CR_RIPL_BITS		 6
-
-/* interrupt pending bits */
-#define CR_HINT5	0x00008000	/* h/w interrupt 5 */
-#define CR_HINT4	0x00004000	/* h/w interrupt 4 */
-#define CR_HINT3	0x00002000	/* h/w interrupt 3 */
-#define CR_HINT2	0x00001000	/* h/w interrupt 2 */
-#define CR_HINT1	0x00000800	/* h/w interrupt 1 */
-#define CR_HINT0	0x00000400	/* h/w interrupt 0 */
-#define CR_SINT1	0x00000200	/* s/w interrupt 1 */
-#define CR_SINT0	0x00000100 	/* s/w interrupt 0 */
-
-/* alternative interrupt pending bit naming */
-#define CR_IP7		0x00008000
-#define CR_IP6		0x00004000
-#define CR_IP5		0x00002000
-#define CR_IP4		0x00001000
-#define CR_IP3		0x00000800
-#define CR_IP2		0x00000400
-#define CR_IP1		0x00000200
-#define CR_IP0		0x00000100
-
-#define CR_XMASK	0x0000007c 	/* exception code mask */
-#define CR_X_MASK	0x0000007c
-#define  CR_X_SHIFT		 2
-#define  CR_X_BITS		 5
-#define CR_XCPT(x)	((x)<<2)
+/* MIPS32r2 EntryHi register (CP0 Register 10, Select 0) */
+#define C0_ENTRYHI64_R_MASK	0xC000000000000000
+#define C0_ENTRYHI64_R_BITS	2
+#define C0_ENTRYHI64_R_SHIFT	61
+#define C0_ENTRYHI64_VPN2_MASK	0xFFFFFFE000
+#define C0_ENTRYHI64_VPN2_BITS	27
+#define C0_ENTRYHI64_VPN2_SHIFT	13
+#define C0_ENTRYHI_VPN2_MASK	0xFFFFE000
+#define C0_ENTRYHI_VPN2_BITS	19
+#define C0_ENTRYHI_VPN2_SHIFT	13
+#define C0_ENTRYHI_VPN2X_MASK	0x3
+#define C0_ENTRYHI_VPN2X_BITS	2
+#define C0_ENTRYHI_VPN2X_SHIFT	11
+#define C0_ENTRYHI_EHINV_MASK	0x400
+#define C0_ENTRYHI_EHINV_BITS	1
+#define C0_ENTRYHI_EHINV_SHIFT	10
+#define C0_ENTRYHI_ASIDX_MASK	0x300
+#define C0_ENTRYHI_ASIDX_BITS	2
+#define C0_ENTRYHI_ASIDX_SHIFT	8
+#define C0_ENTRYHI_ASID_MASK	0xFF
+#define C0_ENTRYHI_ASID_BITS	8
+#define C0_ENTRYHI_ASID_SHIFT	0
 
 /*
  * MIPS32 Status Register  (CP0 Register 12, Select 0)
@@ -209,23 +275,6 @@
 #define  SR_IE_SHIFT		 0
 
 /*
- * MIPS32r6 VPControl (CP0 Register 0, Select 4)
- */
-#define VPCONTROL_DIS	0x00000001
-#define VPCONTROL_SHIFT		 0
-
-/*
- * MIPS32r2 HWREna Register  (CP0 Register 7, Select 0)
- */
-#define HWRENA_ULR	0x20000000
-#define HWRENA_XNP	0x00000020
-#define HWRENA_PERFCNT	0x00000010
-#define HWRENA_CCRES	0x00000008
-#define HWRENA_CC	0x00000004
-#define HWRENA_SYNCSTEP	0x00000002
-#define HWRENA_CPUNUM	0x00000001
-
-/*
  * MIPS32r2 IntCtl Register  (CP0 Register 12, Select 1)
  */
 #define INTCTL_IPTI	0xe0000000	/* timer i/u pending bit */
@@ -260,6 +309,71 @@
 #define SRSCTL_PSS_SHIFT	 6
 #define SRSCTL_CSS	0x0000000f	/* current shadow set */
 #define SRSCTL_CSS_SHIFT	 0
+
+
+/*
+ * MIPS32 Cause Register (CP0 Register 13, Select 0)
+ */
+#define CR_BD		0x80000000	/* branch delay */
+#define  CR_BD_SHIFT		31
+#define CR_TI		0x40000000	/* timer interrupt (r2) */
+#define  CR_TI_SHIFT		30
+#define CR_CEMASK	0x30000000      /* coprocessor used */
+#define  CR_CESHIFT		28
+#define  CR_CE_SHIFT		28
+#define  CR_CE_BITS		 2
+#define CR_DC		0x08000000	/* disable count (r2) */
+#define  CR_DC_SHIFT		27
+#define CR_PCI		0x04000000	/* performance counter i/u (r2) */
+#define  CR_PCI_SHIFT		26
+#define CR_IV		0x00800000	/* use special i/u vec */
+#define  CR_IV_SHIFT		23
+#define CR_WP		0x00400000	/* deferred watchpoint */
+#define  CR_WP_SHIFT		22
+#define CR_FDCI		0x00200000	/* fast debug channned i/u (r2) */
+#define  CR_FDCI_SHIFT		21
+
+#define CR_IMASK	0x0000ff00 	/* interrupt pending mask */
+#define CR_IP_MASK	0x0000ff00
+#define  CR_IP_SHIFT		 8
+#define  CR_IP_BITS		 8
+#define CR_RIPL		0x0000fc00
+#define  CR_RIPL_SHIFT		10
+#define  CR_RIPL_BITS		 6
+
+/* interrupt pending bits */
+#define CR_HINT5	0x00008000	/* h/w interrupt 5 */
+#define CR_HINT4	0x00004000	/* h/w interrupt 4 */
+#define CR_HINT3	0x00002000	/* h/w interrupt 3 */
+#define CR_HINT2	0x00001000	/* h/w interrupt 2 */
+#define CR_HINT1	0x00000800	/* h/w interrupt 1 */
+#define CR_HINT0	0x00000400	/* h/w interrupt 0 */
+#define CR_SINT1	0x00000200	/* s/w interrupt 1 */
+#define CR_SINT0	0x00000100 	/* s/w interrupt 0 */
+
+/* alternative interrupt pending bit naming */
+#define CR_IP7		0x00008000
+#define CR_IP6		0x00004000
+#define CR_IP5		0x00002000
+#define CR_IP4		0x00001000
+#define CR_IP3		0x00000800
+#define CR_IP2		0x00000400
+#define CR_IP1		0x00000200
+#define CR_IP0		0x00000100
+
+#define CR_XMASK	0x0000007c 	/* exception code mask */
+#define CR_X_MASK	0x0000007c
+#define  CR_X_SHIFT		 2
+#define  CR_X_BITS		 5
+#define CR_XCPT(x)	((x)<<2)
+
+/* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */
+#define EBASE_BASE	0xfffff000	/* Exception base */
+#define EBASE_WG	0x00000800	/* Write Gate */
+#define  EBASE_WG_SHIFT		11
+#define EBASE_CPU	0x000003ff	/* CPU number */
+#define  EBASE_CPU_SHIFT	 0
+#define  EBASE_CPU_BITS		10
 
 /*
  * MIPS32 BEVVA Register (CP0 Register 15, Select 4)
@@ -582,55 +696,6 @@
 #define CFG_C_UNCACHED_ACCEL	7
 #endif
 
-
-/*
- * Primary Cache TagLo (CP0 Register 28, Select 0/2)
- */
-#define TAG_PTAG_MASK           0xffffff00      /* Primary Tag */
-#define TAG_PTAG_SHIFT          8
-#define TAG_PSTATE_MASK         0x000000c0      /* Primary Cache State */
-#define TAG_PSTATE_SHIFT        6
-#define TAG_PSTATE_LOCK		0x00000020
-#define TAG_PARITY_MASK         0x00000001      /* Primary Tag Parity */
-#define TAG_PARITY_SHIFT        0
-
-/* primary cache state (XXX actually implementation specific) */
-#define PSTATE_INVAL		0
-#define PSTATE_SHARED		1
-#define PSTATE_CLEAN_EXCL	2
-#define PSTATE_DIRTY_EXCL	3
-
-
-/*
- * Cache operations
- */
-#define Index_Invalidate_I               0x00        /* 0       0 */
-#define Index_Writeback_Inv_D            0x01        /* 0       1 */
-#define Index_Writeback_Inv_T            0x02        /* 0       2 */
-#define Index_Writeback_Inv_S            0x03        /* 0       3 */
-#define Index_Load_Tag_I                 0x04        /* 1       0 */
-#define Index_Load_Tag_D                 0x05        /* 1       1 */
-#define Index_Load_Tag_T                 0x06        /* 1       2 */
-#define Index_Load_Tag_S                 0x07        /* 1       3 */
-#define Index_Store_Tag_I                0x08        /* 2       0 */
-#define Index_Store_Tag_D                0x09        /* 2       1 */
-#define Index_Store_Tag_T                0x0A        /* 2       2 */
-#define Index_Store_Tag_S                0x0B        /* 2       3 */
-#define Hit_Invalidate_I                 0x10        /* 4       0 */
-#define Hit_Invalidate_D                 0x11        /* 4       1 */
-#define Hit_Invalidate_T                 0x12        /* 4       2 */
-#define Hit_Invalidate_S                 0x13        /* 4       3 */
-#define Fill_I                           0x14        /* 5       0 */
-#define Hit_Writeback_Inv_D              0x15        /* 5       1 */
-#define Hit_Writeback_Inv_T              0x16        /* 5       2 */
-#define Hit_Writeback_Inv_S              0x17        /* 5       3 */
-#define Hit_Writeback_D                  0x19        /* 6       1 */
-#define Hit_Writeback_T                  0x1A        /* 6       2 */
-#define Hit_Writeback_S                  0x1B        /* 6       3 */
-#define Fetch_Lock_I                 	 0x1C        /* 7       0 */
-#define Fetch_Lock_D                 	 0x1D        /* 7       1 */
-#define Fetch_Lock_S                     0x1F        /* 7       3 */
-
 /* MIPS32 WatchLo Register (CP0 Register 18) */
 #define WATCHLO_VA		0xfffffff8
 #define WATCHLO_I		0x00000004
@@ -651,133 +716,6 @@
 #define WATCHHI_I		0x00000004
 #define WATCHHI_R		0x00000002
 #define WATCHHI_W		0x00000001
-
-/* MIPS32 PerfCnt Register (CP0 Register 25) */
-#define PERFCNT_M		0x80000000
-#define PERFCNT_EVENT_MASK	0x000007e0
-#define PERFCNT_EVENTMASK	0x000007e0
-#define PERFCNT_EVENT_SHIFT		 5
-#define PERFCNT_EVENTSHIFT		 5
-#define PERFCNT_EVENT_BITS		 6
-#define PERFCNT_IE		0x00000010
-#define PERFCNT_U		0x00000008
-#define PERFCNT_S		0x00000004
-#define PERFCNT_K		0x00000002
-#define PERFCNT_EXL		0x00000001
-
-/* MIPS32r2 PageGrain  Register (CP0 Register 5, Select 1) */
-#define PAGEGRAIN_ELPA	0x20000000	/* Enable large physical addresses */
-#define PAGEGRAIN_ELPA_SHIFT	29
-#define PAGEGRAIN_ELPA_BITS	1
-
-#define PAGEGRAIN_ESP	0x10000000	/* Enable small (1KB) page support */
-
-/* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */
-#define EBASE_BASE	0xfffff000	/* Exception base */
-#define EBASE_WG	0x00000800	/* Write Gate */
-#define  EBASE_WG_SHIFT		11
-#define EBASE_CPU	0x000003ff	/* CPU number */
-#define  EBASE_CPU_SHIFT	 0
-#define  EBASE_CPU_BITS		10
-
-/* MIPS32r2 EntryHi register (CP0 Register 10, Select 0) */
-#define C0_ENTRYHI64_R_MASK	0xC000000000000000
-#define C0_ENTRYHI64_R_BITS	2
-#define C0_ENTRYHI64_R_SHIFT	61
-#define C0_ENTRYHI64_VPN2_MASK	0xFFFFFFE000
-#define C0_ENTRYHI64_VPN2_BITS	27
-#define C0_ENTRYHI64_VPN2_SHIFT	13
-#define C0_ENTRYHI_VPN2_MASK	0xFFFFE000
-#define C0_ENTRYHI_VPN2_BITS	19
-#define C0_ENTRYHI_VPN2_SHIFT	13
-#define C0_ENTRYHI_VPN2X_MASK	0x3
-#define C0_ENTRYHI_VPN2X_BITS	2
-#define C0_ENTRYHI_VPN2X_SHIFT	11
-#define C0_ENTRYHI_EHINV_MASK	0x400
-#define C0_ENTRYHI_EHINV_BITS	1
-#define C0_ENTRYHI_EHINV_SHIFT	10
-#define C0_ENTRYHI_ASIDX_MASK	0x300
-#define C0_ENTRYHI_ASIDX_BITS	2
-#define C0_ENTRYHI_ASIDX_SHIFT	8
-#define C0_ENTRYHI_ASID_MASK	0xFF
-#define C0_ENTRYHI_ASID_BITS	8
-#define C0_ENTRYHI_ASID_SHIFT	0
-
-/* MIPS32 EntryLo0 register (CP0 Register 2, select 0) */
-#define ENTRYLO064_RI_MASK	0x8000000000000000
-#define ENTRYLO064_RI_BITS	1
-#define ENTRYLO064_RI_SHIFT	63
-#define ENTRYLO064_XI_MASK	0x4000000000000000
-#define ENTRYLO064_XI_BITS	1
-#define ENTRYLO064_XI_SHIFT	62
-#define ENTRYLO064_PFN_MASK	0x3FFFFFFFFFFFFFE0
-#define ENTRYLO064_PFN_BITS	56
-#define ENTRYLO064_PFN_SHIFT	6
-#define ENTRYLO064_RI_SHIFT	63
-#define ENTRYLO064_RI_BITS	1
-#define ENTRYLO064_RI_SHIFT	63
-#define ENTRYLO0_PFNX_MASK	0x7FFFFF
-#define ENTRYLO0_PFNX_BITS	23
-#define ENTRYLO0_PFNX_SHIFT	0
-#define ENTRYLO0_RI_MASK	0x80000000
-#define ENTRYLO0_RI_BITS	1
-#define ENTRYLO0_RI_SHIFT	31
-#define ENTRYLO0_XI_MASK	0x40000000
-#define ENTRYLO0_XI_BITS	1
-#define ENTRYLO0_XI_SHIFT	30
-#define ENTRYLO0_PFN_MASK	0x3FFFFFE0
-#define ENTRYLO0_PFN_BITS	23
-#define ENTRYLO0_PFN_SHIFT	6
-#define ENTRYLO0_C_MASK		0x38
-#define ENTRYLO0_C_BITS		3
-#define ENTRYLO0_C_SHIFT	3
-#define ENTRYLO0_D_MASK		0x4
-#define ENTRYLO0_D_BITS		1
-#define ENTRYLO0_D_SHIFT	2
-#define ENTRYLO0_V_MASK		0x2
-#define ENTRYLO0_V_BITS		1
-#define ENTRYLO0_V_SHIFT	1
-#define ENTRYLO0_G_MASK		0x1
-#define ENTRYLO0_G_BITS		1
-#define ENTRYLO0_G_SHIFT	0
-
-/* MIPS32 EntryLo1 register (CP0 Register 3, select 0) */
-#define ENTRYLO164_RI_MASK	ENTRYLO064_RI_MASK
-#define ENTRYLO164_RI_BITS	ENTRYLO064_RI_BITS
-#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
-#define ENTRYLO164_XI_MASK	ENTRYLO064_XI_MASK
-#define ENTRYLO164_XI_BITS	ENTRYLO064_XI_BITS
-#define ENTRYLO164_XI_SHIFT	ENTRYLO064_XI_SHIFT
-#define ENTRYLO164_PFN_MASK	ENTRYLO064_PFN_MASK
-#define ENTRYLO164_PFN_BITS	ENTRYLO064_PFN_BITS
-#define ENTRYLO164_PFN_SHIFT	ENTRYLO064_PFN_SHIFT
-#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
-#define ENTRYLO164_RI_BITS	ENTRYLO064_RI_BITS
-#define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
-#define ENTRYLO1_PFNX_MASK	ENTRYLO0_PFNX_MASK
-#define ENTRYLO1_PFNX_BITS	ENTRYLO0_PFNX_BITS
-#define ENTRYLO1_PFNX_SHIFT	ENTRYLO0_PFNX_SHIFT
-#define ENTRYLO1_RI_MASK	ENTRYLO0_RI_MASK
-#define ENTRYLO1_RI_BITS	ENTRYLO0_RI_BITS
-#define ENTRYLO1_RI_SHIFT	ENTRYLO0_RI_SHIFT
-#define ENTRYLO1_XI_MASK	ENTRYLO0_XI_MASK
-#define ENTRYLO1_XI_BITS	ENTRYLO0_XI_BITS
-#define ENTRYLO1_XI_SHIFT	ENTRYLO0_XI_SHIFT
-#define ENTRYLO1_PFN_MASK	ENTRYLO0_PFN_MASK
-#define ENTRYLO1_PFN_BITS	ENTRYLO0_PFN_BITS
-#define ENTRYLO1_PFN_SHIFT	ENTRYLO0_PFN_SHIFT
-#define ENTRYLO1_C_MASK		ENTRYLO0_C_MASK
-#define ENTRYLO1_C_BITS		ENTRYLO0_C_BITS
-#define ENTRYLO1_C_SHIFT	ENTRYLO0_C_SHIFT
-#define ENTRYLO1_D_MASK		ENTRYLO0_D_MASK
-#define ENTRYLO1_D_BITS		ENTRYLO0_D_BITS
-#define ENTRYLO1_D_SHIFT	ENTRYLO0_D_SHIFT
-#define ENTRYLO1_V_MASK		ENTRYLO0_V_MASK
-#define ENTRYLO1_V_BITS		ENTRYLO0_V_BITS
-#define ENTRYLO1_V_SHIFT	ENTRYLO0_V_SHIFT
-#define ENTRYLO1_G_MASK		ENTRYLO0_G_MASK
-#define ENTRYLO1_G_BITS		ENTRYLO0_G_BITS
-#define ENTRYLO1_G_SHIFT	ENTRYLO0_G_SHIFT
 
 /* MIPS32 TraceControl register (CP0 Register 23, select 1) */
 #define TRACECONTROL_TS_MASK	  0x80000000
@@ -880,6 +818,68 @@
 #define  TRACECONTROL3_TRPAD_SHIFT	     1
 #define TRACECONTROL3_FDT_MASK	    0x00000001
 #define  TRACECONTROL3_FDT_SHIFT	     0
+
+/* MIPS32 PerfCnt Register (CP0 Register 25) */
+#define PERFCNT_M		0x80000000
+#define PERFCNT_EVENT_MASK	0x000007e0
+#define PERFCNT_EVENTMASK	0x000007e0
+#define PERFCNT_EVENT_SHIFT		 5
+#define PERFCNT_EVENTSHIFT		 5
+#define PERFCNT_EVENT_BITS		 6
+#define PERFCNT_IE		0x00000010
+#define PERFCNT_U		0x00000008
+#define PERFCNT_S		0x00000004
+#define PERFCNT_K		0x00000002
+#define PERFCNT_EXL		0x00000001
+
+/*
+ * Primary Cache TagLo (CP0 Register 28, Select 0/2)
+ */
+#define TAG_PTAG_MASK           0xffffff00      /* Primary Tag */
+#define TAG_PTAG_SHIFT          8
+#define TAG_PSTATE_MASK         0x000000c0      /* Primary Cache State */
+#define TAG_PSTATE_SHIFT        6
+#define TAG_PSTATE_LOCK		0x00000020
+#define TAG_PARITY_MASK         0x00000001      /* Primary Tag Parity */
+#define TAG_PARITY_SHIFT        0
+
+/* primary cache state (XXX actually implementation specific) */
+#define PSTATE_INVAL		0
+#define PSTATE_SHARED		1
+#define PSTATE_CLEAN_EXCL	2
+#define PSTATE_DIRTY_EXCL	3
+
+
+/*
+ * Cache operations
+ */
+#define Index_Invalidate_I               0x00        /* 0       0 */
+#define Index_Writeback_Inv_D            0x01        /* 0       1 */
+#define Index_Writeback_Inv_T            0x02        /* 0       2 */
+#define Index_Writeback_Inv_S            0x03        /* 0       3 */
+#define Index_Load_Tag_I                 0x04        /* 1       0 */
+#define Index_Load_Tag_D                 0x05        /* 1       1 */
+#define Index_Load_Tag_T                 0x06        /* 1       2 */
+#define Index_Load_Tag_S                 0x07        /* 1       3 */
+#define Index_Store_Tag_I                0x08        /* 2       0 */
+#define Index_Store_Tag_D                0x09        /* 2       1 */
+#define Index_Store_Tag_T                0x0A        /* 2       2 */
+#define Index_Store_Tag_S                0x0B        /* 2       3 */
+#define Hit_Invalidate_I                 0x10        /* 4       0 */
+#define Hit_Invalidate_D                 0x11        /* 4       1 */
+#define Hit_Invalidate_T                 0x12        /* 4       2 */
+#define Hit_Invalidate_S                 0x13        /* 4       3 */
+#define Fill_I                           0x14        /* 5       0 */
+#define Hit_Writeback_Inv_D              0x15        /* 5       1 */
+#define Hit_Writeback_Inv_T              0x16        /* 5       2 */
+#define Hit_Writeback_Inv_S              0x17        /* 5       3 */
+#define Hit_Writeback_D                  0x19        /* 6       1 */
+#define Hit_Writeback_T                  0x1A        /* 6       2 */
+#define Hit_Writeback_S                  0x1B        /* 6       3 */
+#define Fetch_Lock_I                 	 0x1C        /* 7       0 */
+#define Fetch_Lock_D                 	 0x1D        /* 7       1 */
+#define Fetch_Lock_S                     0x1F        /* 7       3 */
+
 
 #ifdef __ASSEMBLER__
 
@@ -1274,16 +1274,92 @@ __extension__ ({ \
 #define _mips_mtc0(r,v)		mips32_set_c0(r,v)
 
 /* MIPS32 Entry*, Index, PageMask registers */
-#define mips32_getentryhi()	mips32_get_c0(C0_ENTRYHI)
-#define mips32_setentryhi(v)	mips32_set_c0(C0_ENTRYHI,v)
+#define mips32_getindex()	mips32_get_c0(C0_INDEX)
+#define mips32_setindex(v)	mips32_set_c0(C0_INDEX,v)
 #define mips32_getentrylo0()	mips32_get_c0(C0_ENTRYLO0)
 #define mips32_setentrylo0(v)	mips32_set_c0(C0_ENTRYLO0,v)
 #define mips32_getentrylo1()	mips32_get_c0(C0_ENTRYLO1)
 #define mips32_setentrylo1(v)	mips32_set_c0(C0_ENTRYLO1,v)
 #define mips32_getpagemask()	mips32_get_c0(C0_PAGEMASK)
 #define mips32_setpagemask(v)	mips32_set_c0(C0_PAGEMASK,v)
-#define mips32_getindex()	mips32_get_c0(C0_INDEX)
-#define mips32_setindex(v)	mips32_set_c0(C0_INDEX,v)
+#define mips32_getentryhi()	mips32_get_c0(C0_ENTRYHI)
+#define mips32_setentryhi(v)	mips32_set_c0(C0_ENTRYHI,v)
+
+/* MIPS32r2/SmartMIPS PageGrain register */
+#define mips32_getpagegrain()	mips32_get_c0(C0_PAGEGRAIN)
+#define mips32_setpagegrain(x)	mips32_set_c0(C0_PAGEGRAIN,x)
+#define mips32_xchpagegrain(x)	mips32_xch_c0(C0_PAGEGRAIN,x)
+
+/* MIPS32r2 HWREna register */
+#define mips32_gethwrena()	mips32_get_c0(C0_HWRENA)
+#define mips32_sethwrena(v)	mips32_set_c0(C0_HWRENA,v)
+#define mips32_xchhwrena(v)	mips32_xch_c0(C0_HWRENA,v)
+#define mips32_bichwrena(clr)	mips32_bc_c0(C0_HWRENA,clr)
+#define mips32_bishwrena(set)	mips32_bs_c0(C0_HWRENA,set)
+#define mips32_bcshwrena(c,s)	mips32_bcs_c0(C0_HWRENA,c,s)
+
+#ifdef C0_COUNT
+/* CP0 Count register */
+#define mips32_getcount()	mips32_get_c0(C0_COUNT)
+#define mips32_setcount(v)	mips32_set_c0(C0_COUNT,v)
+#define mips32_xchcount(v)	mips32_xch_c0(C0_COUNT,v)
+#endif
+
+#ifdef C0_COMPARE
+/* CP0 Compare register*/
+#define mips32_getcompare()	mips32_get_c0(C0_COMPARE)
+#define mips32_setcompare(v)	mips32_set_c0(C0_COMPARE,v)
+#define mips32_xchcompare(v)	mips32_xch_c0(C0_COMPARE,v)
+#endif
+
+/* CP0 Status register (NOTE: not atomic operations) */
+#define mips32_getsr()		mips32_get_c0(C0_SR)
+#define mips32_setsr(v)		mips32_set_c0(C0_SR,v)
+#define mips32_xchsr(v)		mips32_xch_c0(C0_SR,v)
+#define mips32_bicsr(clr)	mips32_bc_c0(C0_SR,clr)
+#define mips32_bissr(set)	mips32_bs_c0(C0_SR,set)
+#define mips32_bcssr(c,s)	mips32_bcs_c0(C0_SR,c,s)
+
+/* MIPS32r2 IntCtl register */
+#define mips32_getintctl()	mips32_get_c0(C0_INTCTL)
+#define mips32_setintctl(x)	mips32_set_c0(C0_INTCTL,x)
+#define mips32_xchintctl(x)	mips32_xch_c0(C0_INTCTL,x)
+
+/* MIPS32r2 SRSCtl register */
+#define mips32_getsrsctl()	mips32_get_c0(C0_SRSCTL)
+#define mips32_setsrsctl(x)	mips32_set_c0(C0_SRSCTL,x)
+#define mips32_xchsrsctl(x)	mips32_xch_c0(C0_SRSCTL,x)
+
+/* MIPS32r2 SRSMap register */
+#define mips32_getsrsmapl()	mips32_get_c0(C0_SRSMAP)
+#define mips32_setsrsmap(x)	mips32_set_c0(C0_SRSMAP,x)
+#define mips32_xchsrsmap(x)	mips32_xch_c0(C0_SRSMAP,x)
+
+/* CP0 Cause register (NOTE: not atomic operations) */
+#define mips32_getcr()		mips32_get_c0(C0_CR)
+#define mips32_setcr(v)		mips32_set_c0(C0_CR,v)
+#define mips32_xchcr(v)		mips32_xch_c0(C0_CR,v)
+#define mips32_biccr(clr)	mips32_bc_c0(C0_CR,clr)
+#define mips32_biscr(set)	mips32_bs_c0(C0_CR,set)
+#define mips32_bcscr(c,s)	mips32_bcs_c0(C0_CR,c,s)
+
+/* CP0 PrID register */
+#define mips32_getprid()	mips32_get_c0(C0_PRID)
+
+/* MIPS32r2 EBase register */
+#define mips32_getebase()	mips32_get_c0(C0_EBASE)
+#define mips32_setebase(x)	mips32_set_c0(C0_EBASE,x)
+#define mips32_xchebase(x)	mips32_xch_c0(C0_EBASE,x)
+
+#ifdef C0_CONFIG
+/* CP0 Config register */
+#define mips32_getconfig()	mips32_get_c0(C0_CONFIG)
+#define mips32_setconfig(v)	mips32_set_c0(C0_CONFIG,v)
+#define mips32_xchconfig(v)	mips32_xch_c0(C0_CONFIG,v)
+#define mips32_bicconfig(c)	mips32_bc_c0(C0_CONFIG,c)
+#define mips32_bisconfig(s)	mips32_bs_c0(C0_CONFIG,s)
+#define mips32_bcsconfig(c,s)	mips32_bcs_c0(C0_CONFIG,c,s)
+#endif
 
 /* MIPS32 Config0 register */
 #define mips32_getconfig0()	mips32_get_c0(C0_CONFIG0)
@@ -1329,6 +1405,20 @@ __extension__ ({ \
 #define mips32_bisconfig5(set)	mips32_bs_c0(C0_CONFIG5,set)
 #define mips32_bcsconfig5(c,s)	mips32_bcs_c0(C0_CONFIG5,c,s)
 
+#ifdef C0_WATCHLO
+/* CP0 WatchLo register */
+#define mips32_getwatchlo()	mips32_get_c0(C0_WATCHLO)
+#define mips32_setwatchlo(x)	mips32_set_c0(C0_WATCHLO, x)
+#define mips32_xchwatchlo(x)	mips32_xch_c0(C0_WATCHLO, x)
+#endif
+
+#ifdef C0_WATCHHI
+/* CP0 WatchHi register */
+#define mips32_getwatchhi()	mips32_get_c0(C0_WATCHHI)
+#define mips32_setwatchhi(x)	mips32_set_c0(C0_WATCHHI, x)
+#define mips32_xchwatchhi(x)	mips32_xch_c0(C0_WATCHHI, x)
+#endif
+
 /* MIPS32 Debug register */
 #define mips32_getdebug()	mips32_get_c0(C0_DEBUG)
 #define mips32_setdebug(v)	mips32_set_c0(C0_DEBUG,v)
@@ -1370,89 +1460,6 @@ __extension__ ({ \
 #define mips32_setdatalo2(x)	mips32_set_c0(MIPS_C0_REGNAME(C0_TAGLO, 5),x)
 #define mips32_xchdatalo2(x)	mips32_xch_c0(MIPS_C0_REGNAME(C0_TAGLO, 5),x)
 
-/* MIPS32r2 IntCtl register */
-#define mips32_getintctl()	mips32_get_c0(C0_INTCTL)
-#define mips32_setintctl(x)	mips32_set_c0(C0_INTCTL,x)
-#define mips32_xchintctl(x)	mips32_xch_c0(C0_INTCTL,x)
-
-/* MIPS32r2 SRSCtl register */
-#define mips32_getsrsctl()	mips32_get_c0(C0_SRSCTL)
-#define mips32_setsrsctl(x)	mips32_set_c0(C0_SRSCTL,x)
-#define mips32_xchsrsctl(x)	mips32_xch_c0(C0_SRSCTL,x)
-
-/* MIPS32r2 SRSMap register */
-#define mips32_getsrsmapl()	mips32_get_c0(C0_SRSMAP)
-#define mips32_setsrsmap(x)	mips32_set_c0(C0_SRSMAP,x)
-#define mips32_xchsrsmap(x)	mips32_xch_c0(C0_SRSMAP,x)
-
-/* MIPS32r2/SmartMIPS PageGrain register */
-#define mips32_getpagegrain()	mips32_get_c0(C0_PAGEGRAIN)
-#define mips32_setpagegrain(x)	mips32_set_c0(C0_PAGEGRAIN,x)
-#define mips32_xchpagegrain(x)	mips32_xch_c0(C0_PAGEGRAIN,x)
-
-/* MIPS32r2 HWREna register */
-#define mips32_gethwrena()	mips32_get_c0(C0_HWRENA)
-#define mips32_sethwrena(v)	mips32_set_c0(C0_HWRENA,v)
-#define mips32_xchhwrena(v)	mips32_xch_c0(C0_HWRENA,v)
-#define mips32_bichwrena(clr)	mips32_bc_c0(C0_HWRENA,clr)
-#define mips32_bishwrena(set)	mips32_bs_c0(C0_HWRENA,set)
-#define mips32_bcshwrena(c,s)	mips32_bcs_c0(C0_HWRENA,c,s)
-
-/* MIPS32r2 EBase register */
-#define mips32_getebase()	mips32_get_c0(C0_EBASE)
-#define mips32_setebase(x)	mips32_set_c0(C0_EBASE,x)
-#define mips32_xchebase(x)	mips32_xch_c0(C0_EBASE,x)
-
-/* CP0 Status register (NOTE: not atomic operations) */
-#define mips32_getsr()		mips32_get_c0(C0_SR)
-#define mips32_setsr(v)		mips32_set_c0(C0_SR,v)
-#define mips32_xchsr(v)		mips32_xch_c0(C0_SR,v)
-#define mips32_bicsr(clr)	mips32_bc_c0(C0_SR,clr)
-#define mips32_bissr(set)	mips32_bs_c0(C0_SR,set)
-#define mips32_bcssr(c,s)	mips32_bcs_c0(C0_SR,c,s)
-
-/* CP0 Cause register (NOTE: not atomic operations) */
-#define mips32_getcr()		mips32_get_c0(C0_CR)
-#define mips32_setcr(v)		mips32_set_c0(C0_CR,v)
-#define mips32_xchcr(v)		mips32_xch_c0(C0_CR,v)
-#define mips32_biccr(clr)	mips32_bc_c0(C0_CR,clr)
-#define mips32_biscr(set)	mips32_bs_c0(C0_CR,set)
-#define mips32_bcscr(c,s)	mips32_bcs_c0(C0_CR,c,s)
-
-/* CP0 PrID register */
-#define mips32_getprid()	mips32_get_c0(C0_PRID)
-
-#ifdef C0_COUNT
-/* CP0 Count register */
-#define mips32_getcount()	mips32_get_c0(C0_COUNT)
-#define mips32_setcount(v)	mips32_set_c0(C0_COUNT,v)
-#define mips32_xchcount(v)	mips32_xch_c0(C0_COUNT,v)
-#endif
-
-#ifdef C0_COMPARE
-/* CP0 Compare register*/
-#define mips32_getcompare()	mips32_get_c0(C0_COMPARE)
-#define mips32_setcompare(v)	mips32_set_c0(C0_COMPARE,v)
-#define mips32_xchcompare(v)	mips32_xch_c0(C0_COMPARE,v)
-#endif
-
-#ifdef C0_CONFIG
-/* CP0 Config register */
-#define mips32_getconfig()	mips32_get_c0(C0_CONFIG)
-#define mips32_setconfig(v)	mips32_set_c0(C0_CONFIG,v)
-#define mips32_xchconfig(v)	mips32_xch_c0(C0_CONFIG,v)
-#define mips32_bicconfig(c)	mips32_bc_c0(C0_CONFIG,c)
-#define mips32_bisconfig(s)	mips32_bs_c0(C0_CONFIG,s)
-#define mips32_bcsconfig(c,s)	mips32_bcs_c0(C0_CONFIG,c,s)
-#endif
-
-#ifdef C0_ECC
-/* CP0 ECC register */
-#define mips32_getecc()		mips32_get_c0(C0_ECC)
-#define mips32_setecc(x)	mips32_set_c0(C0_ECC, x)
-#define mips32_xchecc(x)	mips32_xch_c0(C0_ECC, x)
-#endif
-
 #ifdef C0_TAGHI
 /* CP0 TagHi register */
 #define mips32_gettaghi()	mips32_get_c0(C0_TAGHI)
@@ -1460,18 +1467,11 @@ __extension__ ({ \
 #define mips32_xchtaghi(x)	mips32_xch_c0(C0_TAGHI, x)
 #endif
 
-#ifdef C0_WATCHLO
-/* CP0 WatchLo register */
-#define mips32_getwatchlo()	mips32_get_c0(C0_WATCHLO)
-#define mips32_setwatchlo(x)	mips32_set_c0(C0_WATCHLO, x)
-#define mips32_xchwatchlo(x)	mips32_xch_c0(C0_WATCHLO, x)
-#endif
-
-#ifdef C0_WATCHHI
-/* CP0 WatchHi register */
-#define mips32_getwatchhi()	mips32_get_c0(C0_WATCHHI)
-#define mips32_setwatchhi(x)	mips32_set_c0(C0_WATCHHI, x)
-#define mips32_xchwatchhi(x)	mips32_xch_c0(C0_WATCHHI, x)
+#ifdef C0_ECC
+/* CP0 ECC register */
+#define mips32_getecc()		mips32_get_c0(C0_ECC)
+#define mips32_setecc(x)	mips32_set_c0(C0_ECC, x)
+#define mips32_xchecc(x)	mips32_xch_c0(C0_ECC, x)
 #endif
 
 #ifdef C0_USERTRACE1
