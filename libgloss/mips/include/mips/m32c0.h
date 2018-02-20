@@ -779,31 +779,6 @@
 #define ENTRYLO1_G_BITS		ENTRYLO0_G_BITS
 #define ENTRYLO1_G_SHIFT	ENTRYLO0_G_SHIFT
 
-/* MIPS32 Burst COP Control register (CP0 Register 22, select 0) */
-#define BCOPCONTROL_PSA_MASK	  0xffffff00
-#define  BCOPCONTROL_PSA_SHIFT		   8
-#define  BCOPCONTROL_PSA_BITS		  24
-#define BCOPCONTROL_NB_MASK	  0x000000f0
-#define  BCOPCONTROL_NB_SHIFT		   4
-#define  BCOPCONTROL_NB_BITS		   4
-#define BCOPCONTROL_TYPE_MASK	  0x0000000e
-#define  BCOPCONTROL_TYPE_SHIFT		   1
-#define  BCOPCONTROL_TYPE_BITS		   3
-#define BCOPCONTROL_MODE_MASK	  0x00000001
-#define  BCOPCONTROL_MODE_SHIFT		   0
-#define  BCOPCONTROL_MODE_BITS		   1
-
-/* MIPS32 Burst COP Status register (CP0 Register 22, select 1) */
-#define BCOPSTATUS_PROGRESS_MASK  0x000000f0
-#define  BCOPSTATUS_PROGRESS_SHIFT	   4
-#define  BCOPSTATUS_PROGRESS_BITS	   4
-#define BCOPSTATUS_RESULT_MASK	  0x0000000e
-#define  BCOPSTATUS_RESULT_SHIFT	   1
-#define  BCOPSTATUS_RESULT_BITS		   4
-#define BCOPSTATUS_STATUS_MASK	  0x00000001
-#define  BCOPSTATUS_STATUS_SHIFT	   0
-#define  BCOPSTATUS_STATUS_BITS		   1
-
 /* MIPS32 TraceControl register (CP0 Register 23, select 1) */
 #define TRACECONTROL_TS_MASK	  0x80000000
 #define  TRACECONTROL_TS_SHIFT		  31
@@ -973,8 +948,6 @@
 #define C0_WATCHLO	$18
 #define C0_WATCHHI	$19
 #define C0_XCONTEXT	$20
-#define C0_BCOPCONTROL	$22,0
-#define C0_BCOPSTATUS	$22,1
 #define C0_DEBUG	$23
 #define C0_TRACECONTROL	  $23,1
 #define C0_TRACECONTROL2  $23,2
@@ -1032,7 +1005,6 @@ $config		=	$16
 $lladdr		=	$17
 $watchlo	=	$18
 $watchhi	=	$19
-$bcop		=	$22
 $debug		= 	$23
 $depc		= 	$24
 $perfcnt	= 	$25
@@ -1124,8 +1096,6 @@ typedef signed long long	sreg_t;
 #define C0_MAARI	0x111
 #define C0_WATCHLO	18
 #define C0_WATCHHI	19
-#define C0_BCOPCONTROL	0x016
-#define C0_BCOPSTATUS	0x116
 #define C0_XCONTEXT	20
 #define C0_DEBUG	23
 #define C0_TRACECONTROL	  0x117
@@ -1502,20 +1472,6 @@ __extension__ ({ \
 #define mips32_getwatchhi()	mips32_get_c0(C0_WATCHHI)
 #define mips32_setwatchhi(x)	mips32_set_c0(C0_WATCHHI, x)
 #define mips32_xchwatchhi(x)	mips32_xch_c0(C0_WATCHHI, x)
-#endif
-
-#ifdef C0_BCOPCONTROL
-/* CP0 WatchHi register */
-#define mips32_getbcopcontrol()  mips32_get_c0(C0_BCOPCONTROL)
-#define mips32_setbcopcontrol(x) mips32_set_c0(C0_BCOPCONTROL, x)
-#define mips32_xchbcopcontrol(x) mips32_xch_c0(C0_BCOPCONTROL, x)
-#endif
-
-#ifdef C0_BCOPSTATUS
-/* CP0 WatchHi register */
-#define mips32_getbcopstatus()	mips32_get_c0(C0_BCOPSTATUS)
-#define mips32_setbcopstatus(x)	mips32_set_c0(C0_BCOPSTATUS, x)
-#define mips32_xchbcopstatus(x)	mips32_xch_c0(C0_BCOPSTATUS, x)
 #endif
 
 #ifdef C0_USERTRACE1
