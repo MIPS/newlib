@@ -75,7 +75,9 @@
 #define VPCONTROL_DIS	0x00000001
 #define VPCONTROL_SHIFT		 0
 
-/* MIPS32 EntryLo0 register (CP0 Register 2, select 0) */
+/*
+ * MIPS32 EntryLo0 register (CP0 Register 2, select 0)
+ */
 #define ENTRYLO064_RI_MASK	0x8000000000000000
 #define ENTRYLO064_RI_BITS	1
 #define ENTRYLO064_RI_SHIFT	63
@@ -113,7 +115,9 @@
 #define ENTRYLO0_G_BITS		1
 #define ENTRYLO0_G_SHIFT	0
 
-/* MIPS32 EntryLo1 register (CP0 Register 3, select 0) */
+/*
+ * MIPS32 EntryLo1 register (CP0 Register 3, select 0)
+ */
 #define ENTRYLO164_RI_MASK	ENTRYLO064_RI_MASK
 #define ENTRYLO164_RI_BITS	ENTRYLO064_RI_BITS
 #define ENTRYLO164_RI_SHIFT	ENTRYLO064_RI_SHIFT
@@ -151,7 +155,9 @@
 #define ENTRYLO1_G_BITS		ENTRYLO0_G_BITS
 #define ENTRYLO1_G_SHIFT	ENTRYLO0_G_SHIFT
 
-/* MIPS32r2 PageGrain  Register (CP0 Register 5, Select 1) */
+/*
+ * MIPS32r2 PageGrain Register (CP0 Register 5, Select 1)
+ */
 #define PAGEGRAIN_ELPA	0x20000000	/* Enable large physical addresses */
 #define PAGEGRAIN_ELPA_SHIFT	29
 #define PAGEGRAIN_ELPA_BITS	1
@@ -159,7 +165,7 @@
 #define PAGEGRAIN_ESP	0x10000000	/* Enable small (1KB) page support */
 
 /*
- * MIPS32r2 HWREna Register  (CP0 Register 7, Select 0)
+ * MIPS32r2 HWREna Register (CP0 Register 7, Select 0)
  */
 #define HWRENA_ULR	0x20000000
 #define HWRENA_XNP	0x00000020
@@ -169,7 +175,9 @@
 #define HWRENA_SYNCSTEP	0x00000002
 #define HWRENA_CPUNUM	0x00000001
 
-/* MIPS32r2 EntryHi register (CP0 Register 10, Select 0) */
+/*
+ * MIPS32r2 EntryHi register (CP0 Register 10, Select 0)
+ */
 #define C0_ENTRYHI64_R_MASK	0xC000000000000000
 #define C0_ENTRYHI64_R_BITS	2
 #define C0_ENTRYHI64_R_SHIFT	61
@@ -193,7 +201,7 @@
 #define C0_ENTRYHI_ASID_SHIFT	0
 
 /*
- * MIPS32 Status Register  (CP0 Register 12, Select 0)
+ * MIPS32 Status Register (CP0 Register 12, Select 0)
  */
 #define SR_CU3		0x80000000	/* coprocessor 3 enable */
 #define  SR_CU3_SHIFT		31
@@ -230,7 +238,7 @@
 #define  SR_IPL_BITS		 6
 #define SR_IMASK	0x0000ff00
 
-/* interrupt mask bits */
+/* Interrupt mask bits */
 #define SR_HINT5	0x00008000	/* enable h/w interrupt 6 */
 #define SR_HINT4	0x00004000	/* enable h/w interrupt 5 */
 #define SR_HINT3	0x00002000	/* enable h/w interrupt 4 */
@@ -240,7 +248,7 @@
 #define SR_SINT1	0x00000200	/* enable s/w interrupt 1 */
 #define SR_SINT0	0x00000100	/* enable s/w interrupt 0 */
 
-/* alternative interrupt mask naming */
+/* Alternative interrupt mask naming */
 #define SR_IM9		0x00040000      /* 1st MUCON ASE interrupt */
 #define SR_IM8		0x00010000	/* 2nd MUCON ASE interrupt */
 #define SR_IM7		0x00008000
@@ -275,7 +283,7 @@
 #define  SR_IE_SHIFT		 0
 
 /*
- * MIPS32r2 IntCtl Register  (CP0 Register 12, Select 1)
+ * MIPS32r2 IntCtl Register (CP0 Register 12, Select 1)
  */
 #define INTCTL_IPTI	0xe0000000	/* timer i/u pending bit */
 #define  INTCTL_IPTI_SHIFT	29
@@ -297,7 +305,7 @@
 #define  INTCTL_VS_512	(0x10 << INTCTL_VS_SHIFT)
 
 /*
- * MIPS32r2 SRSCtl Register  (CP0 Register 12, Select 2)
+ * MIPS32r2 SRSCtl Register (CP0 Register 12, Select 2)
  */
 #define SRSCTL_HSS	0x3c000000	/* highest shadow set */
 #define SRSCTL_HSS_SHIFT	26
@@ -341,7 +349,7 @@
 #define  CR_RIPL_SHIFT		10
 #define  CR_RIPL_BITS		 6
 
-/* interrupt pending bits */
+/* Interrupt pending bits */
 #define CR_HINT5	0x00008000	/* h/w interrupt 5 */
 #define CR_HINT4	0x00004000	/* h/w interrupt 4 */
 #define CR_HINT3	0x00002000	/* h/w interrupt 3 */
@@ -351,7 +359,7 @@
 #define CR_SINT1	0x00000200	/* s/w interrupt 1 */
 #define CR_SINT0	0x00000100 	/* s/w interrupt 0 */
 
-/* alternative interrupt pending bit naming */
+/* Alternative interrupt pending bit naming */
 #define CR_IP7		0x00008000
 #define CR_IP6		0x00004000
 #define CR_IP5		0x00002000
@@ -367,7 +375,9 @@
 #define  CR_X_BITS		 5
 #define CR_XCPT(x)	((x)<<2)
 
-/* MIPS32r2 EBase  Register (CP0 Register 15, Select 1) */
+/*
+ * MIPS32r2 EBase Register (CP0 Register 15, Select 1)
+ */
 #define EBASE_BASE	0xfffff000	/* Exception base */
 #define EBASE_WG	0x00000800	/* Write Gate */
 #define  EBASE_WG_SHIFT		11
@@ -384,7 +394,7 @@
 #define BEVVA_MASK_SHIFT	 0
 
 /*
- * MIPS32 Config0 Register  (CP0 Register 16, Select 0)
+ * MIPS32 Config0 Register (CP0 Register 16, Select 0)
  */
 #define CFG0_M		0x80000000	/* Config1 implemented */
 #define  CFG0_M_SHIFT		31
@@ -481,7 +491,6 @@
 #define  CFG1_EP_SHIFT		 1
 #define CFG1_FP		0x00000001	/* fpu implemented */
 #define  CFG1_FP_SHIFT		 0
-
 
 /*
  * MIPS32r2 Config2 Register (CP0 Register 16, Select 2)
@@ -696,13 +705,17 @@
 #define CFG_C_UNCACHED_ACCEL	7
 #endif
 
-/* MIPS32 WatchLo Register (CP0 Register 18) */
+/*
+ * MIPS32 WatchLo Register (CP0 Register 18)
+ */
 #define WATCHLO_VA		0xfffffff8
 #define WATCHLO_I		0x00000004
 #define WATCHLO_R		0x00000002
 #define WATCHLO_W		0x00000001
 
-/* MIPS32 WatchHi Register (CP0 Register 19) */
+/*
+ * MIPS32 WatchHi Register (CP0 Register 19)
+ */
 #define WATCHHI_M		0x80000000
 #define  WATCHHI_M_SHIFT		31
 #define WATCHHI_G		0x40000000
@@ -717,7 +730,9 @@
 #define WATCHHI_R		0x00000002
 #define WATCHHI_W		0x00000001
 
-/* MIPS32 TraceControl register (CP0 Register 23, select 1) */
+/*
+ * MIPS32 TraceControl register (CP0 Register 23, select 1)
+ */
 #define TRACECONTROL_TS_MASK	  0x80000000
 #define  TRACECONTROL_TS_SHIFT		  31
 #define TRACECONTROL_TB_MASK	  0x08000000
@@ -751,7 +766,9 @@
 #define TRACECONTROL_ON_MASK	  0x00000001
 #define  TRACECONTROL_ON_SHIFT		   0
 
-/* MIPS32 TraceControl2 register (CP0 Register 23, select 2) */
+/*
+ * MIPS32 TraceControl2 register (CP0 Register 23, select 2)
+ */
 #define TRACECONTROL2_SYPEXT_MASK   0xc0000000
 #define  TRACECONTROL2_SYPEXT_SHIFT	    30
 #define  TRACECONTROL2_SYPEXT_BITS	     2
@@ -782,7 +799,9 @@
 #define  TRACECONTROL2_SYP_SHIFT	     0
 #define  TRACECONTROL2_SYP_BITS		     3
 
-/* MIPS32 TraceControl3 register (CP0 Register 24, select 2) */
+/*
+ * MIPS32 TraceControl3 register (CP0 Register 24, select 2)
+ */
 #define TRACECONTROL3_TNUD_MASK	    0x20000000
 #define  TRACECONTROL3_TNUD_SHIFT	    29
 #define TRACECONTROL3_MSA_EN_MASK   0x10000000
@@ -819,7 +838,9 @@
 #define TRACECONTROL3_FDT_MASK	    0x00000001
 #define  TRACECONTROL3_FDT_SHIFT	     0
 
-/* MIPS32 PerfCnt Register (CP0 Register 25) */
+/*
+ * MIPS32 PerfCnt Register (CP0 Register 25)
+ */
 #define PERFCNT_M		0x80000000
 #define PERFCNT_EVENT_MASK	0x000007e0
 #define PERFCNT_EVENTMASK	0x000007e0
@@ -843,7 +864,7 @@
 #define TAG_PARITY_MASK         0x00000001      /* Primary Tag Parity */
 #define TAG_PARITY_SHIFT        0
 
-/* primary cache state (XXX actually implementation specific) */
+/* Primary cache state (XXX actually implementation specific) */
 #define PSTATE_INVAL		0
 #define PSTATE_SHARED		1
 #define PSTATE_CLEAN_EXCL	2
