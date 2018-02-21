@@ -84,7 +84,7 @@
 #define ENTRYLO064_XI_MASK	0x4000000000000000
 #define ENTRYLO064_XI_BITS	1
 #define ENTRYLO064_XI_SHIFT	62
-#define ENTRYLO064_PFN_MASK	0x3FFFFFFFFFFFFFE0
+#define ENTRYLO064_PFN_MASK	0x3FFFFFFFFFFFFFC0
 #define ENTRYLO064_PFN_BITS	56
 #define ENTRYLO064_PFN_SHIFT	6
 #define ENTRYLO064_RI_SHIFT	63
@@ -99,8 +99,8 @@
 #define ENTRYLO0_XI_MASK	0x40000000
 #define ENTRYLO0_XI_BITS	1
 #define ENTRYLO0_XI_SHIFT	30
-#define ENTRYLO0_PFN_MASK	0x3FFFFFE0
-#define ENTRYLO0_PFN_BITS	23
+#define ENTRYLO0_PFN_MASK	0x3FFFFFC0
+#define ENTRYLO0_PFN_BITS	24
 #define ENTRYLO0_PFN_SHIFT	6
 #define ENTRYLO0_C_MASK		0x38
 #define ENTRYLO0_C_BITS		3
@@ -156,13 +156,101 @@
 #define ENTRYLO1_G_SHIFT	ENTRYLO0_G_SHIFT
 
 /*
+ * MIPS32r6 GlobalNumber Register (CP0 Register 3, Select 1)
+ */
+#define GLOBALNUM_CLUSTERNUM_MASK	0x000F0000
+#define  GLOBALNUM_CLUSTERNUM_SHIFT	16
+#define  GLOBALNUM_CLUSTERNUM_BITS	4
+#define GLOBALNUM_CORENUM_MASK		0x00000F00
+#define  GLOBALNUM_CORENUM_SHIFT	8
+#define  GLOBALNUM_CORENUM_BITS		4
+#define GLOBALNUM_VPID_MASK		0x000000FF
+#define  GLOBALNUM_VPID_SHIFT		0
+#define  GLOBALNUM_VPID_BITS		16
+
+/*
+ * MIPS32 Context Register (CP0 Register 4, Select 0)
+ */
+#define CONTEXT_PTEBASE_MASK		0xFF800000
+#define  CONTEXT_PTEBASE_SHIFT		23
+#define  CONTEXT_PTEBASE_BITS		9
+#define CONTEXT_BADVPN2_MASK		0x007FFFF0
+#define  CONTEXT_BADVPN2_SHIFT		4
+#define  CONTEXT_BADVPN2_BITS		19
+
+/*
+ * MIPS32 PageMask Register (CP0 Register 5, Select 0)
+ */
+#define PAGEMASK_MASK_MASK		0x0FFFE000
+#define  PAGEMASK_MASK_SHIFT		13
+#define  PAGEMASK_MASK_BITS		16
+#define PAGEMASK_MASKX_MASK		0x00001800
+#define  PAGEMASK_MASKX_SHIFT		11
+#define  PAGEMASK_MASKX_BITS		2
+
+/*
  * MIPS32r2 PageGrain Register (CP0 Register 5, Select 1)
  */
+#define PAGEGRAIN_RIE	0x80000000	/* Read Inhibit Enable */
+#define PAGEGRAIN_XIE	0x40000000	/* Execute Inhibit Enable */
 #define PAGEGRAIN_ELPA	0x20000000	/* Enable large physical addresses */
 #define PAGEGRAIN_ELPA_SHIFT	29
 #define PAGEGRAIN_ELPA_BITS	1
-
 #define PAGEGRAIN_ESP	0x10000000	/* Enable small (1KB) page support */
+#define PAGEGRAIN_IEC	0x08000000	/* Enable unique exceptions for
+					   RIE/IEC exceptions */
+#define PAGEGRAIN_MCCAUSE_MASK	 0x0000001F /* Machine Check Cause */
+#define  PAGEGRAIN_MCCAUSE_SHIFT 0
+#define  PAGEGRAIN_MCCAUSE_BITS  5
+
+/*
+ * MIPS32r6 PWField Register (CP0 Register 5, Select 6)
+ */
+#define PWFIELD_GDI_MASK		0x3F000000
+#define  PWFIELD_GDI_SHIFT		24
+#define  PWFIELD_GDI_BITS		6
+#define PWFIELD_UDI_MASK		0x00FC0000
+#define  PWFIELD_UDI_SHIFT		18
+#define  PWFIELD_UDI_BITS		6
+#define PWFIELD_MDI_MASK		0x0003F000
+#define  PWFIELD_MDI_SHIFT		12
+#define  PWFIELD_UDI_BITS		6
+#define PWFIELD_PTI_MASK		0x00000FC0
+#define  PWFIELD_PTI_SHIFT		6
+#define  PWFIELD_PTI_BITS		6
+#define PWFIELD_PTEI_MASK		0x0000003F
+#define  PWFIELD_PTEI_SHIFT		0
+#define  PWFIELD_PTEI_BITS		6
+
+/*
+ * MIPS32r6 PWSize Register (CP0 Register 5, Select 7)
+ */
+#define PWSIZE_PS			0x40000000
+#define PWSIZE_GDW_MASK			0x3F000000
+#define  PWSIZE_GDW_SHIFT		24
+#define  PWSIZE_GDW_BITS		6
+#define PWSIZE_UDW_MASK			0x00FC0000
+#define  PWSIZE_UDW_SHIFT		18
+#define  PWSIZE_UDW_BITS		6
+#define PWSIZE_MDW_MASK			0x0003F000
+#define  PWSIZE_MDW_SHIFT		12
+#define  PWSIZE_UDW_BITS		6
+#define PWSIZE_PTW_MASK			0x00000FC0
+#define  PWSIZE_PTW_SHIFT		6
+#define  PWSIZE_PTW_BITS		6
+#define PWSIZE_PTEW_MASK		0x0000003F
+#define  PWSIZE_PTEW_SHIFT		0
+#define  PWSIZE_PTEW_BITS		6
+
+/*
+ * MIPS32r6 PWCtl Register (CP0 Register 5, Select 7)
+ */
+#define PWCTL_PWEN			0x80000000
+#define PWCTL_DPH			0x00000080
+#define PWCTL_HUGEPG			0x00000040
+#define PWCTL_PSN_MASK			0x0000003F
+#define  PWCTL_PSN_SHIFT		0
+#define  PWCTL_PSN_BITS			6
 
 /*
  * MIPS32r2 HWREna Register (CP0 Register 7, Select 0)
@@ -318,6 +406,25 @@
 #define SRSCTL_CSS	0x0000000f	/* current shadow set */
 #define SRSCTL_CSS_SHIFT	 0
 
+/*
+ * MIPS32r2 SRSMap Register (CP0 Register 12, Select 3)
+ */
+#define SRSMAP_SSV7_MASK	0xF0000000
+#define  SRSMAP_SSV7_SHIFT	28
+#define SRSMAP_SSV6_MASK	0x0F000000
+#define  SRSMAP_SSV6_SHIFT	24
+#define SRSMAP_SSV5_MASK	0x00F00000
+#define  SRSMAP_SSV5_SHIFT	20
+#define SRSMAP_SSV4_MASK	0x000F0000
+#define  SRSMAP_SSV4_SHIFT	16
+#define SRSMAP_SSV3_MASK	0x0000F000
+#define  SRSMAP_SSV3_SHIFT	12
+#define SRSMAP_SSV2_MASK	0x00000F00
+#define  SRSMAP_SSV2_SHIFT	8
+#define SRSMAP_SSV1_MASK	0x000000F0
+#define  SRSMAP_SSV1_SHIFT	4
+#define SRSMAP_SSV0_MASK	0x0000000F
+#define  SRSMAP_SSV0_SHIFT	0
 
 /*
  * MIPS32 Cause Register (CP0 Register 13, Select 0)
@@ -376,6 +483,12 @@
 #define CR_XCPT(x)	((x)<<2)
 
 /*
+ * MIPS32r2 NestedExc Register (CP0 Register 13, Select 5)
+ */
+#define NESTEDEXC_ERL	0x000000004
+#define NESTEDEXC_EXL	0x000000002
+
+/*
  * MIPS32r2 EBase Register (CP0 Register 15, Select 1)
  */
 #define EBASE_BASE	0xfffff000	/* Exception base */
@@ -384,6 +497,25 @@
 #define EBASE_CPU	0x000003ff	/* CPU number */
 #define  EBASE_CPU_SHIFT	 0
 #define  EBASE_CPU_BITS		10
+
+/*
+ * MIPS32 CDMMBase Register (CP0 Register 15, Select 2)
+ */
+#define CDMMBASE_UPPER_ADDR_MASK	0xFFFFF800
+#define  CDMMBASE_UPPER_ADDR_SHIFT	15
+#define  CDMMBASE_UPPER_ADDR_BITS	21
+#define CDMMBASE_EN			0x00000400
+#define CDMMBASE_CI			0x00000200
+#define CDMMBASE_SIZE			0x000001FF
+#define  CDMMBASE_SIZE_SHIFT		0
+#define  CDMMBASE_SIZE_BITS		9
+
+/*
+ * MIPS32 CMGCRBase Register (CP0 Register 15, Select 3)
+ */
+#define CMGRC_BASE_ADDR_MASK		0xFFFFF800
+#define  CMGRC_BASE_ADDR_SHIFT		15
+#define  CMGRC_BASE_ADDR_BITS		21
 
 /*
  * MIPS32 BEVVA Register (CP0 Register 15, Select 4)
@@ -922,6 +1054,7 @@
 #define C0_USERLOCAL	$4,2
 #define C0_XCONTEXTCONF	$4,3
 #define C0_DEBUGCTXTID	$4,4
+#define C0_MEMORYMAPID	$4,5
 #define C0_PAGEMASK	$5
 #define C0_PAGEGRAIN	$5,1
 #define C0_SEGCTL0	$5,2
@@ -937,6 +1070,7 @@
 #define C0_VADDR 	$8
 #define C0_BADINSTR 	$8,1
 #define C0_BADPINSTR 	$8,2
+#define C0_BADINSTRP 	$8,2
 #define C0_COUNT 	$9
 #define C0_ENTRYHI	$10
 #define C0_TLBHI	$10
@@ -1071,6 +1205,7 @@ typedef signed long long	sreg_t;
 #define C0_USERLOCAL	0x204
 #define C0_XCONTEXTCONF	0x304
 #define C0_DEBUGCTXTID	0x404
+#define C0_MEMORYMAPID	0x504
 #define C0_PAGEMASK	5
 #define C0_PAGEGRAIN	0x105
 #define C0_SEGCTL0	0x205
@@ -1294,17 +1429,39 @@ __extension__ ({ \
 #define _mips_mfc0(r)		mips32_get_c0(r)
 #define _mips_mtc0(r,v)		mips32_set_c0(r,v)
 
-/* MIPS32 Entry*, Index, PageMask registers */
+/* MIPS32 Index register */
 #define mips32_getindex()	mips32_get_c0(C0_INDEX)
 #define mips32_setindex(v)	mips32_set_c0(C0_INDEX,v)
+
+/* MIPS32 EntryLo* registers */
 #define mips32_getentrylo0()	mips32_get_c0(C0_ENTRYLO0)
 #define mips32_setentrylo0(v)	mips32_set_c0(C0_ENTRYLO0,v)
 #define mips32_getentrylo1()	mips32_get_c0(C0_ENTRYLO1)
 #define mips32_setentrylo1(v)	mips32_set_c0(C0_ENTRYLO1,v)
-#define mips32_getpagemask()	mips32_get_c0(C0_PAGEMASK)
-#define mips32_setpagemask(v)	mips32_set_c0(C0_PAGEMASK,v)
+
+/* MIPS32 Context register */
+#define mips32_getcontext()	mips32_get_c0(C0_CONTEXT)
+#define mips32_setcontext(v)	mips32_set_c0(C0_CONTEXT,v)
+
+/* MIPS32 ContextConfig register */
+#define mips32_getcontextconf()	mips32_get_c0(C0_CONTEXTCONF)
+#define mips32_setcontextconf(v) mips32_set_c0(C0_CONTEXTCONF,v)
+
+/* MIPS32 UserLocal register */
+#define mips32_getuserlocal()	mips32_get_c0(C0_USERLOCAL)
+#define mips32_setuserlocal(v)	mips32_set_c0(C0_USERLOCAL,v)
+
+/* MIPS32 Debug ContextID register */
+#define mips32_getdebugctxid()	mips32_get_c0(C0_DEBUGCTXID)
+#define mips32_setdebugctxid(v)	mips32_set_c0(C0_DEBUGCTXID,v)
+
+/* MIPS32 EntryHi register */
 #define mips32_getentryhi()	mips32_get_c0(C0_ENTRYHI)
 #define mips32_setentryhi(v)	mips32_set_c0(C0_ENTRYHI,v)
+
+/* MIPS32 PageMask register */
+#define mips32_getpagemask()	mips32_get_c0(C0_PAGEMASK)
+#define mips32_setpagemask(v)	mips32_set_c0(C0_PAGEMASK,v)
 
 /* MIPS32r2/SmartMIPS PageGrain register */
 #define mips32_getpagegrain()	mips32_get_c0(C0_PAGEGRAIN)

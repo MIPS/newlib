@@ -115,6 +115,7 @@
 #define CTX_CAUSE	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR+4)
 #define CTX_BADINSTR	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR+8)
 #define CTX_BADPINSTR	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR+12)
+#define CTX_BADINSTRP	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR+12)
 #define CTX_SIZE	((CTX_REG(34))+CTX_HILO_SIZE+SZPTR+16)
 
 #if _MIPS_SIM==_ABIP32 || _MIPS_SIM==_ABIP64
@@ -317,7 +318,11 @@ struct gpctx
   /* These fields should be considered read-only */
   uint32_t cause;
   uint32_t badinstr;
-  uint32_t badpinstr;
+  union
+  {
+    uint32_t badpinstr;
+    uint32_t badinstrp;
+  };
 };
 
 struct linkctx
