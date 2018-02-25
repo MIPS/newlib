@@ -142,9 +142,8 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEROUND + ADJ, zero)
 	/* MIPSR6 guarantees all CP0 regs are defined to at
 	   least return zero.  */
 #endif
-	/* nanoMIPS never has BADINSTRP so don't read it.  */
 #ifdef __nanomips__
-	move	t0, zero
+	mfc0	t0, C0_BADINSTRX
 #else
 	mfc0	t0, C0_BADINSTRP
 #endif
@@ -155,7 +154,11 @@ ANESTED(__exception_save, _mips_general_exception, CTX_SIZEROUND + ADJ, zero)
 #endif
 	mfc0	t1, C0_BADINSTR
 1:
+#ifdef __nanomips__
+	sw	t0, CTX_BADINSTRX(k1)
+#else
 	sw	t0, CTX_BADINSTRP(k1)
+#endif
 	sw	t1, CTX_BADINSTR(k1)
 
 	/* Get and store the exception cause.  */

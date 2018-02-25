@@ -33,6 +33,8 @@
 jmp_buf context;
 
 void fault_recover ();
+__attribute__((section(".notsdata")))
+extern int not_a_good_address;
 
 int
 main ()
@@ -47,8 +49,7 @@ main ()
     }
 
   /* Initial continuation point from setjmp, cause an memory error. */
-  int *a = 0;
-  *a = 0;
+  not_a_good_address = 0;
 
   /* Return error on this return path. */
   return -1;
@@ -58,8 +59,12 @@ void
 _mips_handle_exception (struct gpctx *ctx, int exception)
 {
   /* If we're here due to a TLB Store exception, return to the
-     fault_recover function. Otherwise use the stand exception handler. */
-  if (exception == EXC_TLBS)
+     fault_recover function. Otherwise use the standard exception handler. */
+  if (exception == EXC_TLBS
+      /* Check that the faulting instruction was an SWPC[48].  */
+      && (ctx->badinstr & 0xfc1f0000) == 0x600f0000
+      /* And that the effective address was 0x0.  */
+      && (ctx->badinstr & 0xffff | ctx->badinstrx & 0xffff0000) == -(ctx->epc + 6))
     {
       printf ("exception caught\n");
       ctx->epc = (reg_t)&fault_recover;

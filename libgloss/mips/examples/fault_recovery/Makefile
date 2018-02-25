@@ -30,7 +30,7 @@
 include ${MIPS_ELF_ROOT}/share/mips/rules/mipshal.mk
 
 CFLAGS += -msoft-float -g -O1
-LDFLAGS += -msoft-float -g
+LDFLAGS += -msoft-float -g -Wl,--defsym,not_a_good_address=0
 
 OBJS = fault_recovery.o
 APP = fault_recovery.elf

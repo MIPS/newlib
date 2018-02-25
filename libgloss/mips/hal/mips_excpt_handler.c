@@ -310,7 +310,11 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
   PUTSNDS ("Status:   \t", ctx->status, 8, "\n");
   PUTSNDS ("Cause:    \t", ctx->cause, 8, "\n");
   PUTSNDS ("BadInstr: \t", ctx->badinstr, 8, "\n");
+#ifdef __nanomips__
+  PUTSNDS ("BadInstrX:\t", ctx->badinstrx, 8, "\n");
+#else
   PUTSNDS ("BadInstrP:\t", ctx->badinstrp, 8, "\n");
+#endif
 
   /* Raise UHI exception which may or may not return.  */
   if (__uhi_exception (ctx, UHI_ABI) != 0)
