@@ -175,7 +175,7 @@ _start:
 	ehb
 
 	/* set the global data pointer */
-	LA	gp, _gp
+	lapc[48] gp, _gp
 	.end _start
 
 /*

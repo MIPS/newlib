@@ -11,7 +11,7 @@ LEAF(_start)
 	/* Preserve return address */
 	move s0, ra
 	/* Set up global pointer for small data access */
-	LA gp, _gp
+	lapc[48] gp, _gp
 	/* Set up stack pointer */
 	LA sp, __stack
 	/* Zero the BSS */
