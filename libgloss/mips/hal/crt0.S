@@ -56,7 +56,8 @@ __temp_space:	   /* Temporary space to save arguments */
  */
 	nop
 
-	.globl	hardware_hazard_hook .text
+	.globl	hardware_hazard_hook
+	.type	hardware_hazard_hook,@function
 	.globl	_start
 	.ent	_start
 _start:
@@ -181,7 +182,8 @@ _start:
 /*
  * zero out the bss section.
  */
-	.globl	_get_ram_info .text
+	.globl	_get_ram_info
+	.type	_get_ram_info,@function
 	.globl	__stack
 	.globl	__global
 	.ent	zerobss
@@ -220,12 +222,16 @@ zerobss:
  * initialize target specific stuff. Only execute these
  * functions it they exist.
  */
-	.globl	hardware_init_hook .text
-	.globl	software_init_hook .text
+	.globl	hardware_init_hook
+	.type	hardware_init_hook,@function
+	.globl	software_init_hook
+	.type	software_init_hook,@function
 	.type	_fini,@function
 	.type	_init,@function
-	.globl	atexit .text
-	.globl	exit .text
+	.globl	atexit
+	.type	atexit,@function
+	.globl	exit
+	.type	exit,@function
 	.ent	init
 init:
 	/* Init the hardware if needed */
@@ -295,7 +301,8 @@ init:
  *          executables that contain a complete world to be linked with
  *          just the crt0.o object.
  */
-	.globl	hardware_exit_hook .text
+	.globl	hardware_exit_hook
+	.type	hardware_exit_hook,@function
 	.globl	_exit
 	.ent _exit
 _exit:
@@ -313,7 +320,8 @@ _exit:
 	LA	t0, __temp_space
 	REG_L	a0,0(t0)
 
-	.global __exit .text
+	.global __exit
+	.type	__exit,@function
 	jal	__exit
 
 	/* The BREAK instruction can cope with 0xfffff, but GAS limits the
