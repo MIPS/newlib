@@ -179,14 +179,13 @@ YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
 
 HALOBJ = mips_clean_cache.o mips_flush_cache.o mips_l2size.o \
   mips_lock_cache.o mips_size_cache.o mips_sync_cache.o \
-  mips_fp.o \
   mips_excpt_entry.o mips_excpt_handler.o mips_excpt_handler_quiet.o \
   mips_excpt_register.o mips_excpt_boot.o \
   mips_intctrl.o $(ISROBJS)
 
 @HAS_NANOMIPS_SUBSET_FALSE@HALOBJ += mips_tlb.o
 
-@NANOMIPS_FALSE@HALOBJ += mips64_tlb.o mips_xpa.o mips_msa.o
+@NANOMIPS_FALSE@HALOBJ += mips64_tlb.o mips_xpa.o mips_msa.o mips_fp.o
 
 BOOTOBJ = reset.o init_cp0.o init_caches.o init_tlb.o init_l23caches.o
 
