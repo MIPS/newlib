@@ -176,7 +176,12 @@ _start:
 	ehb
 
 	/* set the global data pointer */
-	lapc[48] gp, _gp
+#ifdef __nanomips_subset
+	aluipc	gp,%pcrel_hi(_gp)
+	ori	gp,gp,%lo(_gp)
+#else
+	lapc48	gp,_gp
+#endif
 	.end _start
 
 /*
