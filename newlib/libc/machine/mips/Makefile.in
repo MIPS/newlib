@@ -73,9 +73,11 @@ lib_a_AR = $(AR) $(ARFLAGS)
 lib_a_LIBADD =
 @NANOMIPS_TRUE@am__objects_1 = lib_a-memcpy-c.$(OBJEXT) \
 @NANOMIPS_TRUE@	lib_a-memset-c.$(OBJEXT) \
-@NANOMIPS_TRUE@	lib_a-strcmp-r6.$(OBJEXT)
+@NANOMIPS_TRUE@	lib_a-strcmp-r6.$(OBJEXT) \
+@NANOMIPS_TRUE@	lib_a-strlen-c.$(OBJEXT)
 @NANOMIPS_FALSE@am__objects_2 = lib_a-memcpy.$(OBJEXT) \
-@NANOMIPS_FALSE@	lib_a-memset.$(OBJEXT) lib_a-strcmp.$(OBJEXT)
+@NANOMIPS_FALSE@	lib_a-memset.$(OBJEXT) lib_a-strcmp.$(OBJEXT) \
+	lib_a-strlen.$(OBJEXT)
 am_lib_a_OBJECTS = lib_a-setjmp.$(OBJEXT) lib_a-strlen.$(OBJEXT) \
 	lib_a-strncpy.$(OBJEXT) $(am__objects_1) $(am__objects_2)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
@@ -325,6 +327,12 @@ lib_a-memset-c.o: memset-c.c
 
 lib_a-memset-c.obj: memset-c.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memset-c.obj `if test -f 'memset-c.c'; then $(CYGPATH_W) 'memset-c.c'; else $(CYGPATH_W) '$(srcdir)/memset-c.c'; fi`
+
+lib_a-strlen-c.o: strlen-c.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strlen-c.o `test -f 'strlen-c.c' || echo '$(srcdir)/'`strlen-c.c
+
+lib_a-strlen-c.obj: strlen-c.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strlen-c.obj `if test -f 'strlen-c.c'; then $(CYGPATH_W) 'strlen-c.c'; else $(CYGPATH_W) '$(srcdir)/strlen-c.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
