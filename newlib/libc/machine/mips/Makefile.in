@@ -74,7 +74,8 @@ lib_a_LIBADD =
 @NANOMIPS_TRUE@am__objects_1 = lib_a-memcpy-c.$(OBJEXT) \
 @NANOMIPS_TRUE@	lib_a-memset-c.$(OBJEXT) \
 @NANOMIPS_TRUE@	lib_a-strcmp-r6.$(OBJEXT) \
-@NANOMIPS_TRUE@	lib_a-strlen-c.$(OBJEXT)
+@NANOMIPS_TRUE@	lib_a-strlen-c.$(OBJEXT) \
+@NANOMIPS_TRUE@	lib_a-strcpy.$(OBJEXT)
 @NANOMIPS_FALSE@am__objects_2 = lib_a-memcpy.$(OBJEXT) \
 @NANOMIPS_FALSE@	lib_a-memset.$(OBJEXT) lib_a-strcmp.$(OBJEXT) \
 	lib_a-strlen.$(OBJEXT)
@@ -333,6 +334,13 @@ lib_a-strlen-c.o: strlen-c.c
 
 lib_a-strlen-c.obj: strlen-c.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strlen-c.obj `if test -f 'strlen-c.c'; then $(CYGPATH_W) 'strlen-c.c'; else $(CYGPATH_W) '$(srcdir)/strlen-c.c'; fi`
+
+lib_a-strcpy.o: strcpy.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strcpy.o `test -f 'strcpy.c' || echo '$(srcdir)/'`strcpy.c
+
+lib_a-strcpy.obj: strcpy.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strcpy.obj `if test -f 'strcpy.c'; then $(CYGPATH_W) 'strcpy.c'; else $(CYGPATH_W) '$(srcdir)/strcpy.c'; fi`
+
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

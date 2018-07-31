@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014
+ * Copyright (c) 2012
  *      MIPS Technologies, Inc., California.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,29 +49,20 @@
 #include <sys/asm.h>
 #endif
 
-/* Check to see if the MIPS architecture we are compiling for supports
- * prefetching.
- */
-
-#if (__mips == 4) || (__mips == 5) || (__mips == 32) || (__mips == 64)
+#if (_MIPS_ISA == _MIPS_ISA_MIPS4) || (_MIPS_ISA == _MIPS_ISA_MIPS5) || \
+    (_MIPS_ISA == _MIPS_ISA_MIPS32) || (_MIPS_ISA == _MIPS_ISA_MIPS64)
 #ifndef DISABLE_PREFETCH
 #define USE_PREFETCH
 #endif
 #endif
 
-#if defined(_MIPS_SIM) && (_MIPS_SIM == _ABI64 || _MIPS_SIM == _ABIN32)
+#if (_MIPS_SIM == _ABI64) || (_MIPS_SIM == _ABIN32)
 #ifndef DISABLE_DOUBLE
 #define USE_DOUBLE
 #endif
 #endif
 
-#if __mips_isa_rev > 5
-# if (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
-#  undef PREFETCH_STORE_HINT
-#  define PREFETCH_STORE_HINT PREFETCH_HINT_STORE_STREAMED
-# endif
-# define R6_CODE
-#endif
+
 
 /* Some asm.h files do not have the L macro definition.  */
 #ifndef L
@@ -84,7 +75,7 @@
 
 /* Some asm.h files do not have the PTR_ADDIU macro definition.  */
 #ifndef PTR_ADDIU
-#if _MIPS_SIM == _ABI64
+#ifdef USE_DOUBLE
 #define PTR_ADDIU	daddiu
 #else
 #define PTR_ADDIU	addiu
@@ -93,27 +84,13 @@
 
 /* Some asm.h files do not have the PTR_SRA macro definition.  */
 #ifndef PTR_SRA
-#if _MIPS_SIM == _ABI64
+#ifdef USE_DOUBLE
 #define PTR_SRA		dsra
 #else
 #define PTR_SRA		sra
 #endif
 #endif
 
-/* New R6 instructions that may not be in asm.h.  */
-#ifndef PTR_LSA
-#if _MIPS_SIM == _ABI64
-# define PTR_LSA	dlsa
-#else
-# define PTR_LSA	lsa
-#endif
-#endif
-
-#if __mips_isa_rev > 5 && defined (__mips_micromips)
-#define PTR_BC	      bc16
-#else
-#define PTR_BC	      bc
-#endif
 
 /*
  * Using PREFETCH_HINT_LOAD_STREAMED instead of PREFETCH_LOAD on load
@@ -190,14 +167,14 @@
  pref PREFETCH_STORE_HINT, (chunk)*32(reg)
 #endif
 /* MAX_PREFETCH_SIZE is the maximum size of a prefetch, it must not be less
- * than PREFETCH_CHUNK, the assumed size of each prefetch.  If the real size
- * of a prefetch is greater than MAX_PREFETCH_SIZE and the PREPAREFORSTORE
- * hint is used, the code will not work correctly.  If PREPAREFORSTORE is not
+ * then PREFETCH_CHUNK, the assumed size of each prefetch.  If the real size
+ * of a prefetch is greater then MAX_PREFETCH_SIZE and the PREPAREFORSTORE
+ * hint is used, the code will not work corrrectly.  If PREPAREFORSTORE is not
  * used then MAX_PREFETCH_SIZE does not matter.  */
 #define MAX_PREFETCH_SIZE 128
-/* PREFETCH_LIMIT is set based on the fact that we never use an offset greater
- * than 5 on a STORE prefetch and that a single prefetch can never be larger
- * than MAX_PREFETCH_SIZE.  We add the extra 32 when USE_DOUBLE is set because
+/* PREFETCH_LIMIT is set based on the fact that we neve use an offset greater
+ * then 5 on a STORE prefetch and that a single prefetch can never be larger
+ * then MAX_PREFETCH_SIZE.  We add the extra 32 when USE_DOUBLE is set because
  * we actually do two prefetches in that case, one 32 bytes after the other.  */
 #ifdef USE_DOUBLE
 # define PREFETCH_LIMIT (5 * PREFETCH_CHUNK) + 32 + MAX_PREFETCH_SIZE
@@ -207,7 +184,7 @@
 #if (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE) \
     && ((PREFETCH_CHUNK * 4) < MAX_PREFETCH_SIZE)
 /* We cannot handle this because the initial prefetches may fetch bytes that
- * are before the buffer being copied.  We start copies with an offset
+ * are before the buffer being copied.  We start copies with an offset 
  * of 4 so avoid this situation when using PREPAREFORSTORE.  */
 #error "PREFETCH_CHUNK is too large and/or MAX_PREFETCH_SIZE is too small."
 #endif
@@ -226,7 +203,7 @@
 #define REG1 t1
 #define REG2 t2
 #define REG3 t3
-#if defined(_MIPS_SIM) && (_MIPS_SIM == _ABIO32 || _MIPS_SIM == _ABIO64)
+#if _MIPS_SIM == _ABIO32
 #  define REG4 t4
 #  define REG5 t5
 #  define REG6 t6
@@ -256,7 +233,6 @@
 #  define C_LDLO	ldl	/* low part is left in little-endian	*/
 #  define C_STLO	sdl	/* low part is left in little-endian	*/
 #endif
-#  define C_ALIGN	dalign	/* r6 align instruction			*/
 #else
 #  define C_ST	sw
 #  define C_LD	lw
@@ -271,7 +247,6 @@
 #  define C_LDLO	lwl	/* low part is left in little-endian	*/
 #  define C_STLO	swl	/* low part is left in little-endian	*/
 #endif
-#  define C_ALIGN	align	/* r6 align instruction			*/
 #endif
 
 /* Bookkeeping values for 32 vs. 64 bit mode.  */
@@ -293,6 +268,7 @@ LEAF(MEMCPY_NAME, 0)
 LEAF(MEMCPY_NAME)
 #endif
 	.set	nomips16
+	.set	noreorder
 /*
  * Below we handle the case where memcpy is called with overlapping src and dst.
  * Although memcpy is not required to handle this case, some parts of Android
@@ -304,26 +280,23 @@ LEAF(MEMCPY_NAME)
 	xor	t1,t0,t2
 	PTR_SUBU t0,t1,t2
 	sltu	t2,t0,a2
-	la	t9,memmove
 	beq	t2,zero,L(memcpy)
+	la	t9,memmove
 	jr	t9
+	 nop
 L(memcpy):
 #endif
-
 /*
- * If the size is less than 2*NSIZE (8 or 16), go to L(lastb).  Regardless of
+ * If the size is less then 2*NSIZE (8 or 16), go to L(lastb).  Regardless of
  * size, copy dst pointer to v0 for the return value.
  */
 	slti	t2,a2,(2 * NSIZE)
+	bne	t2,zero,L(lastb)
 #if defined(RETURN_FIRST_PREFETCH) || defined(RETURN_LAST_PREFETCH)
 	move	v0,zero
 #else
 	move	v0,a0
 #endif
-	bne	t2,zero,L(lastb)
-
-#if !defined (R6_CODE)
-
 /*
  * If src and dst have different alignments, go to L(unaligned), if they
  * have the same alignment (but are not actually aligned) do a partial
@@ -332,97 +305,17 @@ L(memcpy):
  */
 	xor	t8,a1,a0
 	andi	t8,t8,(NSIZE-1)		/* t8 is a0/a1 word-displacement */
-	PTR_SUBU a3, zero, a0
 	bne	t8,zero,L(unaligned)
+	PTR_SUBU a3, zero, a0
 
 	andi	a3,a3,(NSIZE-1)		/* copy a3 bytes to align a0/a1	  */
-	PTR_SUBU a2,a2,a3		/* a2 is the remining bytes count */
 	beq	a3,zero,L(aligned)	/* if a3=0, it is already aligned */
+	PTR_SUBU a2,a2,a3		/* a2 is the remining bytes count */
 
 	C_LDHI	t8,0(a1)
 	PTR_ADDU a1,a1,a3
 	C_STHI	t8,0(a0)
 	PTR_ADDU a0,a0,a3
-
-#else /* R6_CODE */
-
-/* 
- * Align the destination and hope that the source gets aligned too.  If it
- * doesn't we jump to L(r6_unaligned*) to do unaligned copies using the r6
- * align instruction.
- */
-	andi	t8,a0,7
-#ifdef __mips_micromips
-	auipc	t9,%pcrel_hi(L(atable))
-	addiu	t9,t9,%pcrel_lo(L(atable)+4)
-	PTR_LSA	t9,t8,t9,1
-#else
-	lapc	t9,L(atable)
-	PTR_LSA	t9,t8,t9,2
-#endif
-	jrc	t9
-L(atable):
-	PTR_BC	L(lb0)
-	PTR_BC	L(lb7)
-	PTR_BC	L(lb6)
-	PTR_BC	L(lb5)
-	PTR_BC	L(lb4)
-	PTR_BC	L(lb3)
-	PTR_BC	L(lb2)
-	PTR_BC	L(lb1)
-L(lb7):
-	lb	a3, 6(a1)
-	sb	a3, 6(a0)
-L(lb6):
-	lb	a3, 5(a1)
-	sb	a3, 5(a0)
-L(lb5):
-	lb	a3, 4(a1)
-	sb	a3, 4(a0)
-L(lb4):
-	lb	a3, 3(a1)
-	sb	a3, 3(a0)
-L(lb3):
-	lb	a3, 2(a1)
-	sb	a3, 2(a0)
-L(lb2):
-	lb	a3, 1(a1)
-	sb	a3, 1(a0)
-L(lb1):
-	lb	a3, 0(a1)
-	sb	a3, 0(a0)
-
-	li	t9,8
-	subu	t8,t9,t8
-	PTR_SUBU a2,a2,t8
-	PTR_ADDU a0,a0,t8
-	PTR_ADDU a1,a1,t8
-L(lb0):
-
-	andi	t8,a1,(NSIZE-1)
-#ifdef __mips_micromips
-	auipc	t9,%pcrel_hi(L(jtable))
-	addiu	t9,t9,%pcrel_lo(L(jtable)+4)
-	PTR_LSA	t9,t8,t9,1
-#else
-	lapc	t9,L(jtable)
-	PTR_LSA	t9,t8,t9,2
-#endif
-	jrc	t9
-L(jtable):
-        PTR_BC      L(aligned)
-        PTR_BC      L(r6_unaligned1)
-        PTR_BC      L(r6_unaligned2)
-        PTR_BC      L(r6_unaligned3)
-#ifdef USE_DOUBLE
-        PTR_BC      L(r6_unaligned4)
-        PTR_BC      L(r6_unaligned5)
-        PTR_BC      L(r6_unaligned6)
-        PTR_BC      L(r6_unaligned7)
-#endif
-#endif /* R6_CODE */
-
-L(aligned):
 
 /*
  * Now dst/src are both aligned to (word or double word) aligned addresses
@@ -432,9 +325,10 @@ L(aligned):
  * equals a3.
  */
 
+L(aligned):
 	andi	t8,a2,NSIZEDMASK /* any whole 64-byte/128-byte chunks? */
-	PTR_SUBU a3,a2,t8	 /* subtract from a2 the reminder */
 	beq	a2,t8,L(chkw)	 /* if a2==t8, no 64-byte/128-byte chunks */
+	PTR_SUBU a3,a2,t8	 /* subtract from a2 the reminder */
 	PTR_ADDU a3,a0,a3	 /* Now a3 is the final dst after loop */
 
 /* When in the loop we may prefetch with the 'prepare to store' hint,
@@ -460,6 +354,7 @@ L(aligned):
 #if PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE
 	sltu    v1,t9,a0
 	bgtz    v1,L(skip_set)
+	nop
 	PTR_ADDIU v0,a0,(PREFETCH_CHUNK*4)
 L(skip_set):
 #else
@@ -475,22 +370,13 @@ L(skip_set):
 #endif
 L(loop16w):
 	C_LD	t0,UNIT(0)(a1)
-/* We need to separate out the C_LD instruction here so that it will work
-   both when it is used by itself and when it is used with the branch
-   instruction.  */
 #if defined(USE_PREFETCH) && (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
 	sltu	v1,t9,a0		/* If a0 > t9 don't use next prefetch */
-	C_LD	t1,UNIT(1)(a1)
 	bgtz	v1,L(skip_pref)
-#else
-	C_LD	t1,UNIT(1)(a1)
 #endif
-#if defined(R6_CODE)
-	PREFETCH_FOR_STORE (2, a0)
-#else
+	C_LD	t1,UNIT(1)(a1)
 	PREFETCH_FOR_STORE (4, a0)
 	PREFETCH_FOR_STORE (5, a0)
-#endif
 #if defined(RETURN_LAST_PREFETCH) && defined(USE_PREFETCH)
 	PTR_ADDIU v0,a0,(PREFETCH_CHUNK*5)
 #ifdef USE_DOUBLE
@@ -504,11 +390,7 @@ L(skip_pref):
 	C_LD	REG5,UNIT(5)(a1)
 	C_LD	REG6,UNIT(6)(a1)
 	C_LD	REG7,UNIT(7)(a1)
-#if defined(R6_CODE)
-	PREFETCH_FOR_LOAD (3, a1)
-#else
-	PREFETCH_FOR_LOAD (4, a1)
-#endif
+        PREFETCH_FOR_LOAD (4, a1)
 
 	C_ST	t0,UNIT(0)(a0)
 	C_ST	t1,UNIT(1)(a0)
@@ -527,9 +409,7 @@ L(skip_pref):
 	C_LD	REG5,UNIT(13)(a1)
 	C_LD	REG6,UNIT(14)(a1)
 	C_LD	REG7,UNIT(15)(a1)
-#if !defined(R6_CODE)
         PREFETCH_FOR_LOAD (5, a1)
-#endif
 	C_ST	t0,UNIT(8)(a0)
 	C_ST	t1,UNIT(9)(a0)
 	C_ST	REG2,UNIT(10)(a0)
@@ -539,8 +419,8 @@ L(skip_pref):
 	C_ST	REG6,UNIT(14)(a0)
 	C_ST	REG7,UNIT(15)(a0)
 	PTR_ADDIU a0,a0,UNIT(16)	/* adding 64/128 to dest */
-	PTR_ADDIU a1,a1,UNIT(16)	/* adding 64/128 to src */
 	bne	a0,a3,L(loop16w)
+	PTR_ADDIU a1,a1,UNIT(16)	/* adding 64/128 to src */
 	move	a2,t8
 
 /* Here we have src and dest word-aligned but less than 64-bytes or
@@ -554,6 +434,7 @@ L(chkw):
 	andi	t8,a2,NSIZEMASK	/* Is there a 32-byte/64-byte chunk.  */
 				/* The t8 is the reminder count past 32-bytes */
 	beq	a2,t8,L(chk1w)	/* When a2=t8, no 32-byte chunk  */
+	nop
 	C_LD	t0,UNIT(0)(a1)
 	C_LD	t1,UNIT(1)(a1)
 	C_LD	REG2,UNIT(2)(a1)
@@ -574,7 +455,7 @@ L(chkw):
 	PTR_ADDIU a0,a0,UNIT(8)
 
 /*
- * Here we have less than 32(64) bytes to copy.  Set up for a loop to
+ * Here we have less then 32(64) bytes to copy.  Set up for a loop to
  * copy one word (or double word) at a time.  Set a2 to count how many
  * bytes we have to copy after all the word (or double word) chunks are
  * copied and a3 to the dst pointer after all the (d)word chunks have
@@ -582,8 +463,8 @@ L(chkw):
  */
 L(chk1w):
 	andi	a2,t8,(NSIZE-1)	/* a2 is the reminder past one (d)word chunks */
-	PTR_SUBU a3,t8,a2	/* a3 is count of bytes in one (d)word chunks */
 	beq	a2,t8,L(lastb)
+	PTR_SUBU a3,t8,a2	/* a3 is count of bytes in one (d)word chunks */
 	PTR_ADDU a3,a0,a3	/* a3 is the dst address after loop */
 
 /* copying in words (4-byte or 8-byte chunks) */
@@ -591,23 +472,22 @@ L(wordCopy_loop):
 	C_LD	REG3,UNIT(0)(a1)
 	PTR_ADDIU a0,a0,UNIT(1)
 	PTR_ADDIU a1,a1,UNIT(1)
-	C_ST	REG3,UNIT(-1)(a0)
 	bne	a0,a3,L(wordCopy_loop)
+	C_ST	REG3,UNIT(-1)(a0)
 
 /* Copy the last 8 (or 16) bytes */
 L(lastb):
-	PTR_ADDU a3,a0,a2	/* a3 is the last dst address */
 	blez	a2,L(leave)
+	PTR_ADDU a3,a0,a2	/* a3 is the last dst address */
 L(lastbloop):
 	lb	v1,0(a1)
 	PTR_ADDIU a0,a0,1
 	PTR_ADDIU a1,a1,1
-	sb	v1,-1(a0)
 	bne	a0,a3,L(lastbloop)
+	sb	v1,-1(a0)
 L(leave):
-	jr	ra
-
-#if !defined (R6_CODE)
+	j	ra
+	nop
 /*
  * UNALIGNED case, got here with a3 = "negu a0"
  * This code is nearly identical to the aligned code above
@@ -619,8 +499,8 @@ L(leave):
 
 L(unaligned):
 	andi	a3,a3,(NSIZE-1)	/* copy a3 bytes to align a0/a1 */
-	PTR_SUBU a2,a2,a3	/* a2 is the remining bytes count */
 	beqz	a3,L(ua_chk16w) /* if a3=0, it is already aligned */
+	PTR_SUBU a2,a2,a3	/* a2 is the remining bytes count */
 
 	C_LDHI	v1,UNIT(0)(a1)
 	C_LDLO	v1,UNITM1(1)(a1)
@@ -638,8 +518,8 @@ L(unaligned):
 
 L(ua_chk16w):
 	andi	t8,a2,NSIZEDMASK /* any whole 64-byte/128-byte chunks? */
-	PTR_SUBU a3,a2,t8	 /* subtract from a2 the reminder */
 	beq	a2,t8,L(ua_chkw) /* if a2==t8, no 64-byte/128-byte chunks */
+	PTR_SUBU a3,a2,t8	 /* subtract from a2 the reminder */
 	PTR_ADDU a3,a0,a3	 /* Now a3 is the final dst after loop */
 
 #if defined(USE_PREFETCH) && (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
@@ -658,6 +538,7 @@ L(ua_chk16w):
 #if (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
 	sltu    v1,t9,a0
 	bgtz    v1,L(ua_skip_set)
+	nop
 	PTR_ADDIU v0,a0,(PREFETCH_CHUNK*4)
 L(ua_skip_set):
 #else
@@ -669,16 +550,11 @@ L(ua_loop16w):
 	C_LDHI	t0,UNIT(0)(a1)
 	C_LDHI	t1,UNIT(1)(a1)
 	C_LDHI	REG2,UNIT(2)(a1)
-/* We need to separate out the C_LDHI instruction here so that it will work
-   both when it is used by itself and when it is used with the branch
-   instruction.  */
 #if defined(USE_PREFETCH) && (PREFETCH_STORE_HINT == PREFETCH_HINT_PREPAREFORSTORE)
 	sltu	v1,t9,a0
-	C_LDHI	REG3,UNIT(3)(a1)
 	bgtz	v1,L(ua_skip_pref)
-#else
-	C_LDHI	REG3,UNIT(3)(a1)
 #endif
+	C_LDHI	REG3,UNIT(3)(a1)
 	PREFETCH_FOR_STORE (4, a0)
 	PREFETCH_FOR_STORE (5, a0)
 L(ua_skip_pref):
@@ -729,8 +605,8 @@ L(ua_skip_pref):
 	C_ST	REG6,UNIT(14)(a0)
 	C_ST	REG7,UNIT(15)(a0)
 	PTR_ADDIU a0,a0,UNIT(16)	/* adding 64/128 to dest */
-	PTR_ADDIU a1,a1,UNIT(16)	/* adding 64/128 to src */
 	bne	a0,a3,L(ua_loop16w)
+	PTR_ADDIU a1,a1,UNIT(16)	/* adding 64/128 to src */
 	move	a2,t8
 
 /* Here we have src and dest word-aligned but less than 64-bytes or
@@ -743,6 +619,7 @@ L(ua_chkw):
 	andi	t8,a2,NSIZEMASK	  /* Is there a 32-byte/64-byte chunk.  */
 				  /* t8 is the reminder count past 32-bytes */
 	beq	a2,t8,L(ua_chk1w) /* When a2=t8, no 32-byte chunk */
+	nop
 	C_LDHI	t0,UNIT(0)(a1)
 	C_LDHI	t1,UNIT(1)(a1)
 	C_LDHI	REG2,UNIT(2)(a1)
@@ -770,13 +647,13 @@ L(ua_chkw):
 	C_ST	REG7,UNIT(7)(a0)
 	PTR_ADDIU a0,a0,UNIT(8)
 /*
- * Here we have less than 32(64) bytes to copy.  Set up for a loop to
+ * Here we have less then 32(64) bytes to copy.  Set up for a loop to
  * copy one word (or double word) at a time.
  */
 L(ua_chk1w):
 	andi	a2,t8,(NSIZE-1)	/* a2 is the reminder past one (d)word chunks */
-	PTR_SUBU a3,t8,a2	/* a3 is count of bytes in one (d)word chunks */
 	beq	a2,t8,L(ua_smallCopy)
+	PTR_SUBU a3,t8,a2	/* a3 is count of bytes in one (d)word chunks */
 	PTR_ADDU a3,a0,a3	/* a3 is the dst address after loop */
 
 /* copying in words (4-byte or 8-byte chunks) */
@@ -785,75 +662,25 @@ L(ua_wordCopy_loop):
 	C_LDLO	v1,UNITM1(1)(a1)
 	PTR_ADDIU a0,a0,UNIT(1)
 	PTR_ADDIU a1,a1,UNIT(1)
-	C_ST	v1,UNIT(-1)(a0)
 	bne	a0,a3,L(ua_wordCopy_loop)
+	C_ST	v1,UNIT(-1)(a0)
 
 /* Copy the last 8 (or 16) bytes */
 L(ua_smallCopy):
-	PTR_ADDU a3,a0,a2	/* a3 is the last dst address */
 	beqz	a2,L(leave)
+	PTR_ADDU a3,a0,a2	/* a3 is the last dst address */
 L(ua_smallCopy_loop):
 	lb	v1,0(a1)
 	PTR_ADDIU a0,a0,1
 	PTR_ADDIU a1,a1,1
-	sb	v1,-1(a0)
 	bne	a0,a3,L(ua_smallCopy_loop)
+	sb	v1,-1(a0)
 
-	jr	ra
-
-#else /* R6_CODE */
-
-# if __MIPSEB
-#  define SWAP_REGS(X,Y) X, Y
-#  define ALIGN_OFFSET(N) (N)
-# else
-#  define SWAP_REGS(X,Y) Y, X
-#  define ALIGN_OFFSET(N) (NSIZE-N)
-# endif
-# define R6_UNALIGNED_WORD_COPY(BYTEOFFSET) \
-	andi	REG7, a2, (NSIZE-1);/* REG7 is # of bytes to by bytes.     */ \
-	PTR_SUBU a3, a2, REG7;	/* a3 is number of bytes to be copied in   */ \
-				/* (d)word chunks.			   */ \
-	beq	REG7, a2, L(lastb); /* Check for bytes to copy by word	   */ \
-	move	a2, REG7;	/* a2 is # of bytes to copy byte by byte   */ \
-				/* after word loop is finished.		   */ \
-	PTR_ADDU REG6, a0, a3;	/* REG6 is the dst address after loop.	   */ \
-	PTR_SUBU REG2, a1, t8;	/* REG2 is the aligned src address.	   */ \
-	PTR_ADDU a1, a1, a3;	/* a1 is addr of source after word loop.   */ \
-	C_LD	t0, UNIT(0)(REG2);  /* Load first part of source.	   */ \
-L(r6_ua_wordcopy##BYTEOFFSET):						      \
-	C_LD	t1, UNIT(1)(REG2);  /* Load second part of source.	   */ \
-	C_ALIGN	REG3, SWAP_REGS(t1,t0), ALIGN_OFFSET(BYTEOFFSET);	      \
-	PTR_ADDIU a0, a0, UNIT(1);  /* Increment destination pointer.	   */ \
-	PTR_ADDIU REG2, REG2, UNIT(1); /* Increment aligned source pointer.*/ \
-	move	t0, t1;		/* Move second part of source to first.	   */ \
-	C_ST	REG3, UNIT(-1)(a0);					      \
-	bne	a0, REG6,L(r6_ua_wordcopy##BYTEOFFSET);			      \
-	j	L(lastb);						      \
-
-	/* We are generating R6 code, the destination is 4 byte aligned and
-	   the source is not 4 byte aligned. t8 is 1, 2, or 3 depending on the
-           alignment of the source.  */
-
-L(r6_unaligned1):
-	R6_UNALIGNED_WORD_COPY(1)
-L(r6_unaligned2):
-	R6_UNALIGNED_WORD_COPY(2)
-L(r6_unaligned3):
-	R6_UNALIGNED_WORD_COPY(3)
-# ifdef USE_DOUBLE
-L(r6_unaligned4):
-	R6_UNALIGNED_WORD_COPY(4)
-L(r6_unaligned5):
-	R6_UNALIGNED_WORD_COPY(5)
-L(r6_unaligned6):
-	R6_UNALIGNED_WORD_COPY(6)
-L(r6_unaligned7):
-	R6_UNALIGNED_WORD_COPY(7)
-# endif
-#endif /* R6_CODE */
+	j	ra
+	nop
 
 	.set	at
+	.set	reorder
 END(MEMCPY_NAME)
 #ifndef ANDROID_CHANGES
 #ifdef _LIBC

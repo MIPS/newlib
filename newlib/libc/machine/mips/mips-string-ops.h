@@ -32,7 +32,7 @@
 
 #ifndef __MIPS_STRING_OPS_H
 #define __MIPS_STRING_OPS_H
-    /* This definition of the byte bitfields uses the 
+    /* This definition of the byte bitfields uses the
        assumption that the layout of the bitfields is
        equivalent to the layout in memory.  Generally,
        for the MIPS ABIs, this is true. If you compile
@@ -166,7 +166,13 @@ typedef signed char v4i8 __attribute__ ((vector_size (4)));
 /* dealing with 'void *' conversions without using extra variables. */
 #define get_byte(__x,__idx) (((unsigned char *) (__x))[__idx])
 #define set_byte(__x,__idx,__fill) ((unsigned char *) (__x))[__idx] = (__fill)
-#define get_word(__x,__idx) (((unsigned *) (__x))[__idx])
+
+static unsigned long __attribute__ ((always_inline))
+get_word (const void *__x, int __idx)
+{
+  return ((const unsigned long *) (__x))[__idx];
+}
+
 #define set_word(__x,__idx,__fill) ((unsigned *) (__x))[__idx] = (__fill)
 #define inc_ptr_as(__type,__x,__inc) __x = (void *) (((__type) __x) + (__inc))
 #define cvt_ptr_to(__type,__x) ((__type) (__x))
