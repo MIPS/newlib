@@ -51,8 +51,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@NANOMIPS_TRUE@am__append_1 = memcpy-c.c memset-c.c strcmp-r6.S
-@NANOMIPS_FALSE@am__append_2 = memcpy.S memset.S strcmp.S
+@NANOMIPS_TRUE@am__append_1 = memcpy-c.c memset-c.c strcmp-r6.S strlen-c.c strcpy.c
+@NANOMIPS_FALSE@am__append_2 = memcpy.S memset.S strcmp.S strlen.c
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
@@ -74,13 +74,12 @@ lib_a_LIBADD =
 @NANOMIPS_TRUE@am__objects_1 = lib_a-memcpy-c.$(OBJEXT) \
 @NANOMIPS_TRUE@	lib_a-memset-c.$(OBJEXT) \
 @NANOMIPS_TRUE@	lib_a-strcmp-r6.$(OBJEXT) \
-@NANOMIPS_TRUE@	lib_a-strlen-c.$(OBJEXT) \
-@NANOMIPS_TRUE@	lib_a-strcpy.$(OBJEXT)
+@NANOMIPS_TRUE@	lib_a-strlen-c.$(OBJEXT) lib_a-strcpy.$(OBJEXT)
 @NANOMIPS_FALSE@am__objects_2 = lib_a-memcpy.$(OBJEXT) \
 @NANOMIPS_FALSE@	lib_a-memset.$(OBJEXT) lib_a-strcmp.$(OBJEXT) \
-	lib_a-strlen.$(OBJEXT)
-am_lib_a_OBJECTS = lib_a-setjmp.$(OBJEXT) lib_a-strlen.$(OBJEXT) \
-	lib_a-strncpy.$(OBJEXT) $(am__objects_1) $(am__objects_2)
+@NANOMIPS_FALSE@	lib_a-strlen.$(OBJEXT)
+am_lib_a_OBJECTS = lib_a-setjmp.$(OBJEXT) lib_a-strncpy.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
@@ -137,6 +136,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
@@ -205,8 +205,7 @@ AUTOMAKE_OPTIONS = cygnus
 INCLUDES = $(NEWLIB_CFLAGS) $(CROSS_CFLAGS) $(TARGET_CFLAGS)
 AM_CCASFLAGS = $(INCLUDES)
 noinst_LIBRARIES = lib.a
-lib_a_SOURCES = setjmp.S strlen.c strncpy.c $(am__append_1) \
-	$(am__append_2)
+lib_a_SOURCES = setjmp.S strncpy.c $(am__append_1) $(am__append_2)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS) -D_COMPILING_NEWLIB
 lib_a_CFLAGS = $(AM_CFLAGS) -D_COMPILING_NEWLIB
 ACLOCAL_AMFLAGS = -I ../../.. -I ../../../..
@@ -305,12 +304,6 @@ lib_a-strcmp.obj: strcmp.S
 .c.obj:
 	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
-lib_a-strlen.o: strlen.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strlen.o `test -f 'strlen.c' || echo '$(srcdir)/'`strlen.c
-
-lib_a-strlen.obj: strlen.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strlen.obj `if test -f 'strlen.c'; then $(CYGPATH_W) 'strlen.c'; else $(CYGPATH_W) '$(srcdir)/strlen.c'; fi`
-
 lib_a-strncpy.o: strncpy.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strncpy.o `test -f 'strncpy.c' || echo '$(srcdir)/'`strncpy.c
 
@@ -341,6 +334,11 @@ lib_a-strcpy.o: strcpy.c
 lib_a-strcpy.obj: strcpy.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strcpy.obj `if test -f 'strcpy.c'; then $(CYGPATH_W) 'strcpy.c'; else $(CYGPATH_W) '$(srcdir)/strcpy.c'; fi`
 
+lib_a-strlen.o: strlen.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strlen.o `test -f 'strlen.c' || echo '$(srcdir)/'`strlen.c
+
+lib_a-strlen.obj: strlen.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strlen.obj `if test -f 'strlen.c'; then $(CYGPATH_W) 'strlen.c'; else $(CYGPATH_W) '$(srcdir)/strlen.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
