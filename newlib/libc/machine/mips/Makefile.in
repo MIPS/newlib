@@ -51,8 +51,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@NANOMIPS_TRUE@am__append_1 = memcpy-c.c memset-c.c strlen-c.c strcpy.c
-@NANOMIPS_FALSE@am__append_2 = memcpy.S memset.S strlen.c
+@NANOMIPS_TRUE@am__append_1 = strlen-c.c strcpy.c
+@NANOMIPS_FALSE@am__append_2 = strlen.c
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
@@ -71,13 +71,12 @@ LIBRARIES = $(noinst_LIBRARIES)
 ARFLAGS = cru
 lib_a_AR = $(AR) $(ARFLAGS)
 lib_a_LIBADD =
-@NANOMIPS_TRUE@am__objects_1 = lib_a-memcpy-c.$(OBJEXT) \
-@NANOMIPS_TRUE@	lib_a-memset-c.$(OBJEXT) \
-@NANOMIPS_TRUE@	lib_a-strlen-c.$(OBJEXT) lib_a-strcpy.$(OBJEXT)
-@NANOMIPS_FALSE@am__objects_2 = lib_a-memcpy.$(OBJEXT) \
-@NANOMIPS_FALSE@	lib_a-memset.$(OBJEXT) lib_a-strlen.$(OBJEXT)
+@NANOMIPS_TRUE@am__objects_1 = lib_a-strlen-c.$(OBJEXT) \
+@NANOMIPS_TRUE@	lib_a-strcpy.$(OBJEXT)
+@NANOMIPS_FALSE@am__objects_2 = lib_a-strlen.$(OBJEXT)
 am_lib_a_OBJECTS = lib_a-setjmp.$(OBJEXT) lib_a-strncpy.$(OBJEXT) \
-	lib_a-strcmp.$(OBJEXT) $(am__objects_1) $(am__objects_2)
+	lib_a-strcmp.$(OBJEXT) lib_a-memcpy.$(OBJEXT) \
+	lib_a-memset.$(OBJEXT) $(am__objects_1) $(am__objects_2)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
@@ -203,8 +202,8 @@ AUTOMAKE_OPTIONS = cygnus
 INCLUDES = $(NEWLIB_CFLAGS) $(CROSS_CFLAGS) $(TARGET_CFLAGS)
 AM_CCASFLAGS = $(INCLUDES)
 noinst_LIBRARIES = lib.a
-lib_a_SOURCES = setjmp.S strncpy.c strcmp.S $(am__append_1) \
-	$(am__append_2)
+lib_a_SOURCES = setjmp.S strncpy.c strcmp.S memcpy.c memset.c \
+	$(am__append_1) $(am__append_2)
 lib_a_CCASFLAGS = $(AM_CCASFLAGS) -D_COMPILING_NEWLIB
 lib_a_CFLAGS = $(AM_CFLAGS) -D_COMPILING_NEWLIB
 ACLOCAL_AMFLAGS = -I ../../.. -I ../../../..
@@ -279,18 +278,6 @@ lib_a-strcmp.o: strcmp.S
 lib_a-strcmp.obj: strcmp.S
 	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-strcmp.obj `if test -f 'strcmp.S'; then $(CYGPATH_W) 'strcmp.S'; else $(CYGPATH_W) '$(srcdir)/strcmp.S'; fi`
 
-lib_a-memcpy.o: memcpy.S
-	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-memcpy.o `test -f 'memcpy.S' || echo '$(srcdir)/'`memcpy.S
-
-lib_a-memcpy.obj: memcpy.S
-	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-memcpy.obj `if test -f 'memcpy.S'; then $(CYGPATH_W) 'memcpy.S'; else $(CYGPATH_W) '$(srcdir)/memcpy.S'; fi`
-
-lib_a-memset.o: memset.S
-	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-memset.o `test -f 'memset.S' || echo '$(srcdir)/'`memset.S
-
-lib_a-memset.obj: memset.S
-	$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CCASFLAGS) $(CCASFLAGS) -c -o lib_a-memset.obj `if test -f 'memset.S'; then $(CYGPATH_W) 'memset.S'; else $(CYGPATH_W) '$(srcdir)/memset.S'; fi`
-
 .c.o:
 	$(COMPILE) -c $<
 
@@ -303,17 +290,17 @@ lib_a-strncpy.o: strncpy.c
 lib_a-strncpy.obj: strncpy.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strncpy.obj `if test -f 'strncpy.c'; then $(CYGPATH_W) 'strncpy.c'; else $(CYGPATH_W) '$(srcdir)/strncpy.c'; fi`
 
-lib_a-memcpy-c.o: memcpy-c.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memcpy-c.o `test -f 'memcpy-c.c' || echo '$(srcdir)/'`memcpy-c.c
+lib_a-memcpy.o: memcpy.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memcpy.o `test -f 'memcpy.c' || echo '$(srcdir)/'`memcpy.c
 
-lib_a-memcpy-c.obj: memcpy-c.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memcpy-c.obj `if test -f 'memcpy-c.c'; then $(CYGPATH_W) 'memcpy-c.c'; else $(CYGPATH_W) '$(srcdir)/memcpy-c.c'; fi`
+lib_a-memcpy.obj: memcpy.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memcpy.obj `if test -f 'memcpy.c'; then $(CYGPATH_W) 'memcpy.c'; else $(CYGPATH_W) '$(srcdir)/memcpy.c'; fi`
 
-lib_a-memset-c.o: memset-c.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memset-c.o `test -f 'memset-c.c' || echo '$(srcdir)/'`memset-c.c
+lib_a-memset.o: memset.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memset.o `test -f 'memset.c' || echo '$(srcdir)/'`memset.c
 
-lib_a-memset-c.obj: memset-c.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memset-c.obj `if test -f 'memset-c.c'; then $(CYGPATH_W) 'memset-c.c'; else $(CYGPATH_W) '$(srcdir)/memset-c.c'; fi`
+lib_a-memset.obj: memset.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-memset.obj `if test -f 'memset.c'; then $(CYGPATH_W) 'memset.c'; else $(CYGPATH_W) '$(srcdir)/memset.c'; fi`
 
 lib_a-strlen-c.o: strlen-c.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-strlen-c.o `test -f 'strlen-c.c' || echo '$(srcdir)/'`strlen-c.c
