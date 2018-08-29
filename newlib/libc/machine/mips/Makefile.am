@@ -8,14 +8,14 @@ AM_CCASFLAGS = $(INCLUDES)
 
 noinst_LIBRARIES = lib.a
 
-lib_a_SOURCES = setjmp.S strlen.c strncpy.c
+lib_a_SOURCES = setjmp.S strlen.c strncpy.c memcpy.c memset.c
 lib_a_CCASFLAGS=$(AM_CCASFLAGS) -D_COMPILING_NEWLIB
 lib_a_CFLAGS=$(AM_CFLAGS) -D_COMPILING_NEWLIB
 
 if NANOMIPS
-  lib_a_SOURCES += memcpy-c.c memset-c.c strcmp-r6.S
+  lib_a_SOURCES += strcmp-r6.S
 else
-  lib_a_SOURCES += memcpy.S memset.S strcmp.S
+  lib_a_SOURCES += strcmp.S
 endif
 
 
