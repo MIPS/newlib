@@ -36,9 +36,6 @@
 #error use -mips32 or -mips64 option with this file
 #endif
 
-#include <mips/asm.h>
-#include <mips/regdef.h>
-#include <mips/m32c0.h>
 #include <mips/notlb.h>
 
 #ifndef __ASSEMBLER__
