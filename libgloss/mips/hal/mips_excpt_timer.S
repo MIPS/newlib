@@ -42,7 +42,7 @@ EXPORTS(_count_wrap, 4)
 LEAF(mips_start_minimal_counter)
 	di	$8
 	ehb
-	#ori	$8, $8, SR_HINT5
+	ori	$8, $8, SR_HINT5
 	ori	$8, $8, SR_IE
 	LA	$9, _count_wrap
 	sw	$0, 0($9)
