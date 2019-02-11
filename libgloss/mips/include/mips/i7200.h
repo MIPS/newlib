@@ -61,7 +61,28 @@
 #define  BCOPSTATUS_STATUS_BITS			 1
 
 /*
- * MIPS32 SRAM Control register (CP0 Register 22, select 3)
+ * MIPS32 Core Control register (CP0 Register 22, select 3)
+ */
+#define CORECONTROL_ISPPRED_DIS_EN	0x00000080
+#define  CORECONTROL_ISPPRED_DIS_SHIFT		11
+#define CORECONTROL_USPIPRED_DIS_EN	0x00000040
+#define  CORECONTROL_USPIPRED_DIS_SHIFT 	10
+#define CORECONTROL_USPDBP_DIS_EN	0x00000020
+#define  CORECONTROL_USPDBP_DIS_SHIFT		 9
+#define CORECONTROL_DSPPB_EN		0x00000010
+#define  CORECONTROL_DSPPB_SHIFT		 8
+#define CORECONTROL_USP_EN		0x00000004
+#define  CORECONTROL_USP_EN_SHIFT		 2
+#define CORECONTROL_ISP_EN		0x00000002
+#define  CORECONTROL_ISP_EN_SHIFT		 1
+#define CORECONTROL_DSP_EN		0x00000001
+#define  CORECONTROL_DSP_EN_SHIFT		 0
+
+/*
+ * The Core Control register was previously named as
+ * the SRAM Control register (Shaolin RC 1.0). Macros
+ * corresponding to the out-dated register name are
+ *  provided here continuity and documentation.
  */
 #define SRAMCONTROL_DSPPB_EN		0x00000010
 #define  SRAMCONTROL_DSPPB_SHIFT		 8
@@ -76,7 +97,8 @@
 
 #define C0_BCOPCONTROL	$22,0
 #define C0_BCOPSTATUS	$22,1
-#define C0_SRAMCONTROL	$22,3
+#define C0_CORECONTROL	$22,3
+#define C0_SRAMCONTROL	C0_CORECONTROL
 
 $bcop		=	$22
 
@@ -84,7 +106,8 @@ $bcop		=	$22
 
 #define C0_BCOPCONTROL	22
 #define C0_BCOPSTATUS	0x116
-#define C0_SRAMCONTROL	0x316
+#define C0_CORECONTROL	0x316
+#define C0_SRAMCONTROL	C0_CORECONTROL
 
 /* CP0 BCOP Control register */
 #define mips32_getbcopcontrol()  mips32_get_c0(C0_BCOPCONTROL)
@@ -96,10 +119,15 @@ $bcop		=	$22
 #define mips32_setbcopstatus(x) mips32_set_c0(C0_BCOPSTATUS, x)
 #define mips32_xchbcopstatus(x) mips32_xch_c0(C0_BCOPSTATUS, x)
 
-/* CP0 SRAMControl register */
-#define mips32_getsramcontrol()  mips32_get_c0(C0_SRAMCONTROL)
-#define mips32_setsramcontrol(x) mips32_set_c0(C0_SRAMCONTROL, x)
-#define mips32_xchsramcontrol(x) mips32_xch_c0(C0_SRAMCONTROL, x)
+/* CP0 Core Control register */
+#define mips32_getcorecontrol()  mips32_get_c0(C0_CORECONTROL)
+#define mips32_setcorecontrol(x) mips32_set_c0(C0_CORECONTROL, x)
+#define mips32_xchcorecontrol(x) mips32_xch_c0(C0_CORECONTROL, x)
+
+/* CP0 SRAM Control register, obsolete interface */
+#define mips32_getsramcontrol()  mips32_getcorecontrol()
+#define mips32_setsramcontrol(x) mips32_setcorecontrol(x)
+#define mips32_xchsramcontrol(x) mips32_xchcorecontrol(x)
 
 #endif /* __ASSEMBLER__ */
 
