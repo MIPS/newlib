@@ -134,15 +134,15 @@ SECTIONS
   .lit4 : {
     *(.lit4)
   }
-  .ssbss : {
-    *(.ssbss)
-    *(.ssbss.*)
-    *(.gnu.linkonce.ssb.*)
-  }
   .ssdata : {
     *(.ssdata)
     *(.ssdata.*)
     *(.gnu.linkonce.ss.*)
+  }
+  .ssbss : {
+    *(.ssbss)
+    *(.ssbss.*)
+    *(.gnu.linkonce.ssb.*)
   }
   .sdata : {
     *(.sdata)
