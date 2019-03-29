@@ -73,7 +73,7 @@ LEAF(__init_tlb)
 	 */
 	li	t2, MMU_SIZE			/* Start pointer/finger */
 	li	t8, FTLB_SETS
-	li	t9, %hi(__tlb_stride_length)
+	lui	t9, %hi(__tlb_stride_length)
 	addiu	t9, %lo(__tlb_stride_length)
 	mul	t8, t8, t9
 	subu	t1, t2, t8			/* End pointer */
