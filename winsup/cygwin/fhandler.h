@@ -1252,7 +1252,6 @@ public:
 enum fifo_client_connect_state
   {
    fc_unknown,
-   fc_connecting,
    fc_connected,
    fc_invalid
   };
