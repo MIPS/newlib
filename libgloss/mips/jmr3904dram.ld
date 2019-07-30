@@ -94,6 +94,7 @@ SECTIONS
     *(COMMON)
   }
 
+  . = ALIGN(4);
    end = .;
    _end = .;
 
