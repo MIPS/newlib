@@ -176,6 +176,7 @@ SECTIONS
     *(.gnu.linkonce.b.*)
     *(COMMON)
   }
+  . = ALIGN(4);
    end = .;
    _end = .;
 }
