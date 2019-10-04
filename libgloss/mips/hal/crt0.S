@@ -220,6 +220,10 @@ zerobss:
 	   bytes to preserve alignment.  */
 1:
 	PTR_ADDU t0,t0,-64
+#ifdef __nanomips__
+	/* Force 16-bit stack alignment as required by P32 ABI. */
+	ins	t0,zero,0,4
+#endif /* __nanomips__ */
 	move	sp,t0				/* set stack pointer */
 	.end	zerobss
 
