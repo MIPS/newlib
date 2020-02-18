@@ -1923,6 +1923,8 @@ class dev_console
   bool raw_win32_keyboard_mode;
   char cons_rabuf[40];  // cannot get longer than char buf[40] in char_command
   char *cons_rapoi;
+  LONG xterm_mode_input;
+  LONG xterm_mode_output;
 
   inline UINT get_console_cp ();
   DWORD con_to_str (char *d, int dlen, WCHAR w);
@@ -1995,6 +1997,7 @@ private:
   static bool create_invisible_console (HWINSTA);
   static bool create_invisible_console_workaround ();
   static console_state *open_shared_console (HWND, HANDLE&, bool&);
+  void fix_tab_position (void);
 
  public:
   static pid_t tc_getpgid ()
@@ -2083,6 +2086,9 @@ private:
   size_t &raixget ();
   size_t &raixput ();
   size_t &rabuflen ();
+
+  void request_xterm_mode_input (bool);
+  void request_xterm_mode_output (bool);
 
   friend tty_min * tty_list::get_cttyp ();
 };
