@@ -1506,7 +1506,7 @@ void
 fhandler_pty_slave::fixup_after_exec ()
 {
   if (!close_on_exec ())
-    fixup_after_fork (NULL);
+    fixup_after_fork (NULL);	/* No parent handle required. */
 }
 
 /* This thread function handles the master control pipe.  It waits for a

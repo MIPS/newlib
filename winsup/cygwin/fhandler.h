@@ -1048,6 +1048,7 @@ class fhandler_socket_unix : public fhandler_socket
   void fixup_after_fork (HANDLE parent);
   void fixup_after_exec ();
   void set_close_on_exec (bool val);
+  void fixup_helper ();
 
  public:
   fhandler_socket_unix ();
