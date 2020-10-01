@@ -1938,21 +1938,186 @@ fhandler_socket_unix::recvfrom (void *ptr, size_t len, int flags,
 void __reg3
 fhandler_socket_unix::read (void *ptr, size_t& len)
 {
-  set_errno (EAFNOSUPPORT);
-  len = 0;
-  struct iovec iov;
-  struct msghdr msg;
+  NTSTATUS status;
+  IO_STATUS_BLOCK io;
+  WCHAR pipe_name_buf[CYGWIN_PIPE_SOCKET_NAME_LEN + 1];
+  UNICODE_STRING pipe_name;
+  HANDLE fh = NULL;
+  HANDLE ph = NULL;
+  HANDLE evt = NULL;
+  tmp_pathbuf tp;
+  PVOID buffer;
+  ULONG length;
+  bool need_hdr = false;
+  af_unix_pkt_hdr_t *packet = NULL;
+  ULONG bytes_read = 0;
 
-  iov.iov_base = ptr;
-  iov.iov_len = len;
-  msg.msg_name = NULL;
-  msg.msg_namelen = 0;
-  msg.msg_iov = &iov;
-  msg.msg_iovlen = 1;
-  msg.msg_control = NULL;
-  msg.msg_controllen = 0;
-  msg.msg_flags = 0;
-  len = recvmsg (&msg, 0);
+  if (!len)
+    return;
+
+  ULONG req_len = MIN (len, MAX_AF_PKT_LEN - sizeof (af_unix_pkt_hdr_t));
+  len = (size_t) -1;
+
+  if (connect_state () != connected)
+    {
+      set_errno (ENOTCONN);
+      return;
+    }
+  if (saw_shutdown () & _SHUT_RECV)
+    {
+      len = 0;		/* EOF */
+      return;
+    }
+
+  __try
+    {
+      if (get_socket_type () == SOCK_STREAM)
+	{
+	  if (get_unread ())
+	    {
+	      /* There's data in the pipe from a partial read of a packet. */
+	      buffer = ptr;
+	      length = req_len;
+	    }
+	  else
+	    {
+	      buffer = tp.w_get ();
+	      packet = (af_unix_pkt_hdr_t *) buffer;
+	      /* We'll need to get header before getting rest of packet. */
+	      need_hdr = true;
+	      length = sizeof (af_unix_pkt_hdr_t);
+	    }
+	}
+      else
+	{
+	  sun_name_t sun = *peer_sun_path ();
+	  int peer_type;
+
+	  RtlInitEmptyUnicodeString (&pipe_name, pipe_name_buf,
+				     sizeof pipe_name_buf);
+	  fh = open_socket (&sun, peer_type, &pipe_name);
+	  if (!fh)
+	    __leave;
+	  if (peer_type != SOCK_DGRAM)
+	    {
+	      set_errno (EPROTOTYPE);
+	      __leave;
+	    }
+	  status = open_pipe (ph, &pipe_name);
+	  if (!NT_SUCCESS (status))
+	    {
+	      __seterrno_from_nt_status (status);
+	      __leave;
+	    }
+	  buffer = tp.w_get ();
+	  packet = (af_unix_pkt_hdr_t *) buffer;
+	  length = MAX_AF_PKT_LEN;
+	}
+      if (!is_nonblocking () && !(evt = create_event ()))
+	__leave;
+read:
+      io_lock ();
+      status = NtReadFile (ph ?: get_handle (), evt, NULL, NULL, &io,
+			   buffer, length, NULL, NULL);
+      io_unlock ();
+      debug_printf ("NtReadFile status %y", status);
+      if (evt && status == STATUS_PENDING)
+	{
+wait:
+	  DWORD ret = cygwait (evt, cw_infinite, cw_cancel | cw_sig_eintr);
+	  switch (ret)
+	    {
+	    case WAIT_OBJECT_0:
+	      status = io.Status;
+	      break;
+	    case WAIT_SIGNALED:
+	      status = STATUS_THREAD_SIGNALED;
+	      break;
+	    case WAIT_CANCELED:
+	      status = STATUS_THREAD_CANCELED;
+	      break;
+	    default:
+	      break;
+	    }
+	}
+      /* Resume waiting? */
+      if (status == STATUS_THREAD_SIGNALED)
+	{
+	  if (_my_tls.call_signal_handler ())
+	    goto wait;
+	  else
+	    {
+	      set_errno (EINTR);
+	      __leave;
+	    }
+	}
+      /* Read rest of packet? */
+      if (need_hdr)
+	{
+	  need_hdr = false;
+	  bytes_read = sizeof (af_unix_pkt_hdr_t);
+	  buffer = (PBYTE) buffer + bytes_read;
+	  ULONG dont_read = MAX (packet->data_len - req_len, 0);
+	  length = packet->pckt_len - dont_read;
+	  goto read;
+	}
+      set_unread (false);
+      ULONG data_read = 0;
+      switch (status)
+	{
+	case STATUS_BUFFER_OVERFLOW:
+	case STATUS_MORE_PROCESSING_REQUIRED:
+	  /* Partial read. */
+	  set_unread (true);
+	  /* fallthrough; */
+	case STATUS_SUCCESS:
+	  bytes_read += io.Information;
+	  data_read = packet ? bytes_read - AF_UNIX_PKT_OFFSETOF_DATA (packet)
+	    : bytes_read;
+	  /* For a datagram socket, truncate the data to what was requested. */
+	  len = MIN (req_len, data_read);
+	  if (packet)
+	    memcpy (ptr, AF_UNIX_PKT_DATA (packet), len);
+	  break;
+	case STATUS_PIPE_EMPTY:
+	  /* Can only happen in non-blocking case. */
+	  set_errno (EAGAIN);
+	  break;
+	case STATUS_PIPE_BROKEN:
+	  len = 0;		/* EOF */
+	  break;
+	case STATUS_THREAD_CANCELED:
+	  /* Handle below. */
+	  break;
+	default:
+	  __seterrno_from_nt_status (status);
+	  break;
+	}
+    }
+  __except (EFAULT)
+  __endtry
+  if (ph)
+    NtClose (ph);
+  if (fh)
+    NtClose (fh);
+  if (evt)
+    NtClose (evt);
+  if (status == STATUS_THREAD_CANCELED)
+    pthread::static_cancel_self ();
+
+  /* struct iovec iov; */
+  /* struct msghdr msg; */
+
+  /* iov.iov_base = ptr; */
+  /* iov.iov_len = len; */
+  /* msg.msg_name = NULL; */
+  /* msg.msg_namelen = 0; */
+  /* msg.msg_iov = &iov; */
+  /* msg.msg_iovlen = 1; */
+  /* msg.msg_control = NULL; */
+  /* msg.msg_controllen = 0; */
+  /* msg.msg_flags = 0; */
+  /* len = recvmsg (&msg, 0); */
 }
 
 ssize_t __stdcall
