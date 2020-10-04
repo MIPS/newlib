@@ -957,8 +957,7 @@ fhandler_socket_unix::create_pipe_instance ()
 }
 
 NTSTATUS
-fhandler_socket_unix::open_pipe (HANDLE &pipe, PUNICODE_STRING pipe_name,
-				 bool xchg_sock_info)
+fhandler_socket_unix::open_pipe (HANDLE &pipe, PUNICODE_STRING pipe_name)
 {
   NTSTATUS status;
   HANDLE npfsh;
@@ -976,16 +975,16 @@ fhandler_socket_unix::open_pipe (HANDLE &pipe, PUNICODE_STRING pipe_name,
   sharing = FILE_SHARE_READ | FILE_SHARE_WRITE;
   status = NtOpenFile (&ph, access, &attr, &io, sharing, 0);
   if (NT_SUCCESS (status))
-    {
-      pipe = ph;
-      if (xchg_sock_info)
-	{
-	  /* FIXME: Should we check for errors? */
-	  send_sock_info (false);
-	  recv_peer_info ();
-	}
-    }
+    pipe = ph;
   return status;
+}
+
+/* FIXME: check for errors? */
+void
+fhandler_socket_unix::xchg_sock_info ()
+{
+  send_sock_info (false);
+  recv_peer_info ();
 }
 
 struct conn_wait_info_t
@@ -1087,7 +1086,7 @@ fhandler_socket_unix::connect_pipe (PUNICODE_STRING pipe_name)
 
   /* Try connecting first.  If it doesn't work, wait for the pipe
      to become available. */
-  status = open_pipe (ph, pipe_name, get_socket_type () != SOCK_DGRAM);
+  status = open_pipe (ph, pipe_name);
   if (STATUS_PIPE_NO_INSTANCE_AVAILABLE (status))
     return wait_pipe (pipe_name);
   if (!NT_SUCCESS (status))
@@ -1097,6 +1096,8 @@ fhandler_socket_unix::connect_pipe (PUNICODE_STRING pipe_name)
       return -1;
     }
   set_handle (ph);
+  if (get_socket_type () != SOCK_DGRAM)
+    xchg_sock_info ();
   so_error (0);
   return 0;
 }
@@ -1346,8 +1347,7 @@ fhandler_socket_unix::wait_pipe_thread (PUNICODE_STRING pipe_name)
 	    {
 	      HANDLE ph;
 
-	      status = open_pipe (ph, pipe_name,
-				  get_socket_type () != SOCK_DGRAM);
+	      status = open_pipe (ph, pipe_name);
 	      if (STATUS_PIPE_NO_INSTANCE_AVAILABLE (status))
 		{
 		  /* Another concurrent connect grabbed the pipe instance
@@ -1364,7 +1364,11 @@ fhandler_socket_unix::wait_pipe_thread (PUNICODE_STRING pipe_name)
 	      else if (!NT_SUCCESS (status))
 		error = geterrno_from_nt_status (status);
 	      else
-		set_handle (ph);
+		{
+		  set_handle (ph);
+		  if (get_socket_type () != SOCK_DGRAM)
+		    xchg_sock_info ();
+		}
 	    }
 	    break;
 	  case STATUS_OBJECT_NAME_NOT_FOUND:
@@ -1477,7 +1481,7 @@ fhandler_socket_unix::socketpair (int af, int type, int protocol, int flags,
   connect_state (listener);
   /* connect 2nd socket, even for DGRAM.  There's no difference as far
      as socketpairs are concerned. */
-  if (fh->open_pipe (ph2, pc.get_nt_native_path (), false) < 0)
+  if (fh->open_pipe (ph2, pc.get_nt_native_path ()) < 0)
     goto fh_open_pipe_failed;
   fh->set_handle (ph2);
   fh->connect_state (connected);
@@ -2034,7 +2038,7 @@ fhandler_socket_unix::sendmsg (const struct msghdr *msg, int flags)
 	      set_errno (EPROTOTYPE);
 	      __leave;
 	    }
-	  status = open_pipe (ph, &pipe_name, false);
+	  status = open_pipe (ph, &pipe_name);
 	  if (!NT_SUCCESS (status))
 	    {
 	      __seterrno_from_nt_status (status);
