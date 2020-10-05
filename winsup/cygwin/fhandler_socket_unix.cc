@@ -27,6 +27,7 @@ GUID __cygwin_socket_guid = {
 #include <sys/param.h>
 #include <sys/statvfs.h>
 #include <cygwin/acl.h>
+#include <assert.h>
 #include "cygerrno.h"
 #include "path.h"
 #include "fhandler.h"
@@ -1908,36 +1909,7 @@ fhandler_socket_unix::evaluate_cmsg_data (af_unix_pkt_hdr_t *packet,
 ssize_t
 fhandler_socket_unix::recvmsg (struct msghdr *msg, int flags)
 {
-  set_errno (EAFNOSUPPORT);
-  return -1;
-}
-
-ssize_t
-fhandler_socket_unix::recvfrom (void *ptr, size_t len, int flags,
-				struct sockaddr *from, int *fromlen)
-{
-  struct iovec iov;
-  struct msghdr msg;
-  ssize_t ret;
-
-  iov.iov_base = ptr;
-  iov.iov_len = len;
-  msg.msg_name = from;
-  msg.msg_namelen = from && fromlen ? *fromlen : 0;
-  msg.msg_iov = &iov;
-  msg.msg_iovlen = 1;
-  msg.msg_control = NULL;
-  msg.msg_controllen = 0;
-  msg.msg_flags = 0;
-  ret = recvmsg (&msg, flags);
-  if (ret >= 0 && from && fromlen)
-    *fromlen = msg.msg_namelen;
-  return ret;
-}
-
-void __reg3
-fhandler_socket_unix::read (void *ptr, size_t& len)
-{
+ssize_t ret = -1;
   NTSTATUS status;
   IO_STATUS_BLOCK io;
   WCHAR pipe_name_buf[CYGWIN_PIPE_SOCKET_NAME_LEN + 1];
@@ -1946,42 +1918,59 @@ fhandler_socket_unix::read (void *ptr, size_t& len)
   HANDLE ph = NULL;
   HANDLE evt = NULL;
   tmp_pathbuf tp;
-  PVOID buffer;
+  PVOID buffer = tp.w_get ();
   ULONG length;
   bool need_hdr = false;
   af_unix_pkt_hdr_t *packet = NULL;
   ULONG bytes_read = 0;
-
-  if (!len)
-    return;
-
-  ULONG req_len = MIN (len, MAX_AF_PKT_LEN - sizeof (af_unix_pkt_hdr_t));
-  len = (size_t) -1;
-
-  if (connect_state () != connected)
-    {
-      set_errno (ENOTCONN);
-      return;
-    }
-  if (saw_shutdown () & _SHUT_RECV)
-    {
-      len = 0;		/* EOF */
-      return;
-    }
+  /* bool waitall = false; */
+  bool disconnect = false;
 
   __try
     {
+      /* Valid flags: MSG_DONTWAIT, MSG_WAITALL.
+
+	 FIXME: Do we want to support MSG_TRUNC?  It's not in POSIX,
+	 but it's in Linux since 3.4.  What about MSG_PEEK?  If we're
+	 blocking, is there a way we can wait on a suitable event?  Or
+	 would we have to keep calling peek_pipe until there's data?
+	 Or should we just NtReadFile and store the data in a local
+	 buffer for use on the next recv call? */
+      if (flags & ~(MSG_DONTWAIT | MSG_WAITALL))
+	{
+	  set_errno (EOPNOTSUPP);
+	  __leave;
+	}
+      size_t tot = 0;
+      for (int i = 0; i < msg->msg_iovlen; ++i)
+	tot += msg->msg_iov[i].iov_len;
       if (get_socket_type () == SOCK_STREAM)
 	{
-	  if (get_unread ())
+	  /* FIXME: I'm copying sendmsg, but the Linux man page
+	     doesn't mention EISCONN as a possible errno here, in
+	     contrast to the sendmsg case. */
+	  if (msg->msg_namelen)
 	    {
-	      /* There's data in the pipe from a partial read of a packet. */
-	      buffer = ptr;
-	      length = req_len;
+	      set_errno (connect_state () == connected ? EISCONN : EOPNOTSUPP);
+	      __leave;
 	    }
+	  if (connect_state () != connected)
+	    {
+	      set_errno (ENOTCONN);
+	      __leave;
+	    }
+	  if (saw_shutdown () & _SHUT_RECV || tot == 0)
+	    {
+	      ret = 0;
+	      __leave;
+	    }
+	  /* if (flags & MSG_WAITALL) */
+	  /*   waitall = true; */
+	  if (get_unread ())
+	    /* There's data in the pipe from a partial read of a packet. */
+	    length = tot;
 	  else
 	    {
-	      buffer = tp.w_get ();
 	      packet = (af_unix_pkt_hdr_t *) buffer;
 	      /* We'll need to get header before getting rest of packet. */
 	      need_hdr = true;
@@ -1990,40 +1979,74 @@ fhandler_socket_unix::read (void *ptr, size_t& len)
 	}
       else
 	{
-	  sun_name_t sun = *peer_sun_path ();
-	  int peer_type;
+	  /* Datagram. */
+	  if (connect_state () == connected)
+	    {
+	      /* FIXME: We're tacitly assuming that the peer is bound.
+		 Is that legitimate? */
+	      sun_name_t sun = *peer_sun_path ();
+	      int peer_type;
 
-	  RtlInitEmptyUnicodeString (&pipe_name, pipe_name_buf,
-				     sizeof pipe_name_buf);
-	  fh = open_socket (&sun, peer_type, &pipe_name);
-	  if (!fh)
-	    __leave;
-	  if (peer_type != SOCK_DGRAM)
+	      RtlInitEmptyUnicodeString (&pipe_name, pipe_name_buf,
+					 sizeof pipe_name_buf);
+	      fh = open_socket (&sun, peer_type, &pipe_name);
+	      if (!fh)
+		__leave;
+	      if (peer_type != SOCK_DGRAM)
+		{
+		  set_errno (EPROTOTYPE);
+		  __leave;
+		}
+	      status = open_pipe (ph, &pipe_name);
+	      if (!NT_SUCCESS (status))
+		{
+		  __seterrno_from_nt_status (status);
+		  __leave;
+		}
+	    }
+	  else if (binding_state () == bound)
+	    /* We've created the pipe and we need to wait for a sender
+	       to connect to it. */
 	    {
-	      set_errno (EPROTOTYPE);
+	      if (listen_pipe () < 0)
+		__leave;
+	      /* We'll need to disconnect at the end so that we can
+		 accept another connection later. */
+	      disconnect = true;
+	    }
+	  else
+	    {
+	      /* We have no pipe handle to read from. */
+	      set_errno (ENOTCONN);
 	      __leave;
 	    }
-	  status = open_pipe (ph, &pipe_name);
-	  if (!NT_SUCCESS (status))
-	    {
-	      __seterrno_from_nt_status (status);
-	      __leave;
-	    }
-	  buffer = tp.w_get ();
 	  packet = (af_unix_pkt_hdr_t *) buffer;
 	  length = MAX_AF_PKT_LEN;
 	}
-      if (!is_nonblocking () && !(evt = create_event ()))
+      if (flags & (MSG_PEEK | MSG_WAITALL))
+	{
+	  /* Not yet implemented. */
+	  set_errno (EAFNOSUPPORT);
+	  __leave;
+	}
+      /* Only create wait event in blocking mode if MSG_DONTWAIT isn't set. */
+      if (!is_nonblocking () && !(flags & MSG_DONTWAIT)
+	  && !(evt = create_event ()))
 	__leave;
-read:
+    read:
       io_lock ();
+      /* Handle MSG_DONTWAIT in blocking mode. */
+      if (!is_nonblocking () && (flags & MSG_DONTWAIT))
+	set_pipe_non_blocking (true);
       status = NtReadFile (ph ?: get_handle (), evt, NULL, NULL, &io,
 			   buffer, length, NULL, NULL);
+      if (!is_nonblocking () && (flags & MSG_DONTWAIT))
+	set_pipe_non_blocking (false);
       io_unlock ();
       debug_printf ("NtReadFile status %y", status);
       if (evt && status == STATUS_PENDING)
 	{
-wait:
+	wait:
 	  DWORD ret = cygwait (evt, cw_infinite, cw_cancel | cw_sig_eintr);
 	  switch (ret)
 	    {
@@ -2054,15 +2077,37 @@ wait:
       /* Read rest of packet? */
       if (need_hdr)
 	{
+	  ULONG dont_read = 0;
 	  need_hdr = false;
-	  bytes_read = sizeof (af_unix_pkt_hdr_t);
-	  buffer = (PBYTE) buffer + bytes_read;
-	  ULONG dont_read = MAX (packet->data_len - req_len, 0);
-	  length = packet->pckt_len - dont_read;
-	  goto read;
+	  switch (status)
+	    {
+	    case STATUS_BUFFER_OVERFLOW:
+	    case STATUS_MORE_PROCESSING_REQUIRED:
+	    case STATUS_SUCCESS:
+	      bytes_read = io.Information;
+	      assert (bytes_read == length);
+	      buffer = (PBYTE) buffer + bytes_read;
+	      if (tot < packet->data_len)
+		dont_read = packet->data_len - tot;
+	      length = packet->pckt_len - bytes_read - dont_read;
+	      goto read;
+	    case STATUS_PIPE_EMPTY:
+	      set_errno (EAGAIN);
+	      __leave;
+	    case STATUS_PIPE_BROKEN:
+	      ret = 0;		/* EOF */
+	      __leave;
+	    case STATUS_THREAD_CANCELED:
+	      /* Handle below. */
+	      __leave;
+	    default:
+	      __seterrno_from_nt_status (status);
+	      __leave;
+	    }
 	}
       set_unread (false);
-      ULONG data_read = 0;
+      ssize_t nbytes = 0;
+      PBYTE p = NULL;
       switch (status)
 	{
 	case STATUS_BUFFER_OVERFLOW:
@@ -2072,19 +2117,54 @@ wait:
 	  /* fallthrough; */
 	case STATUS_SUCCESS:
 	  bytes_read += io.Information;
-	  data_read = packet ? bytes_read - AF_UNIX_PKT_OFFSETOF_DATA (packet)
+	  ret = packet ? bytes_read - AF_UNIX_PKT_OFFSETOF_DATA (packet)
 	    : bytes_read;
+	  /* FIXME: Is the first assertion correct?  I don't think
+	     stream sockets are allowed to have 0 length, but there
+	     doesn't seem to be any check for this in sendmsg. */
+	  if (get_socket_type () == SOCK_STREAM)
+	    assert (ret > 0);
+	  else
+	    assert (ret >= 0);
 	  /* For a datagram socket, truncate the data to what was requested. */
-	  len = MIN (req_len, data_read);
+	  if (get_socket_type () == SOCK_DGRAM && tot < (size_t) ret)
+	    ret = tot;
 	  if (packet)
-	    memcpy (ptr, AF_UNIX_PKT_DATA (packet), len);
+	    {
+	      if (msg->msg_controllen)
+		/* Handle the cmsg data. */
+		;
+	    }
+	  nbytes = ret;
+	  p = packet ? (PBYTE) AF_UNIX_PKT_DATA (packet) : (PBYTE) buffer;
+	  for (struct iovec *iovptr = msg->msg_iov; nbytes > 0; ++iovptr)
+	    {
+	      int frag = MIN (nbytes, iovptr->iov_len);
+	      memcpy (iovptr->iov_base, p, frag);
+	      p += frag;
+	      nbytes -= frag;
+	    }
+	  if (msg->msg_name)
+	    {
+	      if (packet)
+		{
+		  sun_name_t sun ((struct sockaddr *) AF_UNIX_PKT_NAME (packet),
+				  packet->name_len);
+		  memcpy (msg->msg_name, &sun.un,
+			  MIN (msg->msg_namelen, sun.un_len + 1));
+		  msg->msg_namelen = sun.un_len;
+		}
+	      else
+		/* We read data left over from a previous partial
+		   read; we can't supply the sender's address. */
+		msg->msg_namelen = 0;
+	    }
 	  break;
 	case STATUS_PIPE_EMPTY:
-	  /* Can only happen in non-blocking case. */
 	  set_errno (EAGAIN);
 	  break;
 	case STATUS_PIPE_BROKEN:
-	  len = 0;		/* EOF */
+	  ret = 0;		/* EOF */
 	  break;
 	case STATUS_THREAD_CANCELED:
 	  /* Handle below. */
@@ -2095,29 +2175,59 @@ wait:
 	}
     }
   __except (EFAULT)
-  __endtry
-  if (ph)
-    NtClose (ph);
+    __endtry
+    if (ph)
+      NtClose (ph);
   if (fh)
     NtClose (fh);
   if (evt)
     NtClose (evt);
+  if (disconnect)
+    disconnect_pipe (get_handle ());
   if (status == STATUS_THREAD_CANCELED)
     pthread::static_cancel_self ();
+  return ret;
+}
 
-  /* struct iovec iov; */
-  /* struct msghdr msg; */
+ssize_t
+fhandler_socket_unix::recvfrom (void *ptr, size_t len, int flags,
+				struct sockaddr *from, int *fromlen)
+{
+  struct iovec iov;
+  struct msghdr msg;
+  ssize_t ret;
 
-  /* iov.iov_base = ptr; */
-  /* iov.iov_len = len; */
-  /* msg.msg_name = NULL; */
-  /* msg.msg_namelen = 0; */
-  /* msg.msg_iov = &iov; */
-  /* msg.msg_iovlen = 1; */
-  /* msg.msg_control = NULL; */
-  /* msg.msg_controllen = 0; */
-  /* msg.msg_flags = 0; */
-  /* len = recvmsg (&msg, 0); */
+  iov.iov_base = ptr;
+  iov.iov_len = len;
+  msg.msg_name = from;
+  msg.msg_namelen = from && fromlen ? *fromlen : 0;
+  msg.msg_iov = &iov;
+  msg.msg_iovlen = 1;
+  msg.msg_control = NULL;
+  msg.msg_controllen = 0;
+  msg.msg_flags = 0;
+  ret = recvmsg (&msg, flags);
+  if (ret >= 0 && from && fromlen)
+    *fromlen = msg.msg_namelen;
+  return ret;
+}
+
+void __reg3
+fhandler_socket_unix::read (void *ptr, size_t& len)
+{
+  struct iovec iov;
+  struct msghdr msg;
+
+  iov.iov_base = ptr;
+  iov.iov_len = len;
+  msg.msg_name = NULL;
+  msg.msg_namelen = 0;
+  msg.msg_iov = &iov;
+  msg.msg_iovlen = 1;
+  msg.msg_control = NULL;
+  msg.msg_controllen = 0;
+  msg.msg_flags = 0;
+  len = recvmsg (&msg, 0);
 }
 
 ssize_t __stdcall
