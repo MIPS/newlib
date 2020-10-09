@@ -27,7 +27,6 @@ GUID __cygwin_socket_guid = {
 #include <sys/param.h>
 #include <sys/statvfs.h>
 #include <cygwin/acl.h>
-#include <assert.h>
 #include "cygerrno.h"
 #include "path.h"
 #include "fhandler.h"
@@ -2122,13 +2121,12 @@ ssize_t ret = -1;
 	  bytes_read += io.Information;
 	  ret = packet ? bytes_read - AF_UNIX_PKT_OFFSETOF_DATA (packet)
 	    : bytes_read;
-	  /* FIXME: Is the first assertion correct?  I don't think
-	     stream sockets are allowed to have 0 length, but there
-	     doesn't seem to be any check for this in sendmsg. */
-	  if (get_socket_type () == SOCK_STREAM)
-	    assert (ret > 0);
-	  else
-	    assert (ret >= 0);
+	  if (ret < 0)
+	    {
+	      ret = -1;
+	      set_errno (EIO);
+	      __leave;
+	    }
 	  /* For a datagram socket, truncate the data to what was requested. */
 	  if (get_socket_type () == SOCK_DGRAM && tot < (size_t) ret)
 	    ret = tot;
