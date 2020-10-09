@@ -1921,24 +1921,19 @@ ssize_t ret = -1;
   HANDLE evt = NULL;
   tmp_pathbuf tp;
   PVOID buffer = tp.w_get ();
-  ULONG length;
-  bool need_hdr = false;
+  ULONG length = 0;
+  bool peek_hdr = false;
   af_unix_pkt_hdr_t *packet = NULL;
-  ULONG bytes_read = 0;
   /* bool waitall = false; */
   bool disconnect = false;
 
   __try
     {
-      /* Valid flags: MSG_DONTWAIT, MSG_WAITALL.
+      /* Valid flags: MSG_DONTWAIT, MSG_PEEK, MSG_WAITALL.
 
 	 FIXME: Do we want to support MSG_TRUNC?  It's not in POSIX,
-	 but it's in Linux since 3.4.  What about MSG_PEEK?  If we're
-	 blocking, is there a way we can wait on a suitable event?  Or
-	 would we have to keep calling peek_pipe until there's data?
-	 Or should we just NtReadFile and store the data in a local
-	 buffer for use on the next recv call? */
-      if (flags & ~(MSG_DONTWAIT | MSG_WAITALL))
+	 but it's in Linux since 3.4. */
+      if (flags & ~(MSG_DONTWAIT | MSG_PEEK | MSG_WAITALL))
 	{
 	  set_errno (EOPNOTSUPP);
 	  __leave;
@@ -1974,9 +1969,8 @@ ssize_t ret = -1;
 	  else
 	    {
 	      packet = (af_unix_pkt_hdr_t *) buffer;
-	      /* We'll need to get header before getting rest of packet. */
-	      need_hdr = true;
-	      length = sizeof (af_unix_pkt_hdr_t);
+	      /* We'll need to peek at the header before setting length. */
+	      peek_hdr = true;
 	    }
 	}
       else
@@ -2035,7 +2029,66 @@ ssize_t ret = -1;
       if (!is_nonblocking () && !(flags & MSG_DONTWAIT)
 	  && !(evt = create_event ()))
 	__leave;
-    read:
+      if (peek_hdr)
+	{
+	  DWORD sleep_time = 0;
+	  PFILE_PIPE_PEEK_BUFFER pbuf = (PFILE_PIPE_PEEK_BUFFER) buffer;
+	  ULONG ret_len;
+	  DWORD waitret;
+
+	  while (1)
+	    {
+	      io_lock ();
+	      status = peek_pipe (pbuf, MAX_PATH, evt, ret_len);
+	      io_unlock ();
+	      if (ret_len)
+		break;
+	      if (!evt)		/* Not blocking. */
+		{
+		  set_errno (EAGAIN);
+		  __leave;
+		}
+	      switch (status)
+		{
+		case STATUS_SUCCESS:
+		  break;
+		case STATUS_PIPE_BROKEN:
+		  ret = 0;	/* EOF */
+		  __leave;
+		default:
+		  __seterrno_from_nt_status (status);
+		  __leave;
+		}
+	      /* Allow interruption. */
+	      waitret = cygwait (NULL, sleep_time >> 3,
+				 cw_cancel | cw_sig_eintr);
+	      if (waitret == WAIT_CANCELED)
+		{
+		  status = STATUS_THREAD_CANCELED;
+		  __leave;
+		}
+	      else if (waitret == WAIT_SIGNALED
+		       && !_my_tls.call_signal_handler ())
+		{
+		  set_errno (EINTR);
+		  __leave;
+		}
+	      if (sleep_time < 80)
+		++sleep_time;
+	    }
+	  ResetEvent (evt);
+	  if (pbuf->NumberOfMessages == 0
+	      || ret_len < sizeof (af_unix_pkt_hdr_t))
+	    {
+	      set_errno (EIO);
+	      __leave;
+	    }
+	  af_unix_pkt_hdr_t *pkt = (af_unix_pkt_hdr_t *) pbuf->Data;
+	  ULONG dont_read = 0;
+	  if (tot < pkt->data_len)
+	    dont_read = pkt->data_len - tot;
+	  length = pkt->pckt_len - dont_read;
+	}
       io_lock ();
       /* Handle MSG_DONTWAIT in blocking mode. */
       if (!is_nonblocking () && (flags & MSG_DONTWAIT))
@@ -2048,7 +2101,7 @@ ssize_t ret = -1;
       debug_printf ("NtReadFile status %y", status);
       if (evt && status == STATUS_PENDING)
 	{
-	wait:
+wait:
 	  DWORD ret = cygwait (evt, cw_infinite, cw_cancel | cw_sig_eintr);
 	  switch (ret)
 	    {
@@ -2076,37 +2129,6 @@ ssize_t ret = -1;
 	      __leave;
 	    }
 	}
-      /* Read rest of packet? */
-      if (need_hdr)
-	{
-	  ULONG dont_read = 0;
-	  need_hdr = false;
-	  switch (status)
-	    {
-	    case STATUS_BUFFER_OVERFLOW:
-	    case STATUS_MORE_PROCESSING_REQUIRED:
-	    case STATUS_SUCCESS:
-	      bytes_read = io.Information;
-	      assert (bytes_read == length);
-	      buffer = (PBYTE) buffer + bytes_read;
-	      if (tot < packet->data_len)
-		dont_read = packet->data_len - tot;
-	      length = packet->pckt_len - bytes_read - dont_read;
-	      goto read;
-	    case STATUS_PIPE_EMPTY:
-	      set_errno (EAGAIN);
-	      __leave;
-	    case STATUS_PIPE_BROKEN:
-	      ret = 0;		/* EOF */
-	      __leave;
-	    case STATUS_THREAD_CANCELED:
-	      /* Handle below. */
-	      __leave;
-	    default:
-	      __seterrno_from_nt_status (status);
-	      __leave;
-	    }
-	}
       set_unread (false);
       ssize_t nbytes = 0;
       PBYTE p = NULL;
@@ -2118,9 +2140,8 @@ ssize_t ret = -1;
 	  set_unread (true);
 	  fallthrough;
 	case STATUS_SUCCESS:
-	  bytes_read += io.Information;
-	  ret = packet ? bytes_read - AF_UNIX_PKT_OFFSETOF_DATA (packet)
-	    : bytes_read;
+	  ret = packet ? io.Information - AF_UNIX_PKT_OFFSETOF_DATA (packet)
+	    : io.Information;
 	  if (ret < 0)
 	    {
 	      ret = -1;
