@@ -1162,6 +1162,32 @@ fhandler_socket_unix::peek_pipe (PFILE_PIPE_PEEK_BUFFER pbuf, ULONG psize,
   return status;
 }
 
+/* Like peek_pipe, but poll until there's data, an error, or a signal. */
+NTSTATUS
+fhandler_socket_unix::peek_pipe_poll (PFILE_PIPE_PEEK_BUFFER pbuf,
+				      ULONG psize, HANDLE evt, ULONG &ret_len)
+{
+  NTSTATUS status;
+
+  while (1)
+    {
+      DWORD sleep_time = 0;
+      DWORD waitret;
+
+      status = peek_pipe (pbuf, psize, evt, ret_len);
+      if (ret_len || !NT_SUCCESS (status))
+	break;
+      waitret = cygwait (NULL, sleep_time >> 3, cw_cancel | cw_sig_eintr);
+      if (waitret == WAIT_CANCELED)
+	return STATUS_THREAD_CANCELED;
+      if (waitret == WAIT_SIGNALED)
+	return STATUS_THREAD_SIGNALED;
+      if (sleep_time < 80)
+	++sleep_time;
+    }
+  return status;
+}
+
 int
 fhandler_socket_unix::disconnect_pipe (HANDLE ph)
 {
@@ -1920,8 +1946,9 @@ ssize_t ret = -1;
   HANDLE ph = NULL;
   HANDLE evt = NULL;
   tmp_pathbuf tp;
-  PVOID buffer = tp.w_get ();
-  ULONG length = 0;
+  PVOID buffer = tp.w_get ();	/* For NtReadFile call. */
+  ULONG length = 0;		/* For NtReadFile call. */
+  PBYTE pdata;			/* Pointer to data read. */
   bool peek_hdr = false;
   af_unix_pkt_hdr_t *packet = NULL;
   /* bool waitall = false; */
@@ -2025,29 +2052,33 @@ ssize_t ret = -1;
 	  set_errno (EAFNOSUPPORT);
 	  __leave;
 	}
-      /* Only create wait event in blocking mode if MSG_DONTWAIT isn't set. */
-      if (!is_nonblocking () && !(flags & MSG_DONTWAIT)
-	  && !(evt = create_event ()))
-	__leave;
       if (peek_hdr)
 	{
-	  DWORD sleep_time = 0;
 	  PFILE_PIPE_PEEK_BUFFER pbuf = (PFILE_PIPE_PEEK_BUFFER) buffer;
+	  ULONG psize = offsetof (FILE_PIPE_PEEK_BUFFER, Data)
+	    + sizeof (af_unix_pkt_hdr_t);
 	  ULONG ret_len;
-	  DWORD waitret;
 
-	  while (1)
+	  if (!(evt = create_event ()))
+	    __leave;
+
+	  if (is_nonblocking () || (flags & MSG_DONTWAIT))
 	    {
 	      io_lock ();
-	      status = peek_pipe (pbuf, MAX_PATH, evt, ret_len);
+	      status = peek_pipe (pbuf, psize, evt, ret_len);
 	      io_unlock ();
-	      if (ret_len)
-		break;
-	      if (!evt)		/* Not blocking. */
+	      if (!ret_len)
 		{
 		  set_errno (EAGAIN);
 		  __leave;
 		}
+	    }
+	  else
+	    {
+restart1:
+	      io_lock ();
+	      status = peek_pipe_poll (pbuf, MAX_PATH, evt, ret_len);
+	      io_unlock ();
 	      switch (status)
 		{
 		case STATUS_SUCCESS:
@@ -2055,28 +2086,21 @@ ssize_t ret = -1;
 		case STATUS_PIPE_BROKEN:
 		  ret = 0;	/* EOF */
 		  __leave;
+		case STATUS_THREAD_CANCELED:
+		  __leave;
+		case STATUS_THREAD_SIGNALED:
+		  if (_my_tls.call_signal_handler ())
+		    goto restart1;
+		  else
+		    {
+		      set_errno (EINTR);
+		      __leave;
+		    }
 		default:
 		  __seterrno_from_nt_status (status);
 		  __leave;
 		}
-	      /* Allow interruption. */
-	      waitret = cygwait (NULL, sleep_time >> 3,
-				 cw_cancel | cw_sig_eintr);
-	      if (waitret == WAIT_CANCELED)
-		{
-		  status = STATUS_THREAD_CANCELED;
-		  __leave;
-		}
-	      else if (waitret == WAIT_SIGNALED
-		       && !_my_tls.call_signal_handler ())
-		{
-		  set_errno (EINTR);
-		  __leave;
-		}
-	      if (sleep_time < 80)
-		++sleep_time;
 	    }
-	  ResetEvent (evt);
 	  if (pbuf->NumberOfMessages == 0
 	      || ret_len < sizeof (af_unix_pkt_hdr_t))
 	    {
@@ -2089,6 +2113,10 @@ ssize_t ret = -1;
 	    dont_read = pkt->data_len - tot;
 	  length = pkt->pckt_len - dont_read;
 	}
+      /* Only create wait event in blocking mode if MSG_DONTWAIT isn't set. */
+      if (!is_nonblocking () && !(flags & MSG_DONTWAIT)
+	  && !evt && !(evt = create_event ()))
+	__leave;
       io_lock ();
       /* Handle MSG_DONTWAIT in blocking mode. */
       if (!is_nonblocking () && (flags & MSG_DONTWAIT))
@@ -2118,7 +2146,6 @@ wait:
 	      break;
 	    }
 	}
-      /* Resume waiting? */
       if (status == STATUS_THREAD_SIGNALED)
 	{
 	  if (_my_tls.call_signal_handler ())
@@ -2130,8 +2157,6 @@ wait:
 	    }
 	}
       set_unread (false);
-      ssize_t nbytes = 0;
-      PBYTE p = NULL;
       switch (status)
 	{
 	case STATUS_BUFFER_OVERFLOW:
@@ -2142,6 +2167,7 @@ wait:
 	case STATUS_SUCCESS:
 	  ret = packet ? io.Information - AF_UNIX_PKT_OFFSETOF_DATA (packet)
 	    : io.Information;
+	  pdata = packet ? (PBYTE) AF_UNIX_PKT_DATA (packet) : (PBYTE) buffer;
 	  if (ret < 0)
 	    {
 	      ret = -1;
@@ -2156,15 +2182,6 @@ wait:
 	      if (msg->msg_controllen)
 		/* Handle the cmsg data. */
 		;
-	    }
-	  nbytes = ret;
-	  p = packet ? (PBYTE) AF_UNIX_PKT_DATA (packet) : (PBYTE) buffer;
-	  for (struct iovec *iovptr = msg->msg_iov; nbytes > 0; ++iovptr)
-	    {
-	      int frag = MIN (nbytes, iovptr->iov_len);
-	      memcpy (iovptr->iov_base, p, frag);
-	      p += frag;
-	      nbytes -= frag;
 	    }
 	  if (msg->msg_name)
 	    {
@@ -2195,11 +2212,22 @@ wait:
 	  __seterrno_from_nt_status (status);
 	  break;
 	}
+      if (ret > 0)
+	{
+	  ssize_t nbytes = ret;
+	  for (struct iovec *iovptr = msg->msg_iov; nbytes > 0; ++iovptr)
+	    {
+	      int frag = MIN (nbytes, iovptr->iov_len);
+	      memcpy (iovptr->iov_base, pdata, frag);
+	      pdata += frag;
+	      nbytes -= frag;
+	    }
+	}
     }
   __except (EFAULT)
-    __endtry
-    if (ph)
-      NtClose (ph);
+  __endtry
+  if (ph)
+    NtClose (ph);
   if (fh)
     NtClose (fh);
   if (evt)
