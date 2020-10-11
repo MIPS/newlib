@@ -1948,6 +1948,7 @@ ssize_t ret = -1;
   tmp_pathbuf tp;
   PVOID buffer = tp.w_get ();	/* For NtReadFile call. */
   ULONG length = 0;		/* For NtReadFile call. */
+  PVOID peek_buffer = NULL;	/* For MSG_PEEK. */
   PBYTE pdata;			/* Pointer to data read. */
   bool peek_hdr = false;
   af_unix_pkt_hdr_t *packet = NULL;
@@ -2046,11 +2047,93 @@ ssize_t ret = -1;
 	  packet = (af_unix_pkt_hdr_t *) buffer;
 	  length = MAX_AF_PKT_LEN;
 	}
-      if (flags & (MSG_PEEK | MSG_WAITALL))
+      if (flags & MSG_WAITALL)
 	{
 	  /* Not yet implemented. */
 	  set_errno (EAFNOSUPPORT);
 	  __leave;
+	}
+      /* FIXME: This currentlydoesn't work for unbound datagram
+	 sockets because peek_pipe calls get_handle. */
+      if (flags & MSG_PEEK)
+	{
+	  ULONG psize = offsetof (FILE_PIPE_PEEK_BUFFER, Data)
+	    + MAX_AF_PKT_LEN;
+	  peek_buffer = malloc (psize);
+	  if (!peek_buffer)
+	    {
+	      set_errno (ENOMEM);
+	      __leave;
+	    }
+	  PFILE_PIPE_PEEK_BUFFER pbuf = (PFILE_PIPE_PEEK_BUFFER) peek_buffer;
+	  ULONG ret_len;
+
+	  if (!(evt = create_event ()))
+	    __leave;
+
+	  if (is_nonblocking () || (flags & MSG_DONTWAIT))
+	    {
+	      io_lock ();
+	      status = peek_pipe (pbuf, psize, evt, ret_len);
+	      io_unlock ();
+	      if (!ret_len)
+		{
+		  set_errno (EAGAIN);
+		  __leave;
+		}
+	    }
+	  else
+	    {
+restart:
+	      io_lock ();
+	      status = peek_pipe_poll (pbuf, MAX_PATH, evt, ret_len);
+	      io_unlock ();
+	      switch (status)
+		{
+		case STATUS_SUCCESS:
+		  break;
+		case STATUS_PIPE_BROKEN:
+		  ret = 0;	/* EOF */
+		  __leave;
+		case STATUS_THREAD_CANCELED:
+		  __leave;
+		case STATUS_THREAD_SIGNALED:
+		  if (_my_tls.call_signal_handler ())
+		    goto restart;
+		  else
+		    {
+		      set_errno (EINTR);
+		      __leave;
+		    }
+		default:
+		  __seterrno_from_nt_status (status);
+		  __leave;
+		}
+	    }
+	  if (get_unread ())
+	    {
+	      ret = MIN (tot, ret_len);
+	      pdata = (PBYTE) pbuf->Data;
+	    }
+	  else
+	    {
+	      if (pbuf->NumberOfMessages == 0
+		  || ret_len < sizeof (af_unix_pkt_hdr_t))
+		{
+		  set_errno (EIO);
+		  __leave;
+		}
+	      packet = (af_unix_pkt_hdr_t *) pbuf->Data;
+	      ret_len -= AF_UNIX_PKT_OFFSETOF_DATA (packet);
+	      if (ret_len < 0)
+		{
+		  set_errno (EIO);
+		  __leave;
+		}
+	      ret = MIN (tot, ret_len);
+	      pdata = (PBYTE) AF_UNIX_PKT_DATA (packet);
+	    }
+	  goto copy;
 	}
       if (peek_hdr)
 	{
@@ -2212,6 +2295,7 @@ wait:
 	  __seterrno_from_nt_status (status);
 	  break;
 	}
+copy:
       if (ret > 0)
 	{
 	  ssize_t nbytes = ret;
@@ -2234,6 +2318,8 @@ wait:
     NtClose (evt);
   if (disconnect)
     disconnect_pipe (get_handle ());
+  if (peek_buffer)
+    free (peek_buffer);
   if (status == STATUS_THREAD_CANCELED)
     pthread::static_cancel_self ();
   return ret;
