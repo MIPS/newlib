@@ -1174,7 +1174,9 @@ fhandler_socket_unix::peek_pipe_poll (PFILE_PIPE_PEEK_BUFFER pbuf,
       DWORD sleep_time = 0;
       DWORD waitret;
 
+      io_lock ();
       status = peek_pipe (pbuf, psize, evt, ret_len);
+      io_unlock ();
       if (ret_len || !NT_SUCCESS (status))
 	break;
       waitret = cygwait (NULL, sleep_time >> 3, cw_cancel | cw_sig_eintr);
@@ -2085,9 +2087,7 @@ ssize_t ret = -1;
 	  else
 	    {
 restart:
-	      io_lock ();
 	      status = peek_pipe_poll (pbuf, MAX_PATH, evt, ret_len);
-	      io_unlock ();
 	      switch (status)
 		{
 		case STATUS_SUCCESS:
