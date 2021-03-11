@@ -1,13 +1,33 @@
-/* fenv.h
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * Copyright (c) 2010-2019 Red Hat, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
 
-This file is part of Cygwin.
-
-This software is a copyrighted work licensed under the terms of the
-Cygwin license.  Please consult the file "CYGWIN_LICENSE" for
-details. */
-
-#ifndef _FENV_H
-#define _FENV_H 1
+#ifndef _SYS_FENV_H
+#define _SYS_FENV_H 1
 
 #include <sys/cdefs.h>
 
@@ -136,39 +156,21 @@ extern const fenv_t *_fe_dfl_env;
    if _GNU_SOURCE is defined.  */
 extern const fenv_t *_fe_nomask_env;
 #define FE_NOMASK_ENV (_fe_nomask_env)
+
+/* These are GNU extensions defined in glibc.  */
+int feenableexcept (int __excepts);
+int fedisableexcept (int __excepts);
+int fegetexcept (void);
 #endif /* __GNU_VISIBLE */
 
-
-/*  The following shall be declared as functions and may also be
-   defined as macros. Function prototypes shall be provided.  */
-extern int feclearexcept (int __excepts);
-extern int fegetexceptflag (fexcept_t *__flagp, int __excepts);
-extern int feraiseexcept (int __excepts);
-extern int fesetexceptflag (const fexcept_t *__flagp, int __excepts);
-extern int fetestexcept (int __excepts);
-extern int fegetround (void);
-extern int fesetround (int __round);
-extern int fegetenv (fenv_t *__envp);
-extern int feholdexcept (fenv_t *__envp);
-extern int fesetenv (const fenv_t *__envp);
-extern int feupdateenv (const fenv_t *__envp);
-
-#if __GNU_VISIBLE
-/* These are GNU extensions defined in glibc.  */
-extern int feenableexcept (int __excepts);
-extern int fedisableexcept (int __excepts);
-extern int fegetexcept (void);
-#endif
+#ifdef __CYGWIN__
 
 #if __MISC_VISIBLE
-extern int fegetprec (void);
-extern int fesetprec (int __prec);
+int fegetprec (void);
+int fesetprec (int __prec);
 #endif
 
-#ifdef __INSIDE_CYGWIN__
-/* This is Cygwin-custom, not from the standard, for use in the Cygwin CRT.  */
-extern void _feinitialise ();
-#endif
+#endif /* __CYGWIN__ */
 
 #ifdef __cplusplus
 }

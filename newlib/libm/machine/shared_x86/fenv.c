@@ -1,16 +1,15 @@
-/* fenv.cc
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * Copyright (c) 2010-2019 Red Hat, Inc.
+ */
 
-This file is part of Cygwin.
+#define _GNU_SOURCE        // for FE_NOMASK_ENV
 
-This software is a copyrighted work licensed under the terms of the
-Cygwin license.  Please consult the file "CYGWIN_LICENSE" for
-details. */
-
-#include "winsup.h"
-#include "fenv.h"
-#include "errno.h"
-#include "wincap.h"
-#include <string.h>
+#include <fenv.h>
+#include <errno.h>
+#include <string.h>        // for memcpy 
+#include <stdbool.h>
 
 /*  x87 supports subnormal numbers so we need it below. */
 #define __FE_DENORM	(1 << 1)
@@ -42,15 +41,30 @@ static fenv_t fe_nomask_env;
 /* These pointers provide the outside world with read-only access to them.  */
 const fenv_t *_fe_nomask_env = &fe_nomask_env;
 
-/*  Although Cygwin assumes i686 or above (hence SSE available) these
-   days, and the compiler feels free to use it (depending on compile-
-   time flags of course), we should avoid needlessly breaking any
-   purely integer mode apps (or apps compiled with -mno-sse), so we
-   only manage SSE state in this fenv module if we detect that SSE
-   instructions are available at runtime.  If we didn't do this, all
-   applications run on older machines would bomb out with an invalid
-   instruction exception right at startup; let's not be *that* WJM!  */
-static bool use_sse = false;
+/* Assume i686 or above (hence SSE available) these days, with the
+   compiler feels free to use it (depending on compile- time flags of
+   course), but we should avoid needlessly breaking any purely integer mode
+   apps (or apps compiled with -mno-sse), so we only manage SSE state in this
+   fenv module if we detect that SSE instructions are available at runtime.
+   If we didn't do this, all applications run on older machines would bomb
+   out with an invalid instruction exception right at startup; let's not
+   be *that* WJM!  */
+static inline bool use_sse(void)
+{
+  unsigned int edx, eax;
+
+  /* Check for presence of SSE: invoke CPUID #1, check EDX bit 25.  */
+  eax = 1;
+  __asm__ volatile ("cpuid" : "=d" (edx), "+a" (eax) :: "%ecx", "%ebx");
+  /* If this flag isn't set we'll avoid trying to execute any SSE.  */
+  if ((edx & (1 << 25)) != 0)
+    return true;
+
+  return false;
+}
+
+/* forward declaration */
+static void _feinitialise (void);
 
 /*  This function enables traps for each of the exceptions as indicated
    by the parameter except. The individual exceptions are described in
@@ -69,7 +83,7 @@ feenableexcept (int excepts)
 
   /* Get control words.  */
   __asm__ volatile ("fnstcw %0" : "=m" (old_cw) : );
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("stmxcsr %0" : "=m" (mxcsr) : );
 
   /* Enable exceptions by clearing mask bits.  */
@@ -78,7 +92,7 @@ feenableexcept (int excepts)
 
   /* Store updated control words.  */
   __asm__ volatile ("fldcw %0" :: "m" (cw));
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("ldmxcsr %0" :: "m" (mxcsr));
 
   /* Return old value.  We assume SSE and x87 stay in sync.  Note that
@@ -105,7 +119,7 @@ fedisableexcept (int excepts)
 
   /* Get control words.  */
   __asm__ volatile ("fnstcw %0" : "=m" (old_cw) : );
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("stmxcsr %0" : "=m" (mxcsr) : );
 
   /* Disable exceptions by setting mask bits.  */
@@ -114,7 +128,7 @@ fedisableexcept (int excepts)
 
   /* Store updated control words.  */
   __asm__ volatile ("fldcw %0" :: "m" (cw));
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("ldmxcsr %0" :: "m" (mxcsr));
 
   /* Return old value.  We assume SSE and x87 stay in sync.  Note that
@@ -149,7 +163,7 @@ fegetenv (fenv_t *envp)
   __asm__ volatile ("fnstenv %0\n\
                      fldenv %0"
 		    : "=m" (envp->_fpu) : );
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("stmxcsr %0" : "=m" (envp->_sse_mxcsr) : );
   return 0;
 }
@@ -165,7 +179,7 @@ feholdexcept (fenv_t *envp)
   unsigned int mxcsr;
   fegetenv (envp);
   mxcsr = envp->_sse_mxcsr & ~FE_ALL_EXCEPT;
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("ldmxcsr %0" :: "m" (mxcsr));
   __asm__ volatile ("fnclex");
   fedisableexcept (FE_ALL_EXCEPT);
@@ -178,8 +192,12 @@ feholdexcept (fenv_t *envp)
 int
 fesetenv (const fenv_t *envp)
 {
+   if ((envp == FE_DFL_ENV || envp == FE_NOMASK_ENV) &&
+       envp->_fpu._fpu_cw == 0)
+     _feinitialise ();
+
   __asm__ volatile ("fldenv %0" :: "m" (envp->_fpu) );
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("ldmxcsr %0" :: "m" (envp->_sse_mxcsr));
   return 0;
 }
@@ -202,7 +220,7 @@ feupdateenv (const fenv_t *envp)
      so take a copy and merge the existing exceptions into it.  */
   memcpy (&envcopy, envp, sizeof *envp);
   __asm__ volatile ("fnstsw %0" : "=m" (sw) : );
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("stmxcsr %0" : "=m" (mxcsr) : );
   envcopy._fpu._fpu_sw |= (sw & FE_ALL_EXCEPT);
   envcopy._sse_mxcsr |= (mxcsr & FE_ALL_EXCEPT);
@@ -276,7 +294,7 @@ fetestexcept (int excepts)
 
   /* Get status registers.  */
   __asm__ volatile ("fnstsw %0" : "=m" (sw) : );
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("stmxcsr %0" : "=m" (mxcsr) : );
 
   /* Mask undesired bits out and return result.  */
@@ -297,7 +315,7 @@ fegetexceptflag (fexcept_t *flagp, int excepts)
 
   /* Get status registers.  */
   __asm__ volatile ("fnstsw %0" : "=m" (sw) : );
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("stmxcsr %0" : "=m" (mxcsr) : );
 
   /* Mask undesired bits out and set result.  */
@@ -358,7 +376,7 @@ fesetround (int round)
 
   /* Get control words.  */
   __asm__ volatile ("fnstcw %0" : "=m" (cw) : );
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("stmxcsr %0" : "=m" (mxcsr) : );
 
   /* Twiddle bits.  */
@@ -369,13 +387,14 @@ fesetround (int round)
 
   /* Set back into FPU state.  */
   __asm__ volatile ("fldcw %0" :: "m" (cw));
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("ldmxcsr %0" :: "m" (mxcsr));
 
   /* Indicate success.  */
   return 0;
 }
 
+#if defined(__CYGWIN__)
 /*  Returns the currently selected precision, represented by one of the
    values of the defined precision macros.  */
 int
@@ -427,20 +446,13 @@ fesetprec (int prec)
   /* Indicate success.  */
   return 1;
 }
+#endif
 
 /*  Set up the FPU and SSE environment at the start of execution.  */
-void
+static void
 _feinitialise (void)
 {
-  unsigned int edx, eax;
   extern fenv_t __fe_dfl_env;
-
-  /* Check for presence of SSE: invoke CPUID #1, check EDX bit 25.  */
-  eax = 1;
-  __asm__ volatile ("cpuid" : "=d" (edx), "+a" (eax) :: "%ecx", "%ebx");
-  /* If this flag isn't set we'll avoid trying to execute any SSE.  */
-  if ((edx & (1 << 25)) != 0)
-    use_sse = true;
 
   /* Reset FPU: extended prec, all exceptions cleared and masked off.  */
   __asm__ volatile ("fninit");
@@ -450,7 +462,7 @@ _feinitialise (void)
 
   /* initialize the MXCSR register: mask all exceptions */
   unsigned int mxcsr = __FE_ALL_EXCEPT_X86 << FE_SSE_EXCEPT_MASK_SHIFT;
-  if (use_sse)
+  if (use_sse())
     __asm__ volatile ("ldmxcsr %0" :: "m" (mxcsr));
 
   /* Setup unmasked environment, but leave __FE_DENORM masked.  */
@@ -463,4 +475,3 @@ _feinitialise (void)
   /* Finally cache state as default environment. */
   fegetenv (&__fe_dfl_env);
 }
-
