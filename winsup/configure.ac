@@ -8,11 +8,11 @@ dnl details.
 dnl
 dnl Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.59])
+AC_PREREQ([2.69])
 AC_INIT([Cygwin],[0],[cygwin@cygwin.com],[cygwin],[https://cygwin.com])
 AC_CONFIG_AUX_DIR(..)
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE([dejagnu foreign no-define no-dist subdir-objects -Wall -Wno-portability -Wno-extra-portability])
+AM_INIT_AUTOMAKE([1.16 dejagnu foreign no-define no-dist subdir-objects -Wall -Wno-portability -Wno-extra-portability])
 AM_SILENT_RULES([yes])
 
 realdirpath() {
