@@ -38,6 +38,12 @@ int     mq_timedsend (mqd_t, const char *, size_t, unsigned int,
 		      const struct timespec *);
 int     mq_unlink (const char *name);
 
+#ifdef __INSIDE_CYGWIN__
+ssize_t _mq_recv (mqd_t, char *, size_t, int);
+ssize_t _mq_timedrecv (mqd_t, char *, size_t, const struct timespec *, int);
+ssize_t _mq_peek (mqd_t, char *, size_t, int);
+#endif
+
 __END_DECLS
 
 #endif /* _MQUEUE_H */
