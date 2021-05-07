@@ -1102,6 +1102,12 @@ fhandler_socket_unix::listen_pipe ()
   return ret;
 }
 
+ssize_t
+fhandler_socket_unix::peek_mqueue (char *buf, size_t buflen)
+{
+  return _mq_peek (get_mqd_in (), buf, buflen, 0);
+}
+
 ULONG
 fhandler_socket_unix::peek_pipe (PFILE_PIPE_PEEK_BUFFER pbuf, ULONG psize,
 				 HANDLE evt)
