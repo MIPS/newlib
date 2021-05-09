@@ -1093,16 +1093,18 @@ class fhandler_socket_unix : public fhandler_socket
   char get_type_char ();
   void set_pipe_non_blocking (bool nonblocking);
   int send_sock_info (bool from_bind);
+  void xchg_sock_info ();
   int grab_admin_pkt (bool peek = true);
   int recv_peer_info ();
   static NTSTATUS npfs_handle (HANDLE &nph);
   int create_mqueue (bool listener = false);
   HANDLE create_pipe_instance ();
-  mqd_t open_mqueue (const char *mqueue_name, bool xchg_sock_info);
-  NTSTATUS open_pipe (PUNICODE_STRING pipe_name, bool xchg_sock_info);
-  int wait_pipe (PUNICODE_STRING pipe_name);
-  int connect_mqueue (char *mqueue_name);
-  int connect_pipe (PUNICODE_STRING pipe_name);
+  mqd_t open_mqueue (const char *mqueue_name, bool nonblocking);
+  int send_mqueue_name (mqd_t mqd, bool wait);
+  int recv_peer_mqueue_name (bool set = true, bool timeout = true,
+			     mqd_t *mqd = NULL);
+  int wait_mqueue (mqd_t mqd);
+  int connect_mqueue (const char *mqueue_name);
   int listen_pipe ();
   ssize_t peek_mqueue (char *buf, size_t buflen);
   int disconnect_pipe (HANDLE ph);
@@ -1141,7 +1143,8 @@ class fhandler_socket_unix : public fhandler_socket
 
   int dup (fhandler_base *child, int);
 
-  DWORD wait_pipe_thread (PUNICODE_STRING pipe_name);
+  // DWORD wait_pipe_thread (PUNICODE_STRING pipe_name);
+  DWORD wait_mqueue_thread (mqd_t mqd);
 
   int socket (int af, int type, int protocol, int flags);
   int socketpair (int af, int type, int protocol, int flags,
