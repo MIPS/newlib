@@ -862,48 +862,6 @@ fhandler_socket_unix::create_mqueue (bool listener)
   return 0;
 }
 
-HANDLE
-fhandler_socket_unix::create_pipe_instance ()
-{
-  NTSTATUS status;
-  HANDLE npfsh;
-  HANDLE ph;
-  ACCESS_MASK access;
-  OBJECT_ATTRIBUTES attr;
-  IO_STATUS_BLOCK io;
-  ULONG sharing;
-  ULONG nonblocking;
-  ULONG max_instances;
-  LARGE_INTEGER timeout;
-
-  status = npfs_handle (npfsh);
-  if (!NT_SUCCESS (status))
-    {
-      __seterrno_from_nt_status (status);
-      return NULL;
-    }
-  access = GENERIC_READ | FILE_READ_ATTRIBUTES
-	   | GENERIC_WRITE |  FILE_WRITE_ATTRIBUTES
-	   | SYNCHRONIZE;
-  sharing = FILE_SHARE_READ | FILE_SHARE_WRITE;
-  /* NPFS doesn't understand reopening by handle, unfortunately. */
-  InitializeObjectAttributes (&attr, pc.get_nt_native_path (), OBJ_INHERIT,
-			      npfsh, NULL);
-  nonblocking = is_nonblocking () ? FILE_PIPE_COMPLETE_OPERATION
-				  : FILE_PIPE_QUEUE_OPERATION;
-  max_instances = (get_socket_type () == SOCK_DGRAM) ? 1 : -1;
-  timeout.QuadPart = -500000;
-  status = NtCreateNamedPipeFile (&ph, access, &attr, &io, sharing,
-				  FILE_OPEN, 0,
-				  FILE_PIPE_MESSAGE_TYPE,
-				  FILE_PIPE_MESSAGE_MODE,
-				  nonblocking, max_instances,
-				  rmem (), wmem (), &timeout);
-  if (!NT_SUCCESS (status))
-    __seterrno_from_nt_status (status);
-  return ph;
-}
-
 mqd_t
 fhandler_socket_unix::open_mqueue (const char *mqueue_name, bool xchg_sock_info)
 {
@@ -1100,42 +1058,6 @@ fhandler_socket_unix::connect_mqueue (const char *mqueue_name)
 out:
   so_error (error);
   mq_close (mqd);
-  return ret;
-}
-
-int
-fhandler_socket_unix::listen_pipe ()
-{
-  NTSTATUS status;
-  IO_STATUS_BLOCK io;
-  HANDLE evt = NULL;
-  DWORD waitret = WAIT_OBJECT_0;
-  int ret = -1;
-
-  io.Status = STATUS_PENDING;
-  if (!is_nonblocking () && !(evt = create_event ()))
-    return -1;
-  status = NtFsControlFile (get_handle (), evt, NULL, NULL, &io,
-			    FSCTL_PIPE_LISTEN, NULL, 0, NULL, 0);
-  if (status == STATUS_PENDING)
-    {
-      waitret = cygwait (evt ?: get_handle (), cw_infinite,
-			 cw_cancel | cw_sig_eintr);
-      if (waitret == WAIT_OBJECT_0)
-	status = io.Status;
-    }
-  if (evt)
-    NtClose (evt);
-  if (waitret == WAIT_CANCELED)
-    pthread::static_cancel_self ();
-  else if (waitret == WAIT_SIGNALED)
-    set_errno (EINTR);
-  else if (status == STATUS_PIPE_LISTENING)
-    set_errno (EAGAIN);
-  else if (status == STATUS_SUCCESS || status == STATUS_PIPE_CONNECTED)
-    ret = 0;
-  else
-    __seterrno_from_nt_status (status);
   return ret;
 }
 
@@ -1528,6 +1450,9 @@ fhandler_socket_unix::listen (int backlog)
 int
 fhandler_socket_unix::accept4 (struct sockaddr *peer, int *len, int flags)
 {
+  mqd_t peer_mqd;
+  fhandler_socket_unix *sock;
+
   if (get_socket_type () != SOCK_STREAM)
     {
       set_errno (EOPNOTSUPP);
@@ -1539,91 +1464,84 @@ fhandler_socket_unix::accept4 (struct sockaddr *peer, int *len, int flags)
       set_errno (EINVAL);
       return -1;
     }
-  if (listen_pipe () == 0)
+
+  if (recv_peer_mqueue_name (false, false, &peer_mqd) < 0)
+    return -1;
+  if (flags & SOCK_NONBLOCK)
+    set_mqueue_non_blocking (peer_mqd, true);
+  /* We now have an mqueue descriptor that the accepted socket can use
+     for output.  Prepare new file descriptor. */
+  int error = ENOBUFS;
+  cygheap_fdnew fd;
+  if (fd < 0)
+    goto err;
+  sock = (fhandler_socket_unix *) build_fh_dev (dev ());
+  if (!sock)
+    goto err;
+  if (sock->create_shmem () < 0)
+    goto create_shmem_failed;
+  sock->set_addr_family (AF_UNIX);
+  sock->set_socket_type (get_socket_type ());
+  if (flags & SOCK_NONBLOCK)
+    sock->set_nonblocking (true);
+  if (flags & SOCK_CLOEXEC)
+    sock->set_close_on_exec (true);
+  sock->set_unique_id ();
+  sock->set_ino (sock->get_unique_id ());
+  sock->set_mqd_out (peer_mqd);
+  if (sock->send_mqueue_name (peer_mqd, false) < 0)
     {
-      /* Our handle is now connected with a client.  This handle is used
-         for the accepted socket.  Our handle has to be replaced with a
-	 new instance handle for the next accept. */
-      io_lock ();
-      HANDLE accepted = get_handle ();
-      HANDLE new_inst = create_pipe_instance ();
-      int error = ENOBUFS;
-      if (!new_inst)
-	io_unlock ();
-      else
-	{
-	  /* Set new io handle. */
-	  set_handle (new_inst);
-	  io_unlock ();
-	  /* Prepare new file descriptor. */
-	  cygheap_fdnew fd;
-
-	  if (fd >= 0)
-	    {
-	      fhandler_socket_unix *sock = (fhandler_socket_unix *)
-					   build_fh_dev (dev ());
-	      if (sock)
-		{
-		  if (sock->create_shmem () < 0)
-		    goto create_shmem_failed;
-
-		  sock->set_addr_family (AF_UNIX);
-		  sock->set_socket_type (get_socket_type ());
-		  if (flags & SOCK_NONBLOCK)
-		    sock->set_nonblocking (true);
-		  if (flags & SOCK_CLOEXEC)
-		    sock->set_close_on_exec (true);
-		  sock->set_unique_id ();
-		  sock->set_ino (sock->get_unique_id ());
-		  sock->pc.set_nt_native_path (pc.get_nt_native_path ());
-		  sock->connect_state (connected);
-		  sock->binding_state (binding_state ());
-		  sock->set_handle (accepted);
-
-		  sock->sun_path (sun_path ());
-		  sock->sock_cred (sock_cred ());
-		  /* Send this socket info to connecting socket. */
-		  sock->send_sock_info (false);
-		  /* Fetch the packet sent by send_sock_info called by
-		     connecting peer. */
-		  error = sock->recv_peer_info ();
-		  if (error == 0)
-		    {
-		      __try
-			{
-			  if (peer)
-			    {
-			      sun_name_t *sun = sock->peer_sun_path ();
-			      if (sun)
-				{
-				  memcpy (peer, &sun->un,
-					  MIN (*len, sun->un_len));
-				  *len = sun->un_len;
-				}
-			      else if (len)
-				*len = 0;
-			    }
-			  fd = sock;
-			  if (fd <= 2)
-			    set_std_handle (fd);
-			  return fd;
-			}
-		      __except (NO_ERROR)
-			{
-			  error = EFAULT;
-			}
-		      __endtry
-		    }
-create_shmem_failed:
-		  delete sock;
-		}
-	    }
-	}
-      /* Ouch!  We can't handle the client if we couldn't
-	 create a new instance to accept more connections.*/
-      disconnect_pipe (accepted);
-      set_errno (error);
+      error = get_errno ();
+      goto send_mqueue_name_failed;
     }
+  sock->connect_state (connected);
+  sock->binding_state (binding_state ());
+  sock->sun_path (sun_path ());
+  sock->sock_cred (sock_cred ());
+  /* Send this socket info to connecting socket. */
+  sock->send_sock_info (false);
+  /* Fetch the packet sent by send_sock_info called by connecting
+     peer. */
+  error = sock->recv_peer_info ();
+  if (error == 0)
+    {
+      __try
+	{
+	  if (peer)
+	    {
+	      sun_name_t *sun = sock->peer_sun_path ();
+	      if (sun)
+		{
+		  memcpy (peer, &sun->un, MIN (*len, sun->un_len));
+		  *len = sun->un_len;
+		}
+	      else if (len)
+		*len = 0;
+	    }
+	  fd = sock;
+	  if (fd <= 2)
+	    set_std_handle (fd);
+	  return fd;
+	}
+      __except (NO_ERROR)
+	{
+	  error = EFAULT;
+	}
+      __endtry
+    }
+send_mqueue_name_failed:
+  if (sock->get_mqd_in () != (mqd_t) -1)
+    {
+      mq_close (sock->get_mqd_in ());
+      mq_unlink (sock->get_mqueue_name ());
+    }
+  NtUnmapViewOfSection (NtCurrentProcess (), sock->shmem);
+  NtClose (sock->shmem_handle);
+create_shmem_failed:
+  delete sock;
+err:
+  set_errno (error);
+  mq_close (peer_mqd);
   return -1;
 }
 
