@@ -41,6 +41,7 @@ struct wincaps
     unsigned has_tcp_maxrtms					: 1;
     unsigned has_query_process_handle_info			: 1;
     unsigned has_con_broken_tabs				: 1;
+    unsigned has_socket_gso_gro					: 1;
   };
 };
 
@@ -105,6 +106,7 @@ public:
   bool	IMPLEMENT (has_tcp_maxrtms)
   bool	IMPLEMENT (has_query_process_handle_info)
   bool	IMPLEMENT (has_con_broken_tabs)
+  bool	IMPLEMENT (has_socket_gso_gro)
 
   void disable_case_sensitive_dirs ()
   {

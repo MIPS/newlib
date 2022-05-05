@@ -25,6 +25,7 @@
 #include <w32api/mswsock.h>
 #include <w32api/mstcpip.h>
 #include <netinet/tcp.h>
+#include <netinet/udp.h>
 #include <unistd.h>
 #include <asm/byteorder.h>
 #include <sys/socket.h>
@@ -38,6 +39,11 @@
 #include "cygheap.h"
 #include "shared_info.h"
 #include "wininfo.h"
+
+extern "C" {
+  INT WSAGetUdpSendMessageSize (SOCKET, PDWORD);
+  INT WSASetUdpSendMessageSize (SOCKET, DWORD);
+};
 
 #define ASYNC_MASK (FD_READ|FD_WRITE|FD_OOB|FD_ACCEPT|FD_CONNECT)
 #define EVENT_MASK (FD_READ|FD_WRITE|FD_OOB|FD_ACCEPT|FD_CONNECT|FD_CLOSE)
@@ -1544,6 +1550,8 @@ fhandler_socket_inet::sendmsg (const struct msghdr *msg, int flags)
 {
   struct sockaddr_storage sst;
   int len = 0;
+  DWORD old_gso_size = MAXDWORD;
+  ssize_t ret;
 
   if (msg->msg_name
       && get_inet_addr_inet ((struct sockaddr *) msg->msg_name,
@@ -1562,11 +1570,52 @@ fhandler_socket_inet::sendmsg (const struct msghdr *msg, int flags)
      supported for datagram and raw sockets. */
   DWORD controllen = (DWORD) ((get_socket_type () == SOCK_STREAM)
 			      ? 0 : msg->msg_controllen);
+  if (controllen && get_socket_type () == SOCK_DGRAM)
+    {
+      cmsghdr *cmsg;
+
+      for (cmsg = CMSG_FIRSTHDR (msg); cmsg; cmsg = CMSG_NXTHDR(msg, cmsg))
+	{
+	  /* cmsg within bounds? */
+	  if (cmsg->cmsg_len < sizeof (struct cmsghdr)
+	      || cmsg->cmsg_len > (unsigned long) msg->msg_controllen
+				  - ((uintptr_t) cmsg
+				     - (uintptr_t) msg->msg_control))
+	    {
+	      set_errno (EINVAL);
+	      return SOCKET_ERROR;
+	    }
+	  /* UDP_SEGMENT cmsg? If so, override gso_size for this single
+	     sendmsg. */
+	  if (cmsg->cmsg_level == SOL_UDP && cmsg->cmsg_type == UDP_SEGMENT
+	      && wincap.has_socket_gso_gro ())
+	    {
+	      /* 16 bit unsigned, as on Linux */
+	      DWORD gso_size = *(uint16_t *) CMSG_DATA(cmsg);
+	      int size = sizeof old_gso_size;
+
+	      if (::getsockopt (get_socket (), IPPROTO_UDP, UDP_SEGMENT,
+				(char *) &old_gso_size, &size) == SOCKET_ERROR
+		  || ::setsockopt (get_socket (), IPPROTO_UDP, UDP_SEGMENT,
+				(char *) &gso_size, sizeof gso_size)
+		     == SOCKET_ERROR)
+		{
+		  set_winsock_errno ();
+		  return SOCKET_ERROR;
+		}
+	      /* FIXME: drop message from msgbuf */
+	    }
+	}
+    }
   WSAMSG wsamsg = { msg->msg_name ? (struct sockaddr *) &sst : NULL, len,
 		    wsabuf, (DWORD) msg->msg_iovlen,
 		    { controllen, (char *) msg->msg_control },
 		    0 };
-  return send_internal (&wsamsg, flags);
+  ret = send_internal (&wsamsg, flags);
+  if (old_gso_size != MAXDWORD)
+    ::setsockopt (get_socket (), IPPROTO_UDP, UDP_SEGMENT,
+		  (char *) &old_gso_size, sizeof old_gso_size);
+  return ret;
 }
 
 ssize_t
@@ -1681,7 +1730,7 @@ fhandler_socket_inet::setsockopt (int level, int optname, const void *optval,
 {
   bool ignore = false;
   int ret = -1;
-  unsigned int timeout;
+  unsigned int winsock_val;
 
   /* Preprocessing setsockopt.  Set ignore to true if setsockopt call should
      get skipped entirely. */
@@ -1774,7 +1823,6 @@ fhandler_socket_inet::setsockopt (int level, int optname, const void *optval,
       break;
 
     case IPPROTO_IPV6:
-      {
       switch (optname)
 	{
 	case IPV6_TCLASS:
@@ -1785,8 +1833,6 @@ fhandler_socket_inet::setsockopt (int level, int optname, const void *optval,
 	default:
 	  break;
 	}
-      }
-    default:
       break;
 
     case IPPROTO_TCP:
@@ -1851,9 +1897,9 @@ fhandler_socket_inet::setsockopt (int level, int optname, const void *optval,
 	    {
 	      /* convert msecs to secs.  Values < 1000 ms are converted to
 		 0 secs, just as in WinSock. */
-	      timeout = *(unsigned int *) optval / MSPERSEC;
+	      winsock_val = *(unsigned int *) optval / MSPERSEC;
 	      optname = TCP_MAXRT;
-	      optval = (const void *) &timeout;
+	      optval = (const void *) &winsock_val;
 	    }
 	  break;
 
@@ -1917,6 +1963,59 @@ fhandler_socket_inet::setsockopt (int level, int optname, const void *optval,
 	default:
 	  break;
 	}
+      break;
+
+    case IPPROTO_UDP:
+      /* Check for dgram socket early on, so we don't have to do this for
+	 every option.  Also, WinSock returns EINVAL. */
+      if (type != SOCK_DGRAM)
+	{
+	  set_errno (EOPNOTSUPP);
+	  return -1;
+	}
+      if (optlen < (socklen_t) sizeof (int))
+	{
+	  set_errno (EINVAL);
+	  return ret;
+	}
+      switch (optname)
+	{
+	case UDP_SEGMENT:
+	  if (!wincap.has_socket_gso_gro ())
+	    {
+	      set_errno (EOPNOTSUPP);
+	      return -1;
+	    }
+	  if (*(int *) optval < 0 || *(int *) optval > USHRT_MAX)
+	    {
+	      set_errno (EINVAL);
+	      return -1;
+	    }
+	  break;
+
+	case UDP_GRO:
+	  if (!wincap.has_socket_gso_gro ())
+	    {
+	      set_errno (EOPNOTSUPP);
+	      return -1;
+	    }
+	  /* In contrast to Windows' UDP_RECV_MAX_COALESCED_SIZE option,
+	     Linux' UDP_GRO option is just a bool. The max. packet size
+	     is dynamically evaluated from the MRU.  There's no easy,
+	     reliable way to get the MRU. We assume that this is what Windows
+	     will do internally anyway and, given UDP_RECV_MAX_COALESCED_SIZE
+	     defines a *maximum* size for aggregated packages, we just choose
+	     the maximum sensible value.  FIXME? IP_MTU_DISCOVER / IP_MTU */
+	  winsock_val = *(int *) optval ? USHRT_MAX : 0;
+	  optval = &winsock_val;
+	  break;
+
+	default:
+	  break;
+	}
+      break;
+
+    default:
       break;
     }
 
@@ -2118,6 +2217,31 @@ fhandler_socket_inet::getsockopt (int level, int optname, const void *optval,
 	}
       break;
 
+    case IPPROTO_UDP:
+      /* Check for dgram socket early on, so we don't have to do this for
+	 every option.  Also, WinSock returns EINVAL. */
+      if (type != SOCK_DGRAM)
+	{
+	  set_errno (EOPNOTSUPP);
+	  return -1;
+	}
+      switch (optname)
+	{
+	case UDP_SEGMENT:
+	case UDP_GRO:
+	  if (!wincap.has_socket_gso_gro ())
+	    {
+	      *(int *) optval = 0;
+	      *optlen = sizeof (int);
+	      return 0;
+	    }
+	  break;
+
+	default:
+	  break;
+	}
+      break;
+
     default:
       break;
     }
@@ -2155,6 +2279,7 @@ fhandler_socket_inet::getsockopt (int level, int optname, const void *optval,
 	  break;
 	}
       break;
+
     case IPPROTO_TCP:
       switch (optname)
 	{
@@ -2174,6 +2299,21 @@ fhandler_socket_inet::getsockopt (int level, int optname, const void *optval,
 	default:
 	  break;
 	}
+      break;
+
+    case IPPROTO_UDP:
+      switch (optname)
+	{
+	case UDP_GRO:
+	  /* Convert to bool option */
+	  *(unsigned int *) optval = *(unsigned int *) optval ? 1 : 0;
+	  break;
+
+	default:
+	  break;
+	}
+      break;
+
     default:
       break;
     }

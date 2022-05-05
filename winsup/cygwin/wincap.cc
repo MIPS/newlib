@@ -47,6 +47,7 @@ wincaps wincap_7 __attribute__((section (".cygwin_dll_common"), shared)) = {
     has_tcp_maxrtms:false,
     has_query_process_handle_info:false,
     has_con_broken_tabs:false,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -79,6 +80,7 @@ wincaps wincap_8 __attribute__((section (".cygwin_dll_common"), shared)) = {
     has_tcp_maxrtms:false,
     has_query_process_handle_info:true,
     has_con_broken_tabs:false,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -111,6 +113,7 @@ wincaps wincap_8_1 __attribute__((section (".cygwin_dll_common"), shared)) = {
     has_tcp_maxrtms:false,
     has_query_process_handle_info:true,
     has_con_broken_tabs:false,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -143,6 +146,7 @@ wincaps  wincap_10_1507 __attribute__((section (".cygwin_dll_common"), shared)) 
     has_tcp_maxrtms:false,
     has_query_process_handle_info:true,
     has_con_broken_tabs:false,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -175,6 +179,7 @@ wincaps  wincap_10_1607 __attribute__((section (".cygwin_dll_common"), shared)) 
     has_tcp_maxrtms:true,
     has_query_process_handle_info:true,
     has_con_broken_tabs:false,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -207,6 +212,7 @@ wincaps wincap_10_1703 __attribute__((section (".cygwin_dll_common"), shared)) =
     has_tcp_maxrtms:true,
     has_query_process_handle_info:true,
     has_con_broken_tabs:true,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -239,6 +245,7 @@ wincaps wincap_10_1709 __attribute__((section (".cygwin_dll_common"), shared)) =
     has_tcp_maxrtms:true,
     has_query_process_handle_info:true,
     has_con_broken_tabs:true,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -271,6 +278,7 @@ wincaps wincap_10_1803 __attribute__((section (".cygwin_dll_common"), shared)) =
     has_tcp_maxrtms:true,
     has_query_process_handle_info:true,
     has_con_broken_tabs:true,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -303,6 +311,7 @@ wincaps wincap_10_1809 __attribute__((section (".cygwin_dll_common"), shared)) =
     has_tcp_maxrtms:true,
     has_query_process_handle_info:true,
     has_con_broken_tabs:true,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -335,6 +344,7 @@ wincaps wincap_10_1903 __attribute__((section (".cygwin_dll_common"), shared)) =
     has_tcp_maxrtms:true,
     has_query_process_handle_info:true,
     has_con_broken_tabs:true,
+    has_socket_gso_gro:false,
   },
 };
 
@@ -367,6 +377,7 @@ wincaps wincap_10_2004 __attribute__((section (".cygwin_dll_common"), shared)) =
     has_tcp_maxrtms:true,
     has_query_process_handle_info:true,
     has_con_broken_tabs:true,
+    has_socket_gso_gro:true,
   },
 };
 
@@ -399,6 +410,7 @@ wincaps wincap_11 __attribute__((section (".cygwin_dll_common"), shared)) = {
     has_tcp_maxrtms:true,
     has_query_process_handle_info:true,
     has_con_broken_tabs:false,
+    has_socket_gso_gro:true,
   },
 };
 
