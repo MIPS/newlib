@@ -51,9 +51,9 @@ small:
   const long *lb = (const long *)b;
   long *lend = (long *)((uintptr_t)end & ~msk);
 
-  if (unlikely (lend - la > 8))
+  if (unlikely (lend - la > 7))
     {
-      while (lend - la > 8)
+      while (lend - la > 7)
 	{
 	  long b0 = *lb++;
 	  long b1 = *lb++;
@@ -63,7 +63,6 @@ small:
 	  long b5 = *lb++;
 	  long b6 = *lb++;
 	  long b7 = *lb++;
-	  long b8 = *lb++;
 	  *la++ = b0;
 	  *la++ = b1;
 	  *la++ = b2;
@@ -72,7 +71,6 @@ small:
 	  *la++ = b5;
 	  *la++ = b6;
 	  *la++ = b7;
-	  *la++ = b8;
 	}
     }
 
