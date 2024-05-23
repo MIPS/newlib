@@ -55,6 +55,7 @@ small:
     {
       while (lend - la > 7)
 	{
+#if 0
 	  long b0 = *lb++;
 	  long b1 = *lb++;
 	  long b2 = *lb++;
@@ -71,6 +72,27 @@ small:
 	  *la++ = b5;
 	  *la++ = b6;
 	  *la++ = b7;
+#else
+	long b0, b1, b2, b3, b4, b5, b6, b7;
+	asm ("ld\t%0,0(%1)":"=r"(b0):"r"(lb):"memory");
+	asm ("ld\t%0,8(%1)":"=r"(b1):"r"(lb):"memory");
+	asm ("ld\t%0,16(%1)":"=r"(b2):"r"(lb):"memory");
+	asm ("ld\t%0,24(%1)":"=r"(b3):"r"(lb):"memory");
+	asm ("ld\t%0,32(%1)":"=r"(b4):"r"(lb):"memory");
+	asm ("ld\t%0,40(%1)":"=r"(b5):"r"(lb):"memory");
+	asm ("sd\t%0,0(%1)"::"r"(b0),"r"(la):"memory");
+	asm ("sd\t%0,8(%1)"::"r"(b1),"r"(la):"memory");
+	asm ("ld\t%0,48(%1)":"=r"(b6):"r"(lb):"memory");
+	asm ("ld\t%0,56(%1)":"=r"(b7):"r"(lb):"memory");
+	asm ("sd\t%0,16(%1)"::"r"(b2),"r"(la):"memory");
+	asm ("sd\t%0,24(%1)"::"r"(b3),"r"(la):"memory");
+	asm ("sd\t%0,32(%1)"::"r"(b4),"r"(la):"memory");
+	asm ("sd\t%0,40(%1)"::"r"(b5),"r"(la):"memory");
+	asm ("sd\t%0,48(%1)"::"r"(b6),"r"(la):"memory");
+	asm ("sd\t%0,56(%1)"::"r"(b7),"r"(la):"memory");
+	lb+=8;
+	la+=8;
+#endif
 	}
     }
 
