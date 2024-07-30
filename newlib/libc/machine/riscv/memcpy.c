@@ -55,7 +55,7 @@ small:
     {
       while (lend - la > 7)
 	{
-#if 0
+#if __riscv_xlen == 32
 	  long b0 = *lb++;
 	  long b1 = *lb++;
 	  long b2 = *lb++;
