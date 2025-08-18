@@ -194,8 +194,11 @@ strlen:
 	snez	a0,a0
 	add	a0,a0,a5
 	addi	a0,a0,-2
-	ccmov	a0,a6,a0,a1
-	ccmov	a0,a2,a0,a3
+	.option push
+	.option arch, +xmipscmov
+	mips.ccmov	a0,a6,a0,a1
+	mips.ccmov	a0,a2,a0,a3
+	.option pop
 	ret
 .L3:
 	beq	a3,zero,.L2
