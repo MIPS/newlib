@@ -158,6 +158,9 @@ __exception_handle_quiet (struct gpctx *ctx, int exception)
 	__uhi_indirect (ctx);
       return;
     case EXC_BP:
+      /* Return from exception handler if breakpoint is handled.  */
+      if (__uhi_break && __uhi_break (ctx))
+	return;
       PUTSNS ("Breakpoint @0x", ctx->epc, "\n");
       break;
     case EXC_RI:

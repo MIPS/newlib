@@ -94,6 +94,16 @@ endef
 
 $(call GENISROBJ,256)
 
+UHIOBJS = uhi_assert.o uhi_close.o uhi_exit.o uhi_fstat.o \
+  uhi_lseek.o uhi_open.o uhi_plog.o \
+  uhi_pread.o uhi_pwrite.o uhi_read.o uhi_link.o uhi_stat.o \
+  uhi_unlink.o uhi_write.o uhi_getargs.o uhi_exception.o \
+  uhi_get_ram_range.o uhi_indirect.o uhi_break.o \
+  syscalls.o getpid.o isatty.o kill.o
+
+YAMONOBJS = yamon_read.o yamon_write.o yamon_exit.o yamon_close.o \
+  yamon_fstat.o yamon_exception.o
+
 HALOBJ = mips64_tlb.o mips_clean_cache.o mips_flush_cache.o mips_l2size.o \
   mips_lock_cache.o mips_size_cache.o mips_sync_cache.o mips_tlb.o \
   mips_fp.o mips_msa.o \
