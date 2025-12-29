@@ -77,10 +77,43 @@ JMR3904OBJS = jmr3904-io.o @MIPS_PART_SPECIFIC_OBJ@ ${GENOBJS} ${GENOBJS2}
 CFEOBJS = cfe.o cfe_api.o cfe_mem.o @MIPS_PART_SPECIFIC_OBJ@ ${GENOBJS} ${GENOBJS2}
 CYGMONOBJS = open.o close.o cygmon.o @MIPS_PART_SPECIFIC_OBJ@ ${GENOBJS}
 
+define GENISROBJ
+$(eval ISROBJS:=)\
+$(if $(filter ${1},0),,\
+$(call GENISROBJ_DO,${1})\
+)\
+$(eval ISROBJS+=mips_excpt_isr_fallback.o)
+endef
+
+define GENISROBJ_DO
+$(if $(word ${1}, ${ISROBJS}),,\
+$(eval ISROBJS+=mips_excpt_isr_$(words $(ISROBJS)).o)\
+	$(call GENISROBJ_DO,${1})\
+)
+endef
+
+$(call GENISROBJ,256)
+
+HALOBJ = mips64_tlb.o mips_clean_cache.o mips_flush_cache.o mips_l2size.o \
+  mips_lock_cache.o mips_size_cache.o mips_sync_cache.o mips_tlb.o \
+  mips_fp.o mips_msa.o \
+  mips_excpt_entry.o mips_excpt_handler.o mips_excpt_handler_quiet.o \
+  mips_excpt_register.o mips_excpt_boot.o mips_xpa.o \
+  mips_intctrl.o $(ISROBJS)
+
+HALINCLUDE = -I $(srcdir)/include
+
+CM3OBJ_IMPL = mips_cm3_l2size.o init_cm3l2.o
+
+CM3AR = libcm3.a
+
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @MIPS_PART_SPECIFIC_OBJ@ ${GENOBJS}
 
 CFLAGS = -g 
+
+EXAMPLES = custom_excpt fault_recovery interrupt_handler isr_vector_space \
+	   romable romable_minimal romable_predef romable_predef_xip
 
 GCC_LDFLAGS = `if [ -d ${objroot}/../gcc ] ; \
 	then echo -L${objroot}/../gcc ; fi`
