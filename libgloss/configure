@@ -5454,7 +5454,7 @@ MIPS_PART_SPECIFIC_OBJ=
 MIPS_PART_SPECIFIC_DEFINES=
 MIPS_SCRIPT_LIST=
 MIPS_BSP_LIST=
-MIPS_CRT0=crt0.o
+MIPS_CRT0=hal/crt0.o
 
 case "${target}" in
   mips*-tx39*-*|mipstx39*-*-*)
@@ -5463,10 +5463,18 @@ case "${target}" in
     ;;
   mipsisa32-*-* | mipsisa32el-*-* | \
   mipsisa32r2-*-* | mipsisa32r2el-*-* | \
+  mipsisa32r6-*-* | mipsisa32r6el-*-* | \
   mipsisa64*-*-*)
     MIPS_CRT0="crt0_cfe.o crt0_cygmon.o crt0.o"
     MIPS_SCRIPT_LIST="idt32 idt64 cfe"
     MIPS_BSP_LIST="libcygmon.a libidt.a libcfe.a"
+    ;;
+  mips*-mti*-* | mips*-img*-*)
+    MIPS_CRT0="crt0.o"
+    MIPS_PART_SPECIFIC_OBJ=
+    MIPS_PART_SPECIFIC_DEFINES=
+    MIPS_SCRIPT_LIST="idt nullmon mti32 mti64_n32 mti64_64 uhi32 uhi64_64 uhi64_n32 malta32-yamon bootcode"
+    MIPS_BSP_LIST="libidt.a libnullmon.a libuhi.a libyamon.a libhal.a libcm3_impl.a"
     ;;
   mips*-lsi*-*)
     MIPS_PART_SPECIFIC_OBJ="entry.o"
@@ -5487,8 +5495,8 @@ case "${target}" in
   mips*)
     MIPS_CRT0="crt0_cfe.o crt0.o"
     MIPS_PART_SPECIFIC_OBJ="vr4300.o cma101.o"
-    MIPS_SCRIPT_LIST="idt pmon ddb ddb-kseg0 lsi cfe idtecoff nullmon sde32 sde64 mti32 mti64 mti64_n32 mti64_64"
-    MIPS_BSP_LIST="libidt.a libpmon.a liblsi.a libcfe.a libnullmon.a"
+    MIPS_SCRIPT_LIST="idt pmon ddb ddb-kseg0 lsi cfe idtecoff nullmon sde32 sde64 mti32 mti64 mti64_n32 mti64_64 mti32-uhi mti64-uhi mti64_64-uhi mti64_n32-uhi malta32-yamon bootcode"
+    MIPS_BSP_LIST="libidt.a libpmon.a liblsi.a libcfe.a libnullmon.a libuhi.a libyamon.a libhal.a libcm3_impl.a"
     ;;
 esac
 
