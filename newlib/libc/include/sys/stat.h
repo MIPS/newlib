@@ -136,7 +136,11 @@ struct	stat
 
 int	chmod (const char *__path, mode_t __mode );
 int     fchmod (int __fd, mode_t __mode);
+#if defined(__mips__) && defined(__mips16)
+int __attribute__((nomips16)) fstat (int __fd, struct stat *__sbuf );
+#else
 int	fstat (int __fd, struct stat *__sbuf );
+#endif // __mips__
 int	mkdir (const char *_path, mode_t __mode );
 int	mkfifo (const char *__path, mode_t __mode );
 int	stat (const char *__restrict __path, struct stat *__restrict __sbuf );
