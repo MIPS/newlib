@@ -377,7 +377,7 @@ get_arg (struct _reent *data, int n, char *fmt,
 #define	SHORTINT	0x040		/* short integer */
 #define	ZEROPAD		0x080		/* zero (as opposed to blank) pad */
 #define FPT		0x100		/* Floating point number */
-#ifdef _WANT_IO_C99_FORMATS
+#if defined(_WANT_IO_C99_FORMATS) || defined(__mips)
 # define CHARINT	0x200		/* char as integer */
 #else /* define as 0, to make SARG and UARG occupy fewer instructions  */
 # define CHARINT	0
@@ -469,6 +469,12 @@ _VFPRINTF_R (struct _reent *data,
 	mbstate_t state;        /* mbtowc calls from library must not change state */
 #endif
 	char *malloc_buf = NULL;/* handy pointer for malloced buffers */
+#ifdef __mips
+  int vec_size = 2; /* 1 -> 64bits, 2 -> 128bits, 3 -> 256bits, ... */
+  int elem_num = 0, elem_size = 32;
+  int processing_vec_type = 0;
+  int vec_spec = -1;  /* format specifier w, W or y */
+#endif
 
 	/*
 	 * Choose PADSIZE to trade efficiency vs. size.  If larger printf
@@ -593,6 +599,61 @@ _VFPRINTF_R (struct _reent *data,
 	    flags&CHARINT ? (u_long)(unsigned char)GET_ARG (N, ap, int) : \
 	    (u_long)GET_ARG (N, ap, u_int))
 #endif
+
+#ifdef __mips
+quad_t vec_sarg (void)
+{
+  quad_t val;
+
+  if (flags & QUADINT)
+    val = va_arg (ap, quad_t);
+  else if (flags & LONGINT)
+    val = va_arg (ap, long);
+  else if (flags & SHORTINT)
+    {
+      val = (quad_t) (short) *((short*)ap);
+      ap = (va_list) ((short*)ap + 1);
+    }
+  else if (flags & CHARINT)
+    val = (quad_t)(signed char) (*((signed char*)ap++));
+  else
+    val = (quad_t) va_arg (ap, int);
+
+#ifndef _NO_LONGLONG
+  if ((quad_t)val < 0)
+#else
+  if ((long) val < 0)
+#endif
+  {
+    val = -val;
+    sign = '-';
+  }
+
+  return val;
+}
+
+u_quad_t vec_uarg (void)
+{
+  u_quad_t val;
+
+  if (flags & QUADINT)
+    return va_arg (ap, u_quad_t);
+  else if (flags & LONGINT)
+    return va_arg (ap, unsigned long);
+  else if (flags & SHORTINT)
+    {
+      val = (u_quad_t) (unsigned short) *((unsigned short*)ap);
+      ap = (va_list) ((unsigned short*)ap + 1);
+    }
+  else if (flags & CHARINT)
+    val = (u_quad_t)(unsigned char) (*((unsigned char*)ap++));
+  else
+    val = (u_quad_t) va_arg (ap, unsigned int);
+
+  return val;
+}
+
+#endif /* __mips */
 
 #ifndef STRING_ONLY
 	/* Initialize std streams if not dealing with sprintf family.  */
@@ -844,6 +905,14 @@ reswitch:	switch (ch) {
 					goto error;
 			}
 #endif /* !_NO_POS_ARGS */
+
+#ifdef __mips
+      if (ch == 'w' || ch == 'W' || ch == 'y') {
+        vec_size = n;
+        goto reswitch;
+      }
+#endif
+
 			width = n;
 			goto reswitch;
 #ifdef FLOATING_POINT
@@ -852,7 +921,7 @@ reswitch:	switch (ch) {
 			goto rflag;
 #endif
 		case 'h':
-#ifdef _WANT_IO_C99_FORMATS
+#if defined(_WANT_IO_C99_FORMATS) || defined(__mips)
 			if (*fmt == 'h') {
 				fmt++;
 				flags |= CHARINT;
@@ -970,6 +1039,10 @@ reswitch:	switch (ch) {
 				_fpvalue = GET_ARG (N, ap, double);
 			}
 
+#ifdef __mips
+float_number:
+#endif
+
 			/* do this before tricky precision changes
 
 			   If the output is infinite or NaN, leading
@@ -1006,6 +1079,10 @@ reswitch:	switch (ch) {
 			} else {
 				_fpvalue = (_LONG_DOUBLE)GET_ARG (N, ap, double);
 			}
+
+#ifdef __mips
+float_number:
+#endif
 
 			/* do this before tricky precision changes */
 			expt = _ldcheck (&_fpvalue);
@@ -1318,6 +1395,13 @@ number:			if ((dprec = prec) >= 0)
 			 *	-- ANSI X3J11
 			 */
 			cp = buf + BUF;
+
+#ifdef __mips
+  /* separate vector elements by space */
+  if (processing_vec_type == 1 && elem_num >= 2)
+    *--cp = ' ';
+#endif
+
 			if (_uquad != 0 || prec != 0) {
 				/*
 				 * Unsigned mod is hard, and unsigned mod
@@ -1398,6 +1482,119 @@ number:			if ((dprec = prec) >= 0)
 			size = buf + BUF - cp;
 		skipsize:
 			break;
+
+#ifdef __mips
+#define MIPS_VEC_ALIGNMENT  16
+
+    case 'y':
+    case 'w':
+    case 'W':
+
+      /* preserve the format specifier */
+      if (vec_spec == -1)
+        vec_spec = ch;
+
+      /* align the ap to fetch vector data type */
+      ap = (va_list) (((size_t) ap) + (MIPS_VEC_ALIGNMENT - 1) & -MIPS_VEC_ALIGNMENT);
+
+      base = DEC;
+      if (flags & ALT)
+        {
+          if (ch == 'W')
+            xdigs = "0123456789ABCDEF";
+          else
+            xdigs = "0123456789abcdef";
+          base = HEX;
+        }
+
+      /* find size of each element and number of such elements */
+      if ((flags & QUADINT) || (flags & LONGDBL))
+        {
+          elem_size = 64;
+          elem_num = (32 << vec_size) / 64;
+        }
+      else if (flags & LONGINT)
+        {
+          elem_size = 32;
+          elem_num = (32 << vec_size) / 32;
+        }
+      else if (flags & SHORTINT)
+        {
+          elem_size = 16;
+          elem_num = (32 << vec_size) / 16;
+        }
+      else if (flags & CHARINT)
+        {
+          elem_size = 8;
+          elem_num = (32 << vec_size) / 8;
+        }
+      else
+        {
+          elem_size = 32;
+          elem_num = (32 << vec_size) / 32;
+        }
+
+      /* start the processing of vector data types */
+      processing_vec_type = 1;
+
+      /* main loop which prints elements in the vector */
+mips_print_vec:
+      /* stop if we have processed elem_num */
+      if (elem_num <= 0)
+        {
+          processing_vec_type = 0;  /* end of vector data processing */
+          vec_spec = -1;
+          flags &= ~FPT;
+          break;
+        }
+
+#ifdef FLOATING_POINT
+      if (vec_spec == 'y')
+        {
+          ch = 'f';
+
+          if (flags & LONGDBL)
+            _fpvalue = (double) GET_ARG (N, ap, double);
+          else
+          {
+            _fpvalue = (double) (float)(*(float*)ap);
+            ap = (va_list) ((float*)ap + 1);
+          }
+
+          goto float_number;
+        }
+      else
+#endif
+        {
+          if (vec_spec == 'W')
+            _uquad = vec_uarg ();   /* unsigned */
+          else
+            _uquad = vec_sarg ();   /* signed */
+
+          goto number;  /* process as if it is a normal number */
+        }
+
+      /* back from printing a number */
+mips_print_vec_check:
+
+      /* print space after a floating point number */
+      if (vec_spec == 'y' && elem_num >= 2)
+        PRINT (" ", 1);
+
+      elem_num--;
+      cp = buf + BUF;   /* clear the output buffer */
+      size = 0;
+      dprec = 0;
+      sign = '\0';
+#ifdef FLOATING_POINT
+      lead = 0;
+#endif
+      prec = -1;
+      goto mips_print_vec;    /* loop back */
+
+      break;
+#endif /* __mips */
+
 		default:	/* "%?" prints ?, unless ? is NUL */
 			if (ch == '\0')
 				goto done;
@@ -1526,6 +1723,13 @@ number:			if ((dprec = prec) >= 0)
 			_free_r (data, malloc_buf);
 			malloc_buf = NULL;
 		}
+
+#ifdef __mips
+    /* loop back to check if there are more elements to process */
+    if (processing_vec_type == 1)
+      goto mips_print_vec_check;
+#endif
+
 	}
 done:
 	FLUSH ();
