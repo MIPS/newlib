@@ -798,6 +798,184 @@ _putchar_unlocked(int _c)
 
 #endif /* !__CUSTOM_FILE_IO__ */
 
+#if ( defined (__mips_clib_small) || defined (__mips_clib_tiny) )
+
+#undef	stdin
+#undef	stdout
+#undef	stderr
+extern FILE *__stdin;
+extern FILE *__stdout;
+extern FILE *__stderr;
+#define	stdin	__stdin
+#define	stdout	__stdout
+#define	stderr	__stderr
+
+#if defined (__mips_fio_float__)
+char * asnprintf_float (char *str, size_t *size, const char *fmt, ...);
+int asprintf_float (char **str, const char *fmt, ...);
+int dprintf_float (int fd, const char *fmt, ...);
+int fprintf_float (FILE *fp, const char *fmt, ...);
+int printf_float (const char *fmt, ...);
+int snprintf_float (char *str, size_t size, const char *fmt, ...);
+int sprintf_float (char *str, const char *fmt, ...);
+char * vasnprintf_float (char *str, size_t *size, const char *fmt, __VALIST ap);
+int vasprintf_float (char **str, const char *fmt, __VALIST ap);
+int vdprintf_float (int fd, const char *fmt, __VALIST ap);
+int vfprintf_float (FILE *fp, const char *fmt, __VALIST ap);
+int vprintf_float (const char *fmt, __VALIST ap);
+int vsnprintf_float (char *str, size_t size, const char *fmt, __VALIST ap);
+int vsprintf_float (char *str, const char *fmt, __VALIST ap);
+
+int fscanf_float (FILE *fp, const char *fmt, ...);
+int scanf_float (const char *fmt, ...);
+int sscanf_float ( const char *str, const char * fmt, ...);
+int vfscanf_float (FILE *fp, const char *fmt, __VALIST ap);
+int vscanf_float (const char *fmt, __VALIST ap);
+int vsscanf_float (const char *str, const char *fmt, __VALIST ap);
+
+#define asnprintf     asnprintf_float
+#define asprintf      asprintf_float
+#define dprintf       dprintf_float
+#define fprintf       fprintf_float
+#define printf        printf_float
+#define snprintf      snprintf_float
+#define sprintf       sprintf_float
+#define vasnprintf    vasnprintf_float
+#define vasprintf     vasprintf_float
+#define vdprintf      vdprintf_float
+#define vfprintf      vfprintf_float
+#define vprintf       vprintf_float
+#define vsnprintf     vsnprintf_float
+#define vsprintf      vsprintf_float
+#define fscanf        fscanf_float
+#define scanf         scanf_float
+#define sscanf        sscanf_float
+#define vfscanf       vfscanf_float
+#define vscanf        vscanf_float
+#define vsscanf       vsscanf_float
+
+#elif defined (__mips_fio_int__)
+
+char * asnprintf_int (char *str, size_t *size, const char *fmt, ...);
+int asprintf_int (char **str, const char *fmt, ...);
+int dprintf_int (int fd, const char *fmt, ...);
+int fprintf_int (FILE *fp, const char *fmt, ...);
+int printf_int (const char *fmt, ...);
+int snprintf_int (char *str, size_t size, const char *fmt, ...);
+int sprintf_int (char *str, const char *fmt, ...);
+char * vasnprintf_int (char *str, size_t *size, const char *fmt, __VALIST ap);
+int vasprintf_int (char **str, const char *fmt, __VALIST ap);
+int vdprintf_int (int fd, const char *fmt, __VALIST ap);
+int vfprintf_int (FILE *fp, const char *fmt, __VALIST ap);
+int vprintf_int (const char *fmt, __VALIST ap);
+int vsnprintf_int (char *str, size_t size, const char *fmt, __VALIST ap);
+int vsprintf_int (char *str, const char *fmt, __VALIST ap);
+
+int fscanf_int (FILE *fp, const char *fmt, ...);
+int scanf_int (const char *fmt, ...);
+int sscanf_int ( const char *str, const char * fmt, ...);
+int vfscanf_int (FILE *fp, const char *fmt, __VALIST ap);
+int vscanf_int (const char *fmt, __VALIST ap);
+int vsscanf_int (const char *str, const char *fmt, __VALIST ap);
+
+#define asnprintf    asnprintf_int
+#define asprintf     asprintf_int
+#define dprintf      dprintf_int
+#define fprintf      fprintf_int
+#define printf       printf_int
+#define snprintf     snprintf_int
+#define sprintf      sprintf_int
+#define vasnprintf   vasnprintf_int
+#define vasprintf    vasprintf_int
+#define vdprintf     vdprintf_int
+#define vfprintf     vfprintf_int
+#define vprintf      vprintf_int
+#define vsnprintf    vsnprintf_int
+#define vsprintf     vsprintf_int
+#define fscanf       fscanf_int
+#define scanf        scanf_int
+#define sscanf       sscanf_int
+#define vfscanf      vfscanf_int
+#define vscanf       vscanf_int
+#define vsscanf      vsscanf_int
+#endif
+
+#if defined (__mips_clib_tiny) && defined (__mips_no_file_io__)
+void clearerr_nofio (FILE * afp);
+int fclose_nofio (FILE *afp);
+int feof_nofio (FILE * afp);
+int ferror_nofio (FILE * afp);
+int fflush_nofio (FILE *afp);
+int fgetc_nofio (FILE * afp);
+int fgetpos_nofio (FILE *fp, _fpos_t *pos);
+char *fgets_nofio (char *buf, int n, FILE *afp);
+FILE * fopen_nofio (const char *fname, const char *mode);
+int fputc_nofio (int c, FILE * afp);
+int fputs_nofio (char const *s, FILE *fp);
+size_t fread_nofio (void * buf, size_t size, size_t count, FILE * afp);
+FILE *freopen_nofio (const char *file, const char *mode, FILE *afp);
+int fseek_nofio (register FILE *fp, long offset, int whence);
+int fsetpos_nofio (FILE *fp, const _fpos_t *pos);
+long ftell_nofio (FILE *fp);
+size_t fwrite_nofio (const void * abuf, size_t size, size_t count, FILE * afp);
+int getc_nofio (FILE *fp);
+int getchar_nofio (void);
+char * gets_nofio (char *buf);
+int putc_nofio (int c, FILE *fp);
+int putchar_nofio (int c);
+int puts_nofio (const char *s);
+int remove_nofio (const char *filename);
+void rewind_nofio (FILE * fp);
+void setbuf_nofio (FILE *fp, char *buf);
+int setvbuf_nofio (FILE *afp, char *buf, int mode, size_t size);
+FILE * tmpfile_nofio (void);
+char *tmpnam_nofio (char *s);
+int ungetc_nofio (int c, FILE *afp);
+void perror_nofio (const char *s);
+
+#define clearerr	clearerr_nofio
+#define fclose		fclose_nofio
+#define feof		feof_nofio
+#define ferror		ferror_nofio
+#define fflush		fflush_nofio
+#define fgetc		fgetc_nofio
+#define fgetpos		fgetpos_nofio
+#define fgets		fgets_nofio
+#define fopen		fopen_nofio
+#define fputc		fputc_nofio
+#define fputs		fputs_nofio
+#define fread		fread_nofio
+#define freopen		freopen_nofio
+#define fseek		fseek_nofio
+#define fsetpos		fsetpos_nofio
+#define ftell		ftell_nofio
+#define fwrite		fwrite_nofio
+#define getc		getc_nofio
+#define getchar		getchar_nofio
+#define gets		gets_nofio
+#define putc		putc_nofio
+#define putchar		putchar_nofio
+#define puts		puts_nofio
+#define remove		remove_nofio
+#define rewind		rewind_nofio
+#define setbuf		setbuf_nofio
+#define setvbuf		setvbuf_nofio
+#define tmpfile		tmpfile_nofio
+#define tmpnam		tmpnam_nofio
+#define ungetc  ungetc_nofio
+#define perror  perror_nofio
+#endif
+
+#undef	getc
+#undef	putc
+#undef	getchar
+#undef	putchar
+#undef	feof
+#undef	ferror
+#undef	clearerr
+
+#endif
+
 _END_STD_C
 
 #if __SSP_FORTIFY_LEVEL > 0
