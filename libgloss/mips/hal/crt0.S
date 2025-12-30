@@ -2,8 +2,7 @@
  * crt0.S -- startup file for MIPS.
  *
  * Copyright (c) 1995, 1996, 1997, 2001 Cygnus Support
- * Copyright 2016-2017, Imagination Technologies Limited and/or its
- *                      affiliated group companies.
+ * Copyright (C) 2016-2018 MIPS Tech, LLC
  *
  * The authors hereby grant permission to use, copy, modify, distribute,
  * and license this software and its documentation for any purpose, provided
