@@ -14,7 +14,7 @@
  */
 #include "glue.h"
 
-void outbyte (char);
+int outbyte (char);
 
 /*
  * print -- do a raw print of a string
