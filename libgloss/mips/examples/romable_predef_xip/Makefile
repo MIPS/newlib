@@ -81,7 +81,7 @@ CFLAGS += -g -O1 $(DEFINES)
 LDFLAGS += -g -Wl,--defsym,__getargs=0 -Wl,--defsym,__exception_handle_verbose=0
 LDFLAGS += -Wl,--defsym,__register_excpt_boot=0 -Wl,--defsym,__exception_entry=0
 LDFLAGS += -Wl,--defsym,__register_excpt_handler=0
-LDFLAGS += -Wl,--defsym,__isr_vec_007=0 -Wl,--defsym,__uhi_break=0
+LDFLAGS += -Wl,--defsym,__uhi_break=0
 LDFLAGS += -Wl,--defsym,__ebase_size=0 -Wl,--defsym,__isr_vec_count=0
 LDFLAGS += -Wl,--defsym,__xip=1
 LDFLAGS += -nostartfiles -nostdlib
