@@ -798,7 +798,7 @@ check_PROGRAMS =
 @HAVE_LIBC_MACHINE_M88K_TRUE@am__append_95 = libc/machine/m88k/setjmp.S
 @HAVE_LIBC_MACHINE_MEP_TRUE@am__append_96 = libc/machine/mep/setjmp.S
 @HAVE_LIBC_MACHINE_MICROBLAZE_TRUE@am__append_97 = libc/machine/microblaze/strlen.c libc/machine/microblaze/strcmp.c libc/machine/microblaze/strcpy.c libc/machine/microblaze/setjmp.S libc/machine/microblaze/longjmp.S
-@HAVE_LIBC_MACHINE_MIPS_TRUE@am__append_98 = libc/machine/mips/setjmp.S libc/machine/mips/strlen.c libc/machine/mips/strcmp.S libc/machine/mips/strncpy.c libc/machine/mips/memset.S libc/machine/mips/memcpy.S
+@HAVE_LIBC_MACHINE_MIPS_TRUE@am__append_98 = libc/machine/mips/setjmp.S libc/machine/mips/strlen.c libc/machine/mips/strcmp.S libc/machine/mips/strncpy.c libc/machine/mips/memset.c libc/machine/mips/memcpy.c
 @HAVE_LIBC_MACHINE_MN10200_TRUE@am__append_99 = libc/machine/mn10200/setjmp.S
 @HAVE_LIBC_MACHINE_MN10300_TRUE@am__append_100 = \
 @HAVE_LIBC_MACHINE_MN10300_TRUE@	libc/machine/mn10300/setjmp.S libc/machine/mn10300/memchr.S libc/machine/mn10300/memcmp.S libc/machine/mn10300/memcpy.S libc/machine/mn10300/memset.S libc/machine/mn10300/strchr.S \
@@ -18846,33 +18846,33 @@ libc/machine/mips/libc_a-strcmp.obj: libc/machine/mips/strcmp.S
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-strcmp.obj `if test -f 'libc/machine/mips/strcmp.S'; then $(CYGPATH_W) 'libc/machine/mips/strcmp.S'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/strcmp.S'; fi`
 
-libc/machine/mips/libc_a-memset.o: libc/machine/mips/memset.S
-@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mips/libc_a-memset.o -MD -MP -MF libc/machine/mips/$(DEPDIR)/libc_a-memset.Tpo -c -o libc/machine/mips/libc_a-memset.o `test -f 'libc/machine/mips/memset.S' || echo '$(srcdir)/'`libc/machine/mips/memset.S
+libc/machine/mips/libc_a-memset.o: libc/machine/mips/memset.c
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mips/libc_a-memset.o -MD -MP -MF libc/machine/mips/$(DEPDIR)/libc_a-memset.Tpo -c -o libc/machine/mips/libc_a-memset.o `test -f 'libc/machine/mips/memset.c' || echo '$(srcdir)/'`libc/machine/mips/memset.c
 @am__fastdepCCAS_TRUE@	$(AM_V_at)$(am__mv) libc/machine/mips/$(DEPDIR)/libc_a-memset.Tpo libc/machine/mips/$(DEPDIR)/libc_a-memset.Po
-@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='libc/machine/mips/memset.S' object='libc/machine/mips/libc_a-memset.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='libc/machine/mips/memset.c' object='libc/machine/mips/libc_a-memset.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-memset.o `test -f 'libc/machine/mips/memset.S' || echo '$(srcdir)/'`libc/machine/mips/memset.S
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-memset.o `test -f 'libc/machine/mips/memset.c' || echo '$(srcdir)/'`libc/machine/mips/memset.c
 
-libc/machine/mips/libc_a-memset.obj: libc/machine/mips/memset.S
-@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mips/libc_a-memset.obj -MD -MP -MF libc/machine/mips/$(DEPDIR)/libc_a-memset.Tpo -c -o libc/machine/mips/libc_a-memset.obj `if test -f 'libc/machine/mips/memset.S'; then $(CYGPATH_W) 'libc/machine/mips/memset.S'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/memset.S'; fi`
+libc/machine/mips/libc_a-memset.obj: libc/machine/mips/memset.c
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mips/libc_a-memset.obj -MD -MP -MF libc/machine/mips/$(DEPDIR)/libc_a-memset.Tpo -c -o libc/machine/mips/libc_a-memset.obj `if test -f 'libc/machine/mips/memset.c'; then $(CYGPATH_W) 'libc/machine/mips/memset.c'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/memset.c'; fi`
 @am__fastdepCCAS_TRUE@	$(AM_V_at)$(am__mv) libc/machine/mips/$(DEPDIR)/libc_a-memset.Tpo libc/machine/mips/$(DEPDIR)/libc_a-memset.Po
-@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='libc/machine/mips/memset.S' object='libc/machine/mips/libc_a-memset.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='libc/machine/mips/memset.c' object='libc/machine/mips/libc_a-memset.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-memset.obj `if test -f 'libc/machine/mips/memset.S'; then $(CYGPATH_W) 'libc/machine/mips/memset.S'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/memset.S'; fi`
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-memset.obj `if test -f 'libc/machine/mips/memset.c'; then $(CYGPATH_W) 'libc/machine/mips/memset.c'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/memset.c'; fi`
 
-libc/machine/mips/libc_a-memcpy.o: libc/machine/mips/memcpy.S
-@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mips/libc_a-memcpy.o -MD -MP -MF libc/machine/mips/$(DEPDIR)/libc_a-memcpy.Tpo -c -o libc/machine/mips/libc_a-memcpy.o `test -f 'libc/machine/mips/memcpy.S' || echo '$(srcdir)/'`libc/machine/mips/memcpy.S
+libc/machine/mips/libc_a-memcpy.o: libc/machine/mips/memcpy.c
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mips/libc_a-memcpy.o -MD -MP -MF libc/machine/mips/$(DEPDIR)/libc_a-memcpy.Tpo -c -o libc/machine/mips/libc_a-memcpy.o `test -f 'libc/machine/mips/memcpy.c' || echo '$(srcdir)/'`libc/machine/mips/memcpy.c
 @am__fastdepCCAS_TRUE@	$(AM_V_at)$(am__mv) libc/machine/mips/$(DEPDIR)/libc_a-memcpy.Tpo libc/machine/mips/$(DEPDIR)/libc_a-memcpy.Po
-@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='libc/machine/mips/memcpy.S' object='libc/machine/mips/libc_a-memcpy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='libc/machine/mips/memcpy.c' object='libc/machine/mips/libc_a-memcpy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-memcpy.o `test -f 'libc/machine/mips/memcpy.S' || echo '$(srcdir)/'`libc/machine/mips/memcpy.S
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-memcpy.o `test -f 'libc/machine/mips/memcpy.c' || echo '$(srcdir)/'`libc/machine/mips/memcpy.c
 
-libc/machine/mips/libc_a-memcpy.obj: libc/machine/mips/memcpy.S
-@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mips/libc_a-memcpy.obj -MD -MP -MF libc/machine/mips/$(DEPDIR)/libc_a-memcpy.Tpo -c -o libc/machine/mips/libc_a-memcpy.obj `if test -f 'libc/machine/mips/memcpy.S'; then $(CYGPATH_W) 'libc/machine/mips/memcpy.S'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/memcpy.S'; fi`
+libc/machine/mips/libc_a-memcpy.obj: libc/machine/mips/memcpy.c
+@am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mips/libc_a-memcpy.obj -MD -MP -MF libc/machine/mips/$(DEPDIR)/libc_a-memcpy.Tpo -c -o libc/machine/mips/libc_a-memcpy.obj `if test -f 'libc/machine/mips/memcpy.c'; then $(CYGPATH_W) 'libc/machine/mips/memcpy.c'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/memcpy.c'; fi`
 @am__fastdepCCAS_TRUE@	$(AM_V_at)$(am__mv) libc/machine/mips/$(DEPDIR)/libc_a-memcpy.Tpo libc/machine/mips/$(DEPDIR)/libc_a-memcpy.Po
-@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='libc/machine/mips/memcpy.S' object='libc/machine/mips/libc_a-memcpy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS)source='libc/machine/mips/memcpy.c' object='libc/machine/mips/libc_a-memcpy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCCAS_FALSE@	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-memcpy.obj `if test -f 'libc/machine/mips/memcpy.S'; then $(CYGPATH_W) 'libc/machine/mips/memcpy.S'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/memcpy.S'; fi`
+@am__fastdepCCAS_FALSE@	$(AM_V_CPPAS@am__nodep@)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -c -o libc/machine/mips/libc_a-memcpy.obj `if test -f 'libc/machine/mips/memcpy.c'; then $(CYGPATH_W) 'libc/machine/mips/memcpy.c'; else $(CYGPATH_W) '$(srcdir)/libc/machine/mips/memcpy.c'; fi`
 
 libc/machine/mn10200/libc_a-setjmp.o: libc/machine/mn10200/setjmp.S
 @am__fastdepCCAS_TRUE@	$(AM_V_CPPAS)$(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libc_a_CPPFLAGS) $(CPPFLAGS) $(libc_a_CCASFLAGS) $(CCASFLAGS) -MT libc/machine/mn10200/libc_a-setjmp.o -MD -MP -MF libc/machine/mn10200/$(DEPDIR)/libc_a-setjmp.Tpo -c -o libc/machine/mn10200/libc_a-setjmp.o `test -f 'libc/machine/mn10200/setjmp.S' || echo '$(srcdir)/'`libc/machine/mn10200/setjmp.S
